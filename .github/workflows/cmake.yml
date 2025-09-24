@@ -34,21 +34,11 @@ env:
   CFLAGS: "-Wall -pedantic -Wno-unused-variable -Wno-unused-function"
   CXXFLAGS: "-Wall -pedantic -Wno-unused-variable -Wno-unused-function"
   FFLAGS: "-fimplicit-none -fcheck=all"
-  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
-  blaspp_DIR: "${{github.workspace}}/blaspp"
-  lapackpp_DIR: "${{github.workspace}}/lapackpp"
-  mdspan_DIR: "${{github.workspace}}/mdspan"
-  eigen_DIR: "${{github.workspace}}/eigen"
 
 jobs:
   build-all-os:
-    # Use GNU compilers
-
-    # The CMake configure and build commands are platform agnostic and should work equally
-    # well on Windows or Mac.  You can convert this to a matrix build if you need
-    # cross-platform coverage.
-    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    # Cross-platform builds with comprehensive testing
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -77,208 +67,99 @@ jobs:
       - name: Checkout <T>LAPACK
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - name: Checkout mdspan
-        if: ${{ matrix.os == 'ubuntu-latest' && matrix.cpp-version != 23 }}
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Setup dependencies
+        uses: ./.github/actions/setup-dependencies
         with:
-          repository: kokkos/mdspan
-          ref: cc9aaea9a7d36c3163523a0e36fab85bba985a66 # v0.4.0
-          path: mdspan
+          os: ${{ matrix.os }}
+          install-extras: ${{ (matrix.os == 'ubuntu-latest' && 'mpfr') || '' }}
 
-      - name: Checkout Eigen
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: |
-          git clone https://gitlab.com/libeigen/eigen.git
-          cd eigen
-          git checkout 2873916f1ca24e3282bf6e0150545d34a16b5224 # master in Aug 21, 2023
+      - name: Setup external libraries
+        uses: ./.github/actions/setup-external-libs
+        with:
+          libraries: ${{ (matrix.os == 'ubuntu-latest' && (matrix.cpp-version != '23' && 'mdspan,eigen' || 'eigen')) || '' }}
+          cpp-version: ${{ matrix.cpp-version }}
 
-      - name: Install ninja-build tool
-        uses: seanmiddleditch/gha-setup-ninja@3b1f8f94a2f8254bd26914c4ab9474d4f0015f67 # v6
+      - name: Configure TLAPACK
+        uses: ./.github/actions/configure-tlapack
+        with:
+          build-type: ${{ matrix.build-type }}
+          shared-libs: ${{ matrix.shared }}
+          cpp-version: ${{ matrix.cpp-version }}
+          compiler-setup: ${{ (matrix.os == 'macos-latest' && 'macos') || (matrix.os == 'windows-latest' && 'windows') || 'ubuntu' }}
+          extra-options: >-
+            ${{ (matrix.os == 'ubuntu-latest' && '-D TLAPACK_TEST_EIGEN=ON -D TLAPACK_TEST_MPFR=ON -D TLAPACK_TEST_QUAD=ON') || '' }}
+            ${{ ((matrix.os == 'ubuntu-latest' && matrix.cpp-version != '23') && ' -D TLAPACK_TEST_MDSPAN=ON') || '' }}
+            ${{ ((matrix.os == 'ubuntu-latest' && matrix.build-type == 'Release') && ' -D BUILD_BLASPP_TESTS=ON -D BUILD_LAPACKPP_TESTS=ON') || '' }}
 
-      - name: Install the Basics
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: |
-          sudo apt update
-          sudo apt install -y cmake
-          sudo apt install -y gfortran
-          sudo apt install -y liblapacke-dev
-          sudo apt install -y libmpfrc++-dev
+      - name: Test TLAPACK
+        uses: ./.github/actions/test-tlapack
+        with:
+          build-type: ${{ matrix.build-type }}
+          os: ${{ matrix.os }}
 
-      - name: Install GCC on MacOS
-        if: ${{ matrix.os == 'macos-latest' }}
-        run: |
-          brew install gcc
-
-      - name: Build and install Eigen on Ubuntu
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        working-directory: ${{env.eigen_DIR}}
-        run: |
-          cmake -B build -G Ninja
-          sudo cmake --build build --target install
-
-      - name: Build and install mdspan on Ubuntu
-        if: ${{ matrix.os == 'ubuntu-latest' && matrix.cpp-version != 23 }}
-        working-directory: ${{env.mdspan_DIR}}
-        run: |
-          cmake -B build -G Ninja
-          sudo cmake --build build --target install
-
-      - name: Specific configurations for CMake on Ubuntu
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: >
-          cmake -B build -G Ninja
-          -D TLAPACK_TEST_EIGEN=ON
-          -D TLAPACK_TEST_MPFR=ON
-          -D TLAPACK_TEST_QUAD=ON
-
-      - name: Specific configurations for CMake on Ubuntu C++ < 23
-        if: ${{ matrix.os == 'ubuntu-latest' && matrix.cpp-version != 23 }}
-        run: >
-          cmake -B build -G Ninja
-          -D TLAPACK_TEST_MDSPAN=ON
-
-      - name: Specific configurations for CMake on Ubuntu in Release mode
-        if: ${{ matrix.os == 'ubuntu-latest' && matrix.build-type == 'Release' }}
-        run: >
-          cmake -B build -G Ninja
-          -D BUILD_BLASPP_TESTS=ON
-          -D BUILD_LAPACKPP_TESTS=ON
-
-      - name: Specific configurations for CMake on MacOS
-        if: ${{ matrix.os == 'macos-latest' }}
-        run: >
-          cmake -B build -G Ninja
-          -D CMAKE_C_COMPILER="gcc-14"
-          -D CMAKE_CXX_COMPILER="g++-14"
-          -D CMAKE_Fortran_COMPILER="gfortran-14"
-          -D TLAPACK_TEST_QUAD=ON
-
-      - name: Specific configurations for CMake on Windows
-        if: ${{ matrix.os == 'windows-latest' }}
-        run: >
-          cmake -B build -G Ninja
-          -D CMAKE_C_COMPILER="gcc"
-          -D CMAKE_CXX_COMPILER="g++"
-          -D CMAKE_Fortran_COMPILER="gfortran"
-
-      - name: Configure CMake on all platforms
-        # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
-        # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-        run: >
-          cmake -B build
-          -D CMAKE_BUILD_TYPE=${{matrix.build-type}}
-          -D CMAKE_INSTALL_PREFIX="${{github.workspace}}/tlapack_install"
-          -D CMAKE_CXX_STANDARD=${{matrix.cpp-version}}
-          -D BUILD_SHARED_LIBS=${{matrix.shared}}
-          -D BUILD_EXAMPLES=ON
-          -D BUILD_TESTING=ON
-          -D BUILD_STANDALONE_TESTS=ON
-          -D BUILD_C_WRAPPERS=ON
-          -D BUILD_Fortran_WRAPPERS=ON
-          -D BUILD_CBLAS_WRAPPERS=ON
-
-      - name: Build
-        # Build your program with the given configuration
-        run: cmake --build build --config ${{matrix.build-type}}
-
-      - name: Run all examples
-        run: cmake --build build --target run-all-examples
-
-      - name: Run tests
-        working-directory: ${{github.workspace}}/build
-        # Execute tests defined by the CMake configuration.
-        # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-        run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
-
-      - name: Run some standalone tests
-        if: ${{ matrix.os != 'windows-latest' }}
-        working-directory: ${{github.workspace}}
-        run: ./build/test/src/standalone_test_hessenberg < test/src/input/test_hessenberg_float_1.in
-
-      - name: Run some standalone tests on Windows
-        if: ${{ matrix.os == 'windows-latest' }}
-        working-directory: ${{github.workspace}}
-        run: Get-Content test/src/input/test_hessenberg_float_1.in | ./build/test/src/standalone_test_hessenberg
-
-      - name: Install
-        run: cmake --build build --target install
-
-  build-with-openblas:
-    # Use GNU compilers
-
+  build-with-external-blas:
+    # Build with different BLAS implementations
+    # Note: LAPACK++ and testBLAS tests are allowed to fail without failing the job
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        blas-vendor: [OpenBLAS, MKL, BLIS]
+        include:
+          - blas-vendor: OpenBLAS
+            install-extras: openblas
+            cmake-flags: '-D CMAKE_CXX_FLAGS="$CXXFLAGS -D LAPACK_FORTRAN_ADD_"'
+          - blas-vendor: MKL
+            install-extras: mkl
+            cmake-flags: ""
+          - blas-vendor: BLIS
+            install-extras: blis
+            cmake-flags: '-D CMAKE_CXX_FLAGS="$CXXFLAGS -D LAPACK_FORTRAN_ADD_"'
+            extra-libraries: lapack
+
     steps:
       - name: Checkout <T>LAPACK
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - name: Checkout BLAS++
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Setup dependencies
+        uses: ./.github/actions/setup-dependencies
         with:
-          repository: icl-utk-edu/blaspp
-          ref: 3c47832f5162b5215b2164c21c4132544c65563d # v2023.11.05
-          path: blaspp
+          os: ubuntu-latest
+          install-extras: ${{ matrix.install-extras }}
 
-      - name: Checkout LAPACK++
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Setup external libraries
+        uses: ./.github/actions/setup-external-libs
         with:
-          repository: icl-utk-edu/lapackpp
-          ref: e3aa0156b873d1e1349d083d7e5b66cfbdf9fb08 # v2023.11.05
-          path: lapackpp
+          libraries: blaspp,lapackpp${{ matrix.extra-libraries && ',lapack' || '' }}
+          bla-vendor: ${{ matrix.blas-vendor }}
 
-      - name: Install ninja-build tool
-        uses: seanmiddleditch/gha-setup-ninja@3b1f8f94a2f8254bd26914c4ab9474d4f0015f67 # v6
+      - name: Configure TLAPACK
+        uses: ./.github/actions/configure-tlapack
+        with:
+          build-type: ${{ env.BUILD_TYPE }}
+          extra-options: >-
+            ${{ matrix.cmake-flags }}
+            -D TLAPACK_USE_LAPACKPP=ON
+            -D BUILD_LAPACKPP_TESTS=OFF
+            -D BUILD_testBLAS_TESTS=OFF
+            ${{ (matrix.extra-libraries && '-D CMAKE_PREFIX_PATH=${{github.workspace}}/lapack') || '' }}
 
-      - name: Install the Basics
+      - name: Test TLAPACK
+        uses: ./.github/actions/test-tlapack
+        with:
+          build-type: ${{ env.BUILD_TYPE }}
+          run-examples: "false"
+
+      - name: Build and run additional tests
         run: |
-          sudo apt update
-          sudo apt install -y cmake
-          sudo apt install -y gfortran
-          sudo apt install -y liblapacke-dev
-          sudo apt install -y libopenblas-dev
-
-      - name: Build and install BLAS++
-        working-directory: ${{env.blaspp_DIR}}
-        run: |
-          cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBLA_VENDOR=OpenBLAS -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.blaspp_DIR}}
-          cmake --build build --target install
-
-      - name: Build and install LAPACK++
-        working-directory: ${{env.lapackpp_DIR}}
-        run: |
-          cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBLA_VENDOR=OpenBLAS -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.lapackpp_DIR}} -D CMAKE_CXX_FLAGS="${{env.CXXFLAGS}} -D LAPACK_FORTRAN_ADD_"
-          cmake --build build --target install
-
-      - name: Configure CMake for <T>LAPACK
-        run: >
-          cmake -B build -G Ninja
-          -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-          -D CMAKE_CXX_FLAGS="${{env.CXXFLAGS}} -D LAPACK_FORTRAN_ADD_"
-          -D BUILD_SHARED_LIBS=ON
-          -D BUILD_EXAMPLES=ON
-          -D BUILD_TESTING=ON
-          -D BUILD_STANDALONE_TESTS=ON
-          -D BUILD_C_WRAPPERS=ON
-          -D BUILD_Fortran_WRAPPERS=ON
-          -D BUILD_CBLAS_WRAPPERS=ON
-          -D TLAPACK_USE_LAPACKPP=ON
-          -D BUILD_LAPACKPP_TESTS=OFF
-          -D BUILD_testBLAS_TESTS=OFF
-
-      - name: Build <T>LAPACK
-        run: cmake --build build --config ${{env.BUILD_TYPE}}
-
-      - name: Run tests
-        working-directory: ${{github.workspace}}/build
-        run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
-
-      - name: Build LAPACK++ tests
-        run: |
+          # Build LAPACK++ tests
           cmake -B build -D BUILD_LAPACKPP_TESTS=ON
           cmake --build build --config ${{env.BUILD_TYPE}}
 
       # Mind that the job won't fail if only this step fails
       - name: Run LAPACK++ tests
-        working-directory: ${{github.workspace}}/build
+        working-directory: build
         continue-on-error: true
         run: ctest -C ${{env.BUILD_TYPE}} -R lapackpp_test --output-on-failure
 
@@ -289,7 +170,7 @@ jobs:
 
       # Mind that the job won't fail if only this step fails
       - name: Run testBLAS tests
-        working-directory: ${{github.workspace}}/build/test/testBLAS
+        working-directory: build/test/testBLAS
         continue-on-error: true
         run: ./testBLAS -r Automake
 
@@ -297,356 +178,88 @@ jobs:
         run: sudo cmake --build build --target install
 
   build-test-performance:
-    # Use GNU compilers
-
+    # Performance testing build
     runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
 
     steps:
       - name: Checkout <T>LAPACK
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - name: Checkout BLAS++
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Setup dependencies
+        uses: ./.github/actions/setup-dependencies
         with:
-          repository: icl-utk-edu/blaspp
-          ref: 3c47832f5162b5215b2164c21c4132544c65563d # v2023.11.05
-          path: blaspp
+          os: ubuntu-latest
 
-      - name: Checkout LAPACK++
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Setup external libraries
+        uses: ./.github/actions/setup-external-libs
         with:
-          repository: icl-utk-edu/lapackpp
-          ref: e3aa0156b873d1e1349d083d7e5b66cfbdf9fb08 # v2023.11.05
-          path: lapackpp
+          libraries: blaspp,lapackpp
 
-      - name: Install ninja-build tool
-        uses: seanmiddleditch/gha-setup-ninja@3b1f8f94a2f8254bd26914c4ab9474d4f0015f67 # v6
-
-      - name: Install the Basics
-        run: |
-          sudo apt update
-          sudo apt install -y cmake
-          sudo apt install -y liblapack-dev
-
-      - name: Build and install BLAS++
-        working-directory: ${{env.blaspp_DIR}}
-        run: |
-          cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.blaspp_DIR}}
-          cmake --build build --target install
-
-      - name: Build and install LAPACK++
-        working-directory: ${{env.lapackpp_DIR}}
-        run: |
-          cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.lapackpp_DIR}}
-          cmake --build build --target install
-
-      - name: Configure CMake
-        run: >
-          cmake -B build -G Ninja
-          -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-          -D BUILD_SHARED_LIBS=ON
-          -D BUILD_EXAMPLES=OFF
-          -D BUILD_TESTING=OFF
-          -D TLAPACK_USE_LAPACKPP=ON
-          -D TLAPACK_NDEBUG=ON
+      - name: Configure TLAPACK
+        uses: ./.github/actions/configure-tlapack
+        with:
+          build-type: ${{ env.BUILD_TYPE }}
+          enable-testing: "OFF"
+          enable-examples: "OFF"
+          extra-options: >-
+            -D TLAPACK_USE_LAPACKPP=ON
+            -D TLAPACK_NDEBUG=ON
 
       - name: Build and Install
-        # Build your program with the given configuration
-        run: sudo cmake --build build --config ${{env.BUILD_TYPE}}  --target install
+        run: sudo cmake --build build --config ${{env.BUILD_TYPE}} --target install
 
-      - name: Install LAPACKE on Ubuntu
+      - name: Install LAPACKE
         run: sudo apt install -y liblapacke-dev
 
-      - name: Build and run example comparing performance
-        working-directory: ${{github.workspace}}/examples/potrf
+      - name: Build and run performance example
+        working-directory: examples/potrf
         run: |
           cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           cmake --build build --target all
           ./build/example_potrf
 
-  build-with-mkl:
-    # Use Intel compilers
-
+  build-debug-with-lapackpp:
+    # Debug build with comprehensive testing
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout <T>LAPACK
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - name: Checkout BLAS++
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Setup dependencies
+        uses: ./.github/actions/setup-dependencies
         with:
-          repository: icl-utk-edu/blaspp
-          ref: 3c47832f5162b5215b2164c21c4132544c65563d # v2023.11.05
-          path: blaspp
+          os: ubuntu-latest
 
-      - name: Checkout LAPACK++
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Setup external libraries
+        uses: ./.github/actions/setup-external-libs
         with:
-          repository: icl-utk-edu/lapackpp
-          ref: e3aa0156b873d1e1349d083d7e5b66cfbdf9fb08 # v2023.11.05
-          path: lapackpp
+          libraries: blaspp,lapackpp
+          build-type: Debug
 
-      - name: Install ninja-build tool
-        uses: seanmiddleditch/gha-setup-ninja@3b1f8f94a2f8254bd26914c4ab9474d4f0015f67 # v6
+      - name: Configure TLAPACK
+        uses: ./.github/actions/configure-tlapack
+        with:
+          build-type: Debug
+          extra-options: >-
+            -D TLAPACK_USE_LAPACKPP=ON
+            -D BUILD_BLASPP_TESTS=ON
+            -D BUILD_LAPACKPP_TESTS=ON
+            -D BUILD_testBLAS_TESTS=OFF
 
-      - name: Intel Apt repository
-        timeout-minutes: 1
-        run: |
-          # download the key to system keyring
-          wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB | gpg --dearmor | sudo tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null
-          # add signed entry to apt sources and configure the APT client to use Intel repository:
-          echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
-          sudo apt update
+      - name: Test TLAPACK
+        uses: ./.github/actions/test-tlapack
+        with:
+          build-type: Debug
 
-      - name: Install the Basics
-        run: |
-          sudo apt update
-          sudo apt install -y cmake
-          sudo apt install -y liblapacke-dev
-          sudo apt install -y intel-oneapi-mkl
-
-      - name: Setup Intel oneAPI environment
-        run: |
-          source /opt/intel/oneapi/setvars.sh
-          printenv >> $GITHUB_ENV
-
-      - name: Build and install BLAS++
-        working-directory: ${{env.blaspp_DIR}}
-        run: |
-          cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.blaspp_DIR}}
-          cmake --build build --target install
-
-      - name: Build and install LAPACK++
-        working-directory: ${{env.lapackpp_DIR}}
-        run: |
-          cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.lapackpp_DIR}}
-          cmake --build build --target install
-
-      - name: Configure CMake for <T>LAPACK
-        run: >
-          cmake -B build -G Ninja
-          -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-          -D BUILD_SHARED_LIBS=ON
-          -D BUILD_EXAMPLES=ON
-          -D BUILD_TESTING=ON
-          -D BUILD_STANDALONE_TESTS=ON
-          -D BUILD_C_WRAPPERS=ON
-          -D BUILD_Fortran_WRAPPERS=ON
-          -D BUILD_CBLAS_WRAPPERS=ON
-          -D TLAPACK_USE_LAPACKPP=ON
-          -D BUILD_LAPACKPP_TESTS=OFF
-          -D BUILD_testBLAS_TESTS=OFF
-
-      - name: Build <T>LAPACK
-        run: cmake --build build --config ${{env.BUILD_TYPE}}
-
-      - name: Run tests
-        working-directory: ${{github.workspace}}/build
-        run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
-
-      - name: Build LAPACK++ tests
-        run: |
-          cmake -B build -D BUILD_LAPACKPP_TESTS=ON
-          cmake --build build --config ${{env.BUILD_TYPE}}
-
-      # Mind that the job won't fail if only this step fails
-      - name: Run LAPACK++ tests
-        working-directory: ${{github.workspace}}/build
-        continue-on-error: true
-        run: ctest -C ${{env.BUILD_TYPE}} -R lapackpp_test --output-on-failure
-
-      - name: Build testBLAS tests
+      - name: Build and run testBLAS tests
         run: |
           cmake -B build -D BUILD_testBLAS_TESTS=ON
-          cmake --build build --config ${{env.BUILD_TYPE}}
+          cmake --build build --config Debug
 
       # Mind that the job won't fail if only this step fails
       - name: Run testBLAS tests
-        working-directory: ${{github.workspace}}/build/test/testBLAS
-        continue-on-error: true
-        run: ./testBLAS -r Automake
-
-      - name: Install
-        run: sudo cmake --build build --target install
-
-  build-with-blis:
-    # Use GNU compilers
-
-    env:
-      blis_DIR: ${{github.workspace}}/blis
-      lapack_DIR: ${{github.workspace}}/lapack
-      LD_LIBRARY_PATH: "/usr/local/lib/"
-
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout <T>LAPACK
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-
-      - name: Checkout BLAS++
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          repository: icl-utk-edu/blaspp
-          ref: 3c47832f5162b5215b2164c21c4132544c65563d # v2023.11.05
-          path: blaspp
-
-      - name: Checkout LAPACK++
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          repository: icl-utk-edu/lapackpp
-          ref: 993b8cbdcad582496c3f56535c48eaca23dc1f16 # v2023.11.05+
-          path: lapackpp
-
-      - name: Checkout LAPACK
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          repository: Reference-LAPACK/lapack
-          ref: 7866626840f5d5e7e27f027a55182da8b3303872 # v3.11.0
-          path: lapack
-
-      - name: Install ninja-build tool
-        uses: seanmiddleditch/gha-setup-ninja@3b1f8f94a2f8254bd26914c4ab9474d4f0015f67 # v6
-
-      - name: Install the Basics
-        run: |
-          sudo apt update
-          sudo apt install -y cmake
-          sudo apt install -y gfortran
-          sudo apt install -y libblis-dev
-
-      - name: Build and install LAPACK
-        working-directory: ${{env.lapack_DIR}}
-        run: |
-          cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -D CMAKE_INSTALL_PREFIX=${{env.lapack_DIR}} -D USE_OPTIMIZED_BLAS=ON -D BLA_VENDOR=FLAME -D LAPACKE=ON -D CBLAS=ON
-          cmake --build build --target install
-
-      - name: Build and install BLAS++
-        working-directory: ${{env.blaspp_DIR}}
-        run: |
-          cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBLA_VENDOR=FLAME -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.blaspp_DIR}} -D CMAKE_CXX_FLAGS="${{env.CXXFLAGS}} -D LAPACK_FORTRAN_ADD_" -D LAPACK_LIBRARIES="${{env.lapack_DIR}}/lib/liblapack.a;-lm;-lgfortran"
-          cmake --build build --target install
-
-      - name: Build and install LAPACK++
-        working-directory: ${{env.lapackpp_DIR}}
-        run: |
-          cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.lapackpp_DIR}} -D CMAKE_CXX_FLAGS="${{env.CXXFLAGS}} -D LAPACK_FORTRAN_ADD_" -D LAPACK_LIBRARIES="${{env.lapack_DIR}}/lib/liblapack.a;-lm;-lgfortran" -D CMAKE_MESSAGE_LOG_LEVEL=TRACE
-          cmake --build build --target install
-
-      - name: Configure CMake for <T>LAPACK
-        run: >
-          cmake -B build -G Ninja
-          -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-          -D CMAKE_PREFIX_PATH="${{env.lapack_DIR}}"
-          -D CMAKE_CXX_FLAGS="${{env.CXXFLAGS}} -D LAPACK_FORTRAN_ADD_"
-          -D BUILD_SHARED_LIBS=ON
-          -D BUILD_EXAMPLES=ON
-          -D BUILD_TESTING=ON
-          -D BUILD_STANDALONE_TESTS=ON
-          -D BUILD_C_WRAPPERS=ON
-          -D BUILD_Fortran_WRAPPERS=ON
-          -D BUILD_CBLAS_WRAPPERS=ON
-          -D TLAPACK_USE_LAPACKPP=ON
-          -D BUILD_LAPACKPP_TESTS=OFF
-          -D BUILD_testBLAS_TESTS=OFF
-
-      - name: Build <T>LAPACK
-        run: cmake --build build --config ${{env.BUILD_TYPE}}
-
-      - name: Run tests
-        working-directory: ${{github.workspace}}/build
-        run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
-
-      - name: Build testBLAS tests
-        run: |
-          cmake -B build -D BUILD_testBLAS_TESTS=ON
-          cmake --build build --config ${{env.BUILD_TYPE}}
-
-      # Mind that the job won't fail if only this step fails
-      - name: Run testBLAS tests
-        working-directory: ${{github.workspace}}/build/test/testBLAS
-        continue-on-error: true
-        run: ./testBLAS -r Automake
-
-      - name: Install
-        run: sudo cmake --build build --target install
-
-  build-in-debug-mode-with-lapackpp:
-    # Use GNU compilers
-
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout <T>LAPACK
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-
-      - name: Checkout BLAS++
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          repository: icl-utk-edu/blaspp
-          ref: 3c47832f5162b5215b2164c21c4132544c65563d # v2023.11.05
-          path: blaspp
-
-      - name: Checkout LAPACK++
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          repository: icl-utk-edu/lapackpp
-          ref: e3aa0156b873d1e1349d083d7e5b66cfbdf9fb08 # v2023.11.05
-          path: lapackpp
-
-      - name: Install ninja-build tool
-        uses: seanmiddleditch/gha-setup-ninja@3b1f8f94a2f8254bd26914c4ab9474d4f0015f67 # v6
-
-      - name: Install the Basics
-        run: |
-          sudo apt update
-          sudo apt install -y cmake
-          sudo apt install -y gfortran
-          sudo apt install -y liblapack-dev liblapacke-dev
-
-      - name: Build and install BLAS++
-        working-directory: ${{env.blaspp_DIR}}
-        run: |
-          cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=Debug -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.blaspp_DIR}}
-          cmake --build build --target install
-
-      - name: Build and install LAPACK++
-        working-directory: ${{env.lapackpp_DIR}}
-        run: |
-          cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=Debug -Dbuild_tests=OFF -DCMAKE_INSTALL_PREFIX=${{env.lapackpp_DIR}}
-          cmake --build build --target install
-
-      - name: Configure CMake for <T>LAPACK
-        run: >
-          cmake -B build -G Ninja
-          -D CMAKE_BUILD_TYPE=Debug
-          -D BUILD_SHARED_LIBS=ON
-          -D BUILD_EXAMPLES=ON
-          -D BUILD_TESTING=ON
-          -D BUILD_STANDALONE_TESTS=ON
-          -D BUILD_C_WRAPPERS=ON
-          -D BUILD_Fortran_WRAPPERS=ON
-          -D BUILD_CBLAS_WRAPPERS=ON
-          -D TLAPACK_USE_LAPACKPP=ON
-          -D BUILD_BLASPP_TESTS=ON
-          -D BUILD_LAPACKPP_TESTS=ON
-          -D BUILD_testBLAS_TESTS=OFF
-
-      - name: Build <T>LAPACK
-        run: cmake --build build --config Debug
-
-      - name: Run tests
-        working-directory: ${{github.workspace}}/build
-        run: ctest -C Debug --output-on-failure
-
-      - name: Build testBLAS tests
-        run: |
-          cmake -B build -D BUILD_testBLAS_TESTS=ON
-          cmake --build build --config ${{env.BUILD_TYPE}}
-
-      # Mind that the job won't fail if only this step fails
-      - name: Run testBLAS tests
-        working-directory: ${{github.workspace}}/build/test/testBLAS
+        working-directory: build/test/testBLAS
         continue-on-error: true
         run: ./testBLAS -r Automake
 
@@ -654,70 +267,45 @@ jobs:
         run: sudo cmake --build build --target install
 
   build-examples-separately:
-    # Use clang and GNU compilers
+    # Build examples separately with different compilers
+    runs-on: ubuntu-latest
 
     env:
       CXX: clang++
       CXXFLAGS: "-Wall -Wpedantic -Wno-unused-variable -Wno-unused-function -std=c++17"
       FFLAGS: "-fcheck=all"
 
-    runs-on: ubuntu-latest
     steps:
       - name: Checkout <T>LAPACK
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - name: Checkout mdspan
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Setup dependencies
+        uses: ./.github/actions/setup-dependencies
         with:
-          repository: kokkos/mdspan
-          ref: cc9aaea9a7d36c3163523a0e36fab85bba985a66 # v0.4.0
-          path: mdspan
+          os: ubuntu-latest
 
-      - name: Checkout Eigen
-        run: |
-          git clone https://gitlab.com/libeigen/eigen.git
-          cd eigen
-          git checkout 2873916f1ca24e3282bf6e0150545d34a16b5224 # master in Aug 21, 2023
+      - name: Install clang
+        run: sudo apt install -y clang libblas-dev liblapack-dev
 
-      - name: Install ninja-build tool
-        uses: seanmiddleditch/gha-setup-ninja@3b1f8f94a2f8254bd26914c4ab9474d4f0015f67 # v6
+      - name: Setup external libraries
+        uses: ./.github/actions/setup-external-libs
+        with:
+          libraries: mdspan,eigen
 
-      - name: Install the Basics
-        run: |
-          sudo apt update
-          sudo apt install -y cmake
-          sudo apt install -y clang
-          sudo apt install -y gfortran
-          sudo apt install -y libblas-dev liblapack-dev liblapacke-dev
+      - name: Configure TLAPACK
+        uses: ./.github/actions/configure-tlapack
+        with:
+          build-type: Debug
+          enable-testing: "OFF"
+          enable-examples: "OFF"
 
-      - name: Build and install Eigen on Ubuntu
-        working-directory: ${{env.eigen_DIR}}
-        run: |
-          cmake -B build -G Ninja
-          sudo cmake --build build --target install
-
-      - name: Build and install mdspan on Ubuntu
-        working-directory: ${{env.mdspan_DIR}}
-        run: |
-          cmake -B build -G Ninja
-          sudo cmake --build build --target install
-
-      - name: Configure CMake for <T>LAPACK
-        run: >
-          cmake -B build -G Ninja
-          -D CMAKE_BUILD_TYPE=Debug
-          -D BUILD_SHARED_LIBS=ON
-          -D BUILD_EXAMPLES=OFF
-          -D BUILD_TESTING=OFF
-          -D BUILD_C_WRAPPERS=ON
-          -D BUILD_Fortran_WRAPPERS=ON
-          -D BUILD_CBLAS_WRAPPERS=ON
-
-      - name: Build <T>LAPACK
-        run: cmake --build build --config Debug
-
-      - name: Install
-        run: sudo cmake --build build --target install
+      - name: Test TLAPACK
+        uses: ./.github/actions/test-tlapack
+        with:
+          build-type: Debug
+          run-examples: "false"
+          run-tests: "false"
+          run-standalone-tests: "false"
 
       - name: Build and run examples using CMake
         run: |
@@ -725,46 +313,39 @@ jobs:
           exec=("example_accessTypes" "cpp_visualizer_example" "example_create_float_library" "example_cwrapper_gemm" "example_eigen" "example_eigenvalues" "example_fortranModule_caxpy" "example_fortranModule_ssymm" "example_gemm" "example_geqr2" "example_lu" "example_mdspan" "performance_tlapack" "example_potrf" "example_interoperability")
           for i in ${!directory[@]}; do
             cd ${{github.workspace}}/examples/${directory[$i]}
-            echo "-----------------------------------"
-            pwd
-            echo "-----------------------------------"
+            echo "Building and running ${directory[$i]}"
             cmake -B build -G Ninja
             cmake --build build --config Debug
-            echo "./build/${exec[$i]}"
             ./build/${exec[$i]}
-            echo "-----------------------------------"
           done
 
-      - name: Build and run example access_types using Makefile
+      - name: Build and run examples using Makefile
         run: |
-          ldconfig -p | grep libgfortran
           directory=("access_types" "create_float_library" "cwrapper_gemm" "eigen" "eigenvalues" "fortranModule_caxpy" "fortranModule_ssymm" "gemm" "geqr2" "mdspan" "performance_eigen" "extreme_interoperability")
           exec=("example_accessTypes" "example_create_float_library" "example_cwrapper_gemm" "example_eigen" "example_eigenvalues" "example_fortranModule_caxpy" "example_fortranModule_ssymm" "example_gemm" "example_geqr2" "example_mdspan" "performance_tlapack" "example_interoperability")
           ldflags=("" "" "-ltlapack_c -Wl,-rpath=/usr/local/lib" "" "-llapack -lblas -lm /lib/x86_64-linux-gnu/libgfortran.so.5" "-ltlapack_fortran -ltlapack_c -Wl,-rpath=/usr/local/lib /lib/x86_64-linux-gnu/libgfortran.so.5" "-ltlapack_fortran -ltlapack_c -Wl,-rpath=/usr/local/lib /lib/x86_64-linux-gnu/libgfortran.so.5" "" "" "" "")
-          export CXXFLAGS="${{env.CXXFLAGS}} -I/usr/local/include/eigen3"
-          export FFLAGS="${{env.FFLAGS}} -I/usr/local/include/tlapack/fortran"
+
+          export CXXFLAGS="$CXXFLAGS -I/usr/local/include/eigen3"
+          export FFLAGS="$FFLAGS -I/usr/local/include/tlapack/fortran"
           export LD="clang++"
+
           for i in ${!directory[@]}; do
             cd ${{github.workspace}}/examples/${directory[$i]}
-            echo "-----------------------------------"
-            pwd
-            echo "-----------------------------------"
+            echo "Building and running ${directory[$i]} with Makefile"
             export LDFLAGS=${ldflags[$i]}
             rm -rf make.inc
             make
-            echo "./${exec[$i]}"
             ./${exec[$i]}
-            echo "-----------------------------------"
           done
 
   build-with-starpu:
-    # Use GNU compilers
+    # Build with StarPU for task-based parallelism
+    runs-on: ubuntu-latest
 
     env:
       starpu_DIR: ${{github.workspace}}/starpu
       PKG_CONFIG_PATH: ${{github.workspace}}/starpu/build/lib/pkgconfig
 
-    runs-on: ubuntu-latest
     steps:
       - name: Checkout <T>LAPACK
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -776,19 +357,13 @@ jobs:
           ref: 87155272bc43821a89ae62ba0f6b55a105ccba4c # v1.4.1
           path: starpu
 
-      - name: Install ninja-build tool
-        uses: seanmiddleditch/gha-setup-ninja@3b1f8f94a2f8254bd26914c4ab9474d4f0015f67 # v6
+      - name: Setup dependencies
+        uses: ./.github/actions/setup-dependencies
+        with:
+          os: ubuntu-latest
+          install-extras: starpu
 
-      - name: Install the Basics
-        run: |
-          sudo apt update
-          sudo apt install -y cmake
-          sudo apt install -y gfortran
-          sudo apt install -y pkg-config
-          sudo apt install -y liblapacke-dev
-          sudo apt install -y libtool-bin libhwloc-dev g++ libudev-dev
-
-      - name: Build and install StarPU on Ubuntu
+      - name: Build and install StarPU
         working-directory: ${{env.starpu_DIR}}
         run: |
           ./autogen.sh
@@ -796,44 +371,32 @@ jobs:
           make
           make install
 
-      - name: Configure <T>LAPACK
-        run: >
-          cmake -B build -G Ninja
-          -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-          -D BUILD_EXAMPLES=OFF
-          -D BUILD_TESTING=OFF
+      - name: Configure TLAPACK
+        uses: ./.github/actions/configure-tlapack
+        with:
+          build-type: ${{ env.BUILD_TYPE }}
+          enable-testing: "OFF"
+          enable-examples: "OFF"
 
-      - name: Install <T>LAPACK
+      - name: Install TLAPACK
         run: sudo cmake --build build --config ${{env.BUILD_TYPE}} --target install
 
-      - name: Build examples with StarPU
-        working-directory: ${{github.workspace}}/examples/starpu
+      - name: Build and run StarPU examples
+        working-directory: examples/starpu
         run: |
           cmake -B build -G Ninja -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           cmake --build build --target all
 
-      - name: Run example LU
-        working-directory: ${{github.workspace}}/examples/starpu/build
-        run: |
-          echo "\nRunning example_lu 10 8 10 8 level 0 ---------------------------"
+          echo "Running StarPU LU examples"
+          cd build
           ./example_starpu_lu 10 8 10 8 0
-          echo "\nRunning example_lu 10 8 10 8 recursive -------------------------"
           ./example_starpu_lu 10 8 10 8 recursive
-          echo "\nRunning example_lu 9 24 9 24 recursive -------------------------"
           ./example_starpu_lu 9 24 9 24 recursive
-          echo "\nRunning example_lu 9 24 3 24 level 0 ---------------------------"
           ./example_starpu_lu 9 24 3 24
-          echo "\nRunning example_lu 9 24 9 8 level 0 ----------------------------"
           ./example_starpu_lu 9 24 9 8
 
-      - name: Run example GEMM
-        working-directory: ${{github.workspace}}/examples/starpu/build
-        run: |
-          echo "\nRunning example_gemm -------------------------------------------"
+          echo "Running StarPU GEMM example"
           ./example_starpu_gemm
 
-      - name: Run example POTRF
-        working-directory: ${{github.workspace}}/examples/starpu/build
-        run: |
-          echo "\nRunning example_potrf ------------------------------------------"
+          echo "Running StarPU POTRF example"
           ./example_starpu_potrf

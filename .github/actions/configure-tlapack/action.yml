@@ -1,0 +1,71 @@
+name: "Configure TLAPACK"
+description: "Configure TLAPACK with CMake"
+inputs:
+  build-type:
+    description: "Build type"
+    required: true
+  shared-libs:
+    description: "Build shared libraries"
+    required: false
+    default: "ON"
+  cpp-version:
+    description: "C++ standard version"
+    required: false
+    default: "17"
+  enable-testing:
+    description: "Enable testing"
+    required: false
+    default: "ON"
+  enable-examples:
+    description: "Enable examples"
+    required: false
+    default: "ON"
+  extra-options:
+    description: "Extra CMake options"
+    required: false
+    default: ""
+  compiler-setup:
+    description: "Compiler setup (ubuntu, macos, windows)"
+    required: false
+    default: "ubuntu"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Configure CMake base options
+      shell: bash
+      run: |
+        CMAKE_ARGS="-B build -G Ninja"
+        CMAKE_ARGS="$CMAKE_ARGS -D CMAKE_BUILD_TYPE=${{ inputs.build-type }}"
+        CMAKE_ARGS="$CMAKE_ARGS -D CMAKE_INSTALL_PREFIX=${{github.workspace}}/tlapack_install"
+        CMAKE_ARGS="$CMAKE_ARGS -D CMAKE_CXX_STANDARD=${{ inputs.cpp-version }}"
+        CMAKE_ARGS="$CMAKE_ARGS -D BUILD_SHARED_LIBS=${{ inputs.shared-libs }}"
+        CMAKE_ARGS="$CMAKE_ARGS -D BUILD_EXAMPLES=${{ inputs.enable-examples }}"
+        CMAKE_ARGS="$CMAKE_ARGS -D BUILD_TESTING=${{ inputs.enable-testing }}"
+        CMAKE_ARGS="$CMAKE_ARGS -D BUILD_STANDALONE_TESTS=${{ inputs.enable-testing }}"
+        CMAKE_ARGS="$CMAKE_ARGS -D BUILD_C_WRAPPERS=ON"
+        CMAKE_ARGS="$CMAKE_ARGS -D BUILD_Fortran_WRAPPERS=ON"
+        CMAKE_ARGS="$CMAKE_ARGS -D BUILD_CBLAS_WRAPPERS=ON"
+
+        # Add compiler-specific options
+        if [[ "${{ inputs.compiler-setup }}" == "macos" ]]; then
+          CMAKE_ARGS="$CMAKE_ARGS -D CMAKE_C_COMPILER=gcc-14"
+          CMAKE_ARGS="$CMAKE_ARGS -D CMAKE_CXX_COMPILER=g++-14"
+          CMAKE_ARGS="$CMAKE_ARGS -D CMAKE_Fortran_COMPILER=gfortran-14"
+          CMAKE_ARGS="$CMAKE_ARGS -D TLAPACK_TEST_QUAD=ON"
+        elif [[ "${{ inputs.compiler-setup }}" == "windows" ]]; then
+          CMAKE_ARGS="$CMAKE_ARGS -D CMAKE_C_COMPILER=gcc"
+          CMAKE_ARGS="$CMAKE_ARGS -D CMAKE_CXX_COMPILER=g++"
+          CMAKE_ARGS="$CMAKE_ARGS -D CMAKE_Fortran_COMPILER=gfortran"
+        fi
+
+        # Add extra options
+        if [[ -n "${{ inputs.extra-options }}" ]]; then
+          CMAKE_ARGS="$CMAKE_ARGS ${{ inputs.extra-options }}"
+        fi
+
+        echo "CMAKE_ARGS=$CMAKE_ARGS" >> $GITHUB_ENV
+
+    - name: Run CMake configure
+      shell: bash
+      run: cmake $CMAKE_ARGS
