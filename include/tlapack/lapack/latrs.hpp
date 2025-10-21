@@ -15,6 +15,7 @@
 #include "tlapack/base/utils.hpp"
 #include "tlapack/blas/asum.hpp"
 #include "tlapack/blas/axpy.hpp"
+#include "tlapack/blas/dotu.hpp"
 #include "tlapack/blas/iamax.hpp"
 #include "tlapack/blas/scal.hpp"
 #include "tlapack/blas/trsv.hpp"
@@ -150,22 +151,22 @@ template <TLAPACK_UPLO uplo_t,
           TLAPACK_DIAG diag_t,
           TLAPACK_MATRIX matrixA_t,
           TLAPACK_VECTOR vectorX_t,
-          TLAPACK_VECTOR vectorS_t,
           TLAPACK_VECTOR vectorC_t>
 int latrs(uplo_t& uplo,
           trans_t& trans,
           diag_t& diag,
           char& normin,  // TODO: make enum for this?
-          int isign,
           const matrixA_t& A,
           vectorX_t& x,
-          type_t<matrixA_t>& scale,
+          real_type<type_t<matrixA_t>>& scale,
           vectorC_t& cnorm)
 {
     using idx_t = size_type<matrixA_t>;
     using T = type_t<matrixA_t>;
+    using real_t = real_type<T>;
+    using range = pair<idx_t, idx_t>;
 
-    scale = (T)1;
+    scale = (real_t)1;
     const idx_t n = nrows(A);
 
     // Quick return if possible
@@ -175,28 +176,24 @@ int latrs(uplo_t& uplo,
 
     // TODO: check input
 
-    const idx_t nrhs = ncols(x);
-
-    // Initialize scaling factors
-    for (idx_t j = 0; j < nrhs; ++j) {
-        scale = (T)1;
-    }
+    // Initialize scaling factor
+    scale = (real_t)1;
 
     // Determine machine dependent parameters to control overflow.
-    const T smlnum = safe_min<T>() / epsilon<T>();
-    const T bignum = (T)1 / smlnum;
-    const T overflow_threshold = safe_max<T>();
+    const real_t smlnum = safe_min<real_t>() / ulp<real_t>();
+    const real_t bignum = (real_t)1 / smlnum;
+    const real_t overflow_threshold = safe_max<real_t>();
 
     if (normin == 'N') {
         // Compute the 1-norm of each column, not including the diagonal
         if (uplo == Uplo::Upper) {
             for (idx_t j = 0; j < n; ++j) {
-                cnorm[j] = asum(slice(A.col(j), 0, j - 1));
+                cnorm[j] = asum(slice(col(A, j), range((idx_t)0, j)));
             }
         }
         else {
             for (idx_t j = 0; j < n; ++j) {
-                cnorm[j] = asum(slice(A.col(j), j + 1, n));
+                cnorm[j] = asum(slice(col(A, j), range((idx_t)j + 1, n)));
             }
         }
     }
@@ -206,17 +203,17 @@ int latrs(uplo_t& uplo,
     // greater than BIGNUM.
     //
     idx_t imax = iamax(cnorm);
-    T tmax = cnorm[imax];
-    T tscal;
+    real_t tmax = cnorm[imax];
+    real_t tscal;
     if (tmax <= bignum) {
-        tscal = (T)1;
+        tscal = (real_t)1;
     }
     else {
         // Avoid NaN generation if entries in CNORM exceed the
         // overflow threshold
         if (tmax <= overflow_threshold) {
             // Case 1: All entries in CNORM are valid floating-point numbers
-            tscal = one / (smlnum * tmax);
+            tscal = (real_t)1 / (smlnum * tmax);
             scal(tscal, cnorm);
         }
         else {
@@ -224,7 +221,7 @@ int latrs(uplo_t& uplo,
             // as floating-point number. Find the offdiagonal entry A( I, J )
             // with the largest absolute value. If this entry is not +/-
             // Infinity, use this value as TSCAL.
-            tmax = (T)0;
+            tmax = (real_t)0;
             if (uplo == Uplo::Upper) {
                 for (idx_t j = 0; j < n; ++j) {
                     for (idx_t i = 0; i < j; ++i) {
@@ -241,7 +238,7 @@ int latrs(uplo_t& uplo,
             }
 
             if (tmax <= overflow_threshold) {
-                tscal = one / (smlnum * tmax);
+                tscal = (real_t)1 / (smlnum * tmax);
                 for (idx_t j = 0; j < n; ++j) {
                     if (cnorm[j] <= overflow_threshold) {
                         cnorm[j] = cnorm[j] * tscal;
@@ -249,7 +246,7 @@ int latrs(uplo_t& uplo,
                     else {
                         // Recompute the 1-norm without introducing Infinity
                         // in the summation.
-                        T sum = (T)0;
+                        real_t sum = (real_t)0;
                         if (uplo == Uplo::Upper) {
                             for (idx_t i = 0; i < j; ++i) {
                                 sum += abs(A(i, j) * tscal);
@@ -267,7 +264,7 @@ int latrs(uplo_t& uplo,
             else {
                 // At least one entry of A is not a valid floating-point entry.
                 // Rely on TRSV to propagate Inf and NaN.
-                tscal = (T)1;
+                tscal = (real_t)1;
                 trsv(uplo, trans, diag, A, x);
                 return 0;
             }
@@ -279,8 +276,8 @@ int latrs(uplo_t& uplo,
     // Level 2 BLAS routine DTRSV can be used.
     //
     idx_t j = iamax(x);
-    T xmax = abs(x[j]);
-    T xbnd = xmax;
+    real_t xmax = abs(x[j]);
+    real_t xbnd = xmax;
 
     idx_t jfirst, jlast, jinc;
     if (uplo == Uplo::Upper) {
@@ -294,11 +291,11 @@ int latrs(uplo_t& uplo,
         jinc = 1;
     }
 
-    T grow;
+    real_t grow;
     if (trans == Op::NoTrans) {
         // Compute the growth in A * x = b.
-        if (tscal != (T)1) {
-            grow = (T)0;
+        if (tscal != (real_t)1) {
+            grow = (real_t)0;
         }
         else {
             if (diag == Diag::NonUnit) {
@@ -307,7 +304,7 @@ int latrs(uplo_t& uplo,
                 // Compute GROW = 1/G(j) and XBND = 1/M(j).
                 // Initially, G(0) = max{x(i), i=0,...,n-1}.
 
-                grow = (T)1 / max(xbnd, smlnum);
+                grow = (real_t)1 / max(xbnd, smlnum);
                 xbnd = grow;
                 for (idx_t j = jfirst; j != jlast; j += jinc) {
                     // Exit the loop if the growth factor is too small.
@@ -316,15 +313,15 @@ int latrs(uplo_t& uplo,
                         break;
                     }
                     // M(j) = G(j-1) / abs(A(j,j))
-                    T tjj = abs(A(j, j));
-                    xbnd = min(xbnd, min(one, tjj) * grow);
+                    real_t tjj = abs(A(j, j));
+                    xbnd = min(xbnd, min((real_t)1, tjj) * grow);
                     if (tjj + cnorm[j] >= smlnum) {
                         // G(j) = G(j-1) * ( 1 + CNORM(j) / abs(A(j,j)) )
                         grow = grow * (tjj / (tjj + cnorm[j]));
                     }
                     else {
                         // G(j) could overflow, set GROW to 0.
-                        grow = (T)0;
+                        grow = (real_t)0;
                     }
                 }
                 grow = xbnd;
@@ -333,22 +330,22 @@ int latrs(uplo_t& uplo,
                 // A is unit triangular.
                 //
                 // Compute GROW = 1/G(j), where G(0) = max{x(i), i=1,...,n}.
-                grow = min(one, one / max(xbnd, smlnum));
+                grow = min((real_t)1, (real_t)1 / max(xbnd, smlnum));
                 for (idx_t j = jfirst; j != jlast; j += jinc) {
                     // Exit the loop if the growth factor is too small.
                     if (grow <= smlnum) {
                         break;
                     }
                     // G(j) = G(j-1) * ( 1 + CNORM(j) )
-                    grow = grow / (one + cnorm[j]);
+                    grow = grow / ((real_t)1 + cnorm[j]);
                 }
             }
         }
     }
     else {
         // Compute the growth in A**T * x = b.
-        if (tscal != (T)1) {
-            grow = (T)0;
+        if (tscal != (real_t)1) {
+            grow = (real_t)0;
         }
         else {
             if (diag == Diag::NonUnit) {
@@ -357,7 +354,7 @@ int latrs(uplo_t& uplo,
                 // Compute GROW = 1/G(j) and XBND = 1/M(j).
                 // Initially, M(0) = max{x(i), i=0,...,n-1}.
 
-                grow = (T)1 / max(xbnd, smlnum);
+                grow = (real_t)1 / max(xbnd, smlnum);
                 xbnd = grow;
                 for (idx_t j = jfirst; j != jlast; j += jinc) {
                     // Exit the loop if the growth factor is too small.
@@ -365,10 +362,10 @@ int latrs(uplo_t& uplo,
                         break;
                     }
                     // G(j) = max( G(j-1), M(j-1)*( 1 + CNORM(j) ) )
-                    T xj = (T)1 + cnorm[j];
+                    real_t xj = (real_t)1 + cnorm[j];
                     grow = min(grow, xbnd / xj);
                     // M(j) = M(j-1)*( 1 + CNORM(j) ) / abs(A(j,j))
-                    T tjj = abs(A(j, j));
+                    real_t tjj = abs(A(j, j));
                     if (xj > tjj) {
                         xbnd = xbnd * (tjj / xj);
                     }
@@ -379,14 +376,14 @@ int latrs(uplo_t& uplo,
                 // A is unit triangular.
                 //
                 // Compute GROW = 1/G(j), where G(0) = max{x(i), i=0,...,n-1}.
-                grow = min((T)1, (T)1 / max(xbnd, smlnum));
+                grow = min((real_t)1, (real_t)1 / max(xbnd, smlnum));
                 for (idx_t j = jfirst; j != jlast; j += jinc) {
                     // Exit the loop if the growth factor is too small.
                     if (grow <= smlnum) {
                         break;
                     }
                     // G(j) = G(j-1) * ( 1 + CNORM(j) )
-                    T xj = (T)1 + cnorm[j];
+                    real_t xj = (real_t)1 + cnorm[j];
                     grow = grow / xj;
                 }
             }
@@ -406,7 +403,7 @@ int latrs(uplo_t& uplo,
         if (xmax > bignum) {
             // Scale X so that its components are less than or equal to
             // BIGNUM in absolute value.
-            scale = (T)(bignum / xmax);
+            scale = (real_t)(bignum / xmax);
             scal(scale, x);
             xmax = bignum;
         }
@@ -415,25 +412,24 @@ int latrs(uplo_t& uplo,
             // Solve A * x = b
             for (idx_t j = jfirst; j != jlast; j += jinc) {
                 // Compute x(j) = b(j) / A(j,j), scaling x if necessary.
-                T xj = abs(x[j]);
+                real_t xj = abs(x[j]);
                 T tjjs;
                 if (diag == Diag::NonUnit) {
-                    tjjs = a(j, j) * tscal;
+                    tjjs = A(j, j) * tscal;
                 }
                 else {
                     tjjs = tscal;
-                    if (tscal == (T)1) {
-                        // TODO: check if this is equivalent to goto 100
-                        goto skip_division;
+                    if (tscal == (real_t)1) {
+                        // TODO: figure out the goto
                     }
                 }
-                T tjj = abs(tjjs);
+                real_t tjj = abs(tjjs);
                 if (tjj > smlnum) {
                     // abs(A(j,j)) > SMLNUM:
-                    if (tjj < (T)1) {
+                    if (tjj < (real_t)1) {
                         if (xj > tjj * bignum) {
                             // scale x by 1/b(j)
-                            T rec = (T)1 / xj;
+                            real_t rec = (real_t)1 / xj;
                             scal(rec, x);
                             scale = scale * rec;
                             xmax = xmax * rec;
@@ -442,16 +438,16 @@ int latrs(uplo_t& uplo,
                     x[j] = x[j] / tjjs;
                     xj = abs(x[j]);
                 }
-                else if (tjj > (T)0) {
+                else if (tjj > (real_t)0) {
                     // 0 < abs(A(j,j)) <= SMLNUM:
                     if (xj > tjj * bignum) {
                         // Scale x by (1/abs(x(j)))*abs(A(j,j))*BIGNUM
                         // to avoid overflow when dividing by A(j,j).
-                        T rec = (tjj * bignum) / xj;
-                        if (cnorm(j) > (T)1) {
+                        real_t rec = (tjj * bignum) / xj;
+                        if (cnorm[j] > (real_t)1) {
                             // Scale by 1/CNORM(j) to avoid overflow when
                             // multiplying x(j) times column j.
-                            rec = rec / cnorm(j);
+                            rec = rec / cnorm[j];
                         }
                         scal(rec, x);
                         scale = scale * rec;
@@ -464,39 +460,39 @@ int latrs(uplo_t& uplo,
                     // A(j,j) = 0:  Set x(1:n) = 0, x(j) = 1, and
                     // scale = 0, and compute a solution to A*x = 0.
                     for (idx_t i = 0; i < n; ++i) {
-                        x[i] = (T)0;
+                        x[i] = (real_t)0;
                     }
-                    x[j] = (T)1;
-                    xj = (T)1;
-                    scale = (T)0;
-                    xmax = (T)0;
+                    x[j] = (real_t)1;
+                    xj = (real_t)1;
+                    scale = (real_t)0;
+                    xmax = (real_t)0;
                 }
 
-            skip_division:
                 // Scale x if necessary to avoid overflow when adding
                 // a multiple of column j of A.
-                if (xj > (T)1) {
-                    T rec = (T)1 / xj;
+                if (xj > (real_t)1) {
+                    real_t rec = (real_t)1 / xj;
                     if (cnorm[j] > (bignum - xmax) * rec) {
                         // Scale x by 1/(2*abs(x(j)))
-                        T rec = (T)0.5 * rec;
+                        real_t rec = (real_t)0.5 * rec;
                         scal(rec, x);
                         scale = scale * rec;
                     }
                 }
                 else if (xj * cnorm[j] > (bignum - xmax)) {
                     // Scale x by 1/2
-                    scal((T)0.5, x);
-                    scale = scale * (T)0.5;
+                    scal((real_t)0.5, x);
+                    scale = scale * (real_t)0.5;
                 }
 
                 if (uplo == Uplo::Upper) {
                     if (j > 0) {
                         // Compute the update
                         // x(0:j) := x(0:j) - x(j) * A(0:j,j)
-                        axpy(slice(x, 0, j), -x[j] * tscal,
-                             slice(A.col(j), 0, j));
-                        idx_t i = iamax(slice(x, 0, j));
+                        auto Aslice = slice(col(A, j), range(0, j));
+                        auto xslice = slice(x, range(0, j));
+                        axpy(-x[j] * tscal, Aslice, xslice);
+                        idx_t i = iamax(xslice);
                         xmax = abs(x[i]);
                     }
                 }
@@ -504,9 +500,10 @@ int latrs(uplo_t& uplo,
                     if (j < n - 1) {
                         // Compute the update
                         // x(j+1:n) := x(j+1:n) - x(j) * A(j+1:n,j)
-                        axpy(slice(x, j + 1, n), -x[j] * tscal,
-                             slice(A.col(j), j + 1, n));
-                        idx_t i = iamax(slice(x, j + 1, n)) + j + 1;
+                        auto Aslice = slice(col(A, j), range(j + 1, n));
+                        auto xslice = slice(x, range(j + 1, n));
+                        axpy(-x[j] * tscal, Aslice, xslice);
+                        idx_t i = iamax(xslice) + j + 1;
                         xmax = max(xmax, abs(x[i]));
                     }
                 }
@@ -517,26 +514,26 @@ int latrs(uplo_t& uplo,
             for (idx_t j = jfirst; j != jlast; j += jinc) {
                 // Compute x(j) = b(j) - sum A(k,j)*x(k).
                 //                       k<>j
-                T xj = abs(x[j]);
+                real_t xj = abs(x[j]);
                 T uscal = tscal;
-                T rec = (T)1 / max(xmax, (T)1);
+                real_t rec = (real_t)1 / max(xmax, (real_t)1);
                 if (cnorm[j] > (bignum - xj) * rec) {
                     // If x(j) could overflow, scale x by 1/(2*XMAX).
-                    rec = rec * (T)0.5;
+                    rec = rec * (real_t)0.5;
                     T tjjs;
                     if (diag == Diag::Unit) {
-                        tjjs = a(j, j) * tscal;
+                        tjjs = A(j, j) * tscal;
                     }
                     else {
                         tjjs = tscal;
                     }
-                    tjj = abs(tjjs);
-                    if (tjj > (T)1) {
+                    real_t tjj = abs(tjjs);
+                    if (tjj > (real_t)1) {
                         // Divide by A(j,j) when scaling x if A(j,j) > 1.
-                        rec = min((T)1, rec * tjj);
+                        rec = min((real_t)1, rec * tjj);
                         uscal = uscal / tjjs;
                     }
-                    if (rec < (T)1) {
+                    if (rec < (real_t)1) {
                         scal(rec, x);
                         scale = scale * rec;
                         xmax = xmax * rec;
@@ -547,12 +544,12 @@ int latrs(uplo_t& uplo,
                     // If the scaling needed for A in the dot product is 1,
                     // call DOT to perform the dot product.
                     if (uplo == Uplo::Upper) {
-                        sumj =
-                            dot(slice(A.col(j), 0, j - 1), slice(x, 0, j - 1));
+                        sumj = dotu(slice(col(A, j), range(0, j - 1)),
+                                    slice(x, range(0, j - 1)));
                     }
                     else if (j < n - 1) {
-                        sumj =
-                            dot(slice(A.col(j), j + 1, n), slice(x, j + 1, n));
+                        sumj = dotu(slice(col(A, j), range(j + 1, n)),
+                                    slice(x, range(j + 1, n)));
                     }
                 }
                 else {
@@ -576,22 +573,22 @@ int latrs(uplo_t& uplo,
                     xj = abs(x[j]);
                     T tjjs;
                     if (diag == Diag::NonUnit) {
-                        tjjs = a(j, j) * tscal;
+                        tjjs = A(j, j) * tscal;
                     }
                     else {
                         tjjs = tscal;
-                        if (tjjs == (T)1) {
+                        if (tjjs == (real_t)1) {
                             // TODO: fix goto
                         }
                     }
                     // Compute x(j) = x(j) / A(j,j), scaling if necessary.
-                    tjj = abs(tjjs);
+                    real_t tjj = abs(tjjs);
                     if (tjj > smlnum) {
                         // abs(A(j,j)) > SMLNUM:
-                        if (tjj < (T)1) {
+                        if (tjj < (real_t)1) {
                             if (xj > tjj * bignum) {
                                 // Scale x by 1/abs(x(j))
-                                T rec = (T)1 / xj;
+                                real_t rec = (real_t)1 / xj;
                                 scal(rec, x);
                                 scale = scale * rec;
                                 xmax = xmax * rec;
@@ -599,11 +596,11 @@ int latrs(uplo_t& uplo,
                         }
                         x[j] = x[j] / tjjs;
                     }
-                    else if (tjj > (T)0) {
+                    else if (tjj > (real_t)0) {
                         // 0 < abs(A(j,j)) <= SMLNUM:
                         if (xj > tjj * bignum) {
                             // Scale x by (1/abs(x(j)))*abs(A(j,j))*BIGNUM.
-                            T rec = (tjj * bignum) / xj;
+                            real_t rec = (tjj * bignum) / xj;
                             scal(rec, x);
                             scale = scale * rec;
                             xmax = xmax * rec;
@@ -617,9 +614,9 @@ int latrs(uplo_t& uplo,
                             x[i] = (T)0;
                         }
                         x[j] = (T)1;
-                        xj = (T)1;
-                        scale = (T)0;
-                        xmax = (T)0;
+                        xj = (real_t)1;
+                        scale = (real_t)0;
+                        xmax = (real_t)0;
                     }
                 }
                 else {
@@ -627,7 +624,7 @@ int latrs(uplo_t& uplo,
                     // product has already been divided by 1/A(j,j).
                     T tjjs;
                     if (diag == Diag::NonUnit) {
-                        tjjs = a(j, j) * tscal;
+                        tjjs = A(j, j) * tscal;
                     }
                     else {
                         tjjs = tscal;
@@ -641,8 +638,8 @@ int latrs(uplo_t& uplo,
     }
 
     // Scale the column norms by 1/TSCAL for return.
-    if (tscal != (T)1) {
-        scal((T)1 / tscal, cnorm);
+    if (tscal != (real_t)1) {
+        scal((real_t)1 / tscal, cnorm);
     }
 
     return 0;

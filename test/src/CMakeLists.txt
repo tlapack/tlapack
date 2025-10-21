@@ -120,6 +120,7 @@ add_executable(test_steqr test_steqr.cpp testutils.cpp)
 # add_executable(test_laed2 test_laed2.cpp) LAED2 IS WIP
 add_executable(test_laed4 test_laed4.cpp)
 add_executable(test_lamrg test_lamrg.cpp)
+add_executable(test_latrs test_latrs.cpp)
 
 
 if(TLAPACK_TEST_EIGEN)
