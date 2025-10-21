@@ -14,6 +14,7 @@
 
 #include "tlapack/base/utils.hpp"
 #include "tlapack/blas/asum.hpp"
+#include "tlapack/blas/axpy.hpp"
 #include "tlapack/blas/iamax.hpp"
 #include "tlapack/blas/scal.hpp"
 #include "tlapack/blas/trsv.hpp"
@@ -423,7 +424,7 @@ int latrs(uplo_t& uplo,
                     tjjs = tscal;
                     if (tscal == (T)1) {
                         // TODO: check if this is equivalent to goto 100
-                        // skip_division; goto skip_division;
+                        goto skip_division;
                     }
                 }
                 T tjj = abs(tjjs);
@@ -441,11 +442,211 @@ int latrs(uplo_t& uplo,
                     x[j] = x[j] / tjjs;
                     xj = abs(x[j]);
                 }
+                else if (tjj > (T)0) {
+                    // 0 < abs(A(j,j)) <= SMLNUM:
+                    if (xj > tjj * bignum) {
+                        // Scale x by (1/abs(x(j)))*abs(A(j,j))*BIGNUM
+                        // to avoid overflow when dividing by A(j,j).
+                        T rec = (tjj * bignum) / xj;
+                        if (cnorm(j) > (T)1) {
+                            // Scale by 1/CNORM(j) to avoid overflow when
+                            // multiplying x(j) times column j.
+                            rec = rec / cnorm(j);
+                        }
+                        scal(rec, x);
+                        scale = scale * rec;
+                        xmax = xmax * rec;
+                    }
+                    x[j] = x[j] / tjjs;
+                    xj = abs(x[j]);
+                }
+                else {
+                    // A(j,j) = 0:  Set x(1:n) = 0, x(j) = 1, and
+                    // scale = 0, and compute a solution to A*x = 0.
+                    for (idx_t i = 0; i < n; ++i) {
+                        x[i] = (T)0;
+                    }
+                    x[j] = (T)1;
+                    xj = (T)1;
+                    scale = (T)0;
+                    xmax = (T)0;
+                }
+
+            skip_division:
+                // Scale x if necessary to avoid overflow when adding
+                // a multiple of column j of A.
+                if (xj > (T)1) {
+                    T rec = (T)1 / xj;
+                    if (cnorm[j] > (bignum - xmax) * rec) {
+                        // Scale x by 1/(2*abs(x(j)))
+                        T rec = (T)0.5 * rec;
+                        scal(rec, x);
+                        scale = scale * rec;
+                    }
+                }
+                else if (xj * cnorm[j] > (bignum - xmax)) {
+                    // Scale x by 1/2
+                    scal((T)0.5, x);
+                    scale = scale * (T)0.5;
+                }
+
+                if (uplo == Uplo::Upper) {
+                    if (j > 0) {
+                        // Compute the update
+                        // x(0:j) := x(0:j) - x(j) * A(0:j,j)
+                        axpy(slice(x, 0, j), -x[j] * tscal,
+                             slice(A.col(j), 0, j));
+                        idx_t i = iamax(slice(x, 0, j));
+                        xmax = abs(x[i]);
+                    }
+                }
+                else {
+                    if (j < n - 1) {
+                        // Compute the update
+                        // x(j+1:n) := x(j+1:n) - x(j) * A(j+1:n,j)
+                        axpy(slice(x, j + 1, n), -x[j] * tscal,
+                             slice(A.col(j), j + 1, n));
+                        idx_t i = iamax(slice(x, j + 1, n)) + j + 1;
+                        xmax = max(xmax, abs(x[i]));
+                    }
+                }
             }
         }
+        else {
+            // Solve A**T * x = b
+            for (idx_t j = jfirst; j != jlast; j += jinc) {
+                // Compute x(j) = b(j) - sum A(k,j)*x(k).
+                //                       k<>j
+                T xj = abs(x[j]);
+                T uscal = tscal;
+                T rec = (T)1 / max(xmax, (T)1);
+                if (cnorm[j] > (bignum - xj) * rec) {
+                    // If x(j) could overflow, scale x by 1/(2*XMAX).
+                    rec = rec * (T)0.5;
+                    T tjjs;
+                    if (diag == Diag::Unit) {
+                        tjjs = a(j, j) * tscal;
+                    }
+                    else {
+                        tjjs = tscal;
+                    }
+                    tjj = abs(tjjs);
+                    if (tjj > (T)1) {
+                        // Divide by A(j,j) when scaling x if A(j,j) > 1.
+                        rec = min((T)1, rec * tjj);
+                        uscal = uscal / tjjs;
+                    }
+                    if (rec < (T)1) {
+                        scal(rec, x);
+                        scale = scale * rec;
+                        xmax = xmax * rec;
+                    }
+                }
+                T sumj = (T)0;
+                if (uscal == (T)1) {
+                    // If the scaling needed for A in the dot product is 1,
+                    // call DOT to perform the dot product.
+                    if (uplo == Uplo::Upper) {
+                        sumj =
+                            dot(slice(A.col(j), 0, j - 1), slice(x, 0, j - 1));
+                    }
+                    else if (j < n - 1) {
+                        sumj =
+                            dot(slice(A.col(j), j + 1, n), slice(x, j + 1, n));
+                    }
+                }
+                else {
+                    // Otherwise, use in-line code for the dot product.
+                    if (uplo == Uplo::Upper) {
+                        for (idx_t i = 0; i < j - 1; ++i) {
+                            sumj += A(i, j) * uscal * x[i];
+                        }
+                    }
+                    else {
+                        for (idx_t i = j + 1; i < n; ++i) {
+                            sumj += A(i, j) * uscal * x[i];
+                        }
+                    }
+                }
 
-        return 0;
+                if (uscal == tscal) {
+                    // Compute x(j) := ( x(j) - sumj ) / A(j,j) if 1/A(j,j)
+                    // was not used to scale the dotproduct.
+                    x[j] = x[j] - sumj;
+                    xj = abs(x[j]);
+                    T tjjs;
+                    if (diag == Diag::NonUnit) {
+                        tjjs = a(j, j) * tscal;
+                    }
+                    else {
+                        tjjs = tscal;
+                        if (tjjs == (T)1) {
+                            // TODO: fix goto
+                        }
+                    }
+                    // Compute x(j) = x(j) / A(j,j), scaling if necessary.
+                    tjj = abs(tjjs);
+                    if (tjj > smlnum) {
+                        // abs(A(j,j)) > SMLNUM:
+                        if (tjj < (T)1) {
+                            if (xj > tjj * bignum) {
+                                // Scale x by 1/abs(x(j))
+                                T rec = (T)1 / xj;
+                                scal(rec, x);
+                                scale = scale * rec;
+                                xmax = xmax * rec;
+                            }
+                        }
+                        x[j] = x[j] / tjjs;
+                    }
+                    else if (tjj > (T)0) {
+                        // 0 < abs(A(j,j)) <= SMLNUM:
+                        if (xj > tjj * bignum) {
+                            // Scale x by (1/abs(x(j)))*abs(A(j,j))*BIGNUM.
+                            T rec = (tjj * bignum) / xj;
+                            scal(rec, x);
+                            scale = scale * rec;
+                            xmax = xmax * rec;
+                        }
+                        x[j] = x[j] / tjjs;
+                    }
+                    else {
+                        // A(j,j) = 0:  Set x(1:n) = 0, x(j) = 1, and
+                        // scale = 0, and compute a solution to A*x = 0.
+                        for (idx_t i = 0; i < n; ++i) {
+                            x[i] = (T)0;
+                        }
+                        x[j] = (T)1;
+                        xj = (T)1;
+                        scale = (T)0;
+                        xmax = (T)0;
+                    }
+                }
+                else {
+                    // Compute x(j) := x(j) / A(j,j)  - sumj if the dot
+                    // product has already been divided by 1/A(j,j).
+                    T tjjs;
+                    if (diag == Diag::NonUnit) {
+                        tjjs = a(j, j) * tscal;
+                    }
+                    else {
+                        tjjs = tscal;
+                    }
+                    x[j] = x[j] / tjjs - sumj;
+                }
+                xmax = max(xmax, abs(x[j]));
+            }
+        }
+        scale = scale / tscal;
     }
+
+    // Scale the column norms by 1/TSCAL for return.
+    if (tscal != (T)1) {
+        scal((T)1 / tscal, cnorm);
+    }
+
+    return 0;
+}
 
 }  // namespace tlapack
 
