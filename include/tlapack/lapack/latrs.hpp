@@ -544,10 +544,10 @@ int latrs(uplo_t& uplo,
                     // If the scaling needed for A in the dot product is 1,
                     // call DOT to perform the dot product.
                     if (uplo == Uplo::Upper) {
-                        sumj = dotu(slice(col(A, j), range(0, j - 1)),
-                                    slice(x, range(0, j - 1)));
+                        sumj = dotu(slice(col(A, j), range(0, j)),
+                                    slice(x, range(0, j)));
                     }
-                    else if (j < n - 1) {
+                    else {
                         sumj = dotu(slice(col(A, j), range(j + 1, n)),
                                     slice(x, range(j + 1, n)));
                     }

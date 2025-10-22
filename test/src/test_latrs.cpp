@@ -49,10 +49,11 @@ TEMPLATE_TEST_CASE("Safe scaling triangular solve",
     const idx_t n = GENERATE(1, 2, 3, 4, 5, 10);
     const Uplo uplo = GENERATE(Uplo::Upper, Uplo::Lower);
     const Diag diag = GENERATE(Diag::NonUnit, Diag::Unit);
+    const Op trans = GENERATE(Op::NoTrans, Op::Trans, Op::ConjTrans);
     const real_t zero(0);
     const real_t one(1);
 
-    const real_t tol = real_t(10) * uroundoff<real_t>();
+    const real_t tol = real_t(5) * n * uroundoff<real_t>();
 
     std::vector<TA> A_;
     auto A = new_matrix(A_, n, n);
@@ -64,13 +65,34 @@ TEMPLATE_TEST_CASE("Safe scaling triangular solve",
     getrf(A, piv);
 
     // Zero out the opposite triangle
-    laset(uplo == Uplo::Upper ? Uplo::Lower : Uplo::Upper, zero, zero, A);
+    if (uplo == Uplo::Upper) {
+        for (idx_t j = 0; j < n; ++j) {
+            for (idx_t i = j + 1; i < n; ++i) {
+                A(i, j) = zero;
+            }
+        }
+    }
+    else {
+        for (idx_t j = 0; j < n; ++j) {
+            for (idx_t i = 0; i < j; ++i) {
+                A(i, j) = zero;
+            }
+        }
+    }
 
+    std::vector<TA> x_true;
+    auto x_t = new_vector(x_true, n);
+    for (idx_t i = 0; i < n; ++i) {
+        x_t[i] = rand_helper<TA>(mm.gen);
+    }
+
+    // Compute b = A * x_true
     std::vector<TA> b_;
     auto b = new_vector(b_, n);
     for (idx_t i = 0; i < n; ++i) {
-        b[i] = rand_helper<TA>(mm.gen);
+        b[i] = x_t[i];
     }
+    trmv(uplo, trans, diag, A, b);
 
     // Make a copy of b
     std::vector<TA> x_;
@@ -79,15 +101,14 @@ TEMPLATE_TEST_CASE("Safe scaling triangular solve",
         x[i] = b[i];
     }
 
-    DYNAMIC_SECTION(" n = " << n << " uplo = " << char(uplo)
-                            << " diag = " << char(diag))
+    DYNAMIC_SECTION(" n = " << n << " uplo = " << char(uplo) << " diag = "
+                            << char(diag) << " trans = " << char(trans))
     {
         real_t scale;
         std::vector<real_t> cnorm_(n);
         auto cnorm = new_vector(cnorm_, n);
 
         char normin = 'N';
-        Op trans = Op::NoTrans;
         int info = latrs(uplo, trans, diag, normin, A, x, scale, cnorm);
         CHECK(info == 0);
 
@@ -99,9 +120,10 @@ TEMPLATE_TEST_CASE("Safe scaling triangular solve",
         }
         trmv(uplo, trans, diag, A, Ax);
 
-        real_t bnorm = nrm2(b);
+        real_t x_true_norm = asum(x_t);
+        real_t anorm = lange(Norm::One, A);
         for (idx_t i = 0; i < n; ++i) {
-            CHECK(abs(Ax[i] - scale * b[i]) <= tol * bnorm);
+            CHECK(abs(Ax[i] - scale * b[i]) <= tol * x_true_norm * anorm);
         }
     }
 }
