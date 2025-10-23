@@ -155,10 +155,10 @@ template <TLAPACK_UPLO uplo_t,
           TLAPACK_MATRIX matrixA_t,
           TLAPACK_VECTOR vectorX_t,
           TLAPACK_VECTOR vectorC_t>
-int latrs(uplo_t& uplo,
-          trans_t& trans,
-          diag_t& diag,
-          char& normin,  // TODO: make enum for this?
+int latrs(uplo_t uplo,
+          trans_t trans,
+          diag_t diag,
+          char normin,  // TODO: make enum for this?
           const matrixA_t& A,
           vectorX_t& x,
           real_type<type_t<matrixA_t>>& scale,
@@ -177,7 +177,12 @@ int latrs(uplo_t& uplo,
         return 0;
     }
 
-    // TODO: check input
+    // Check for valid input
+    tlapack_check(uplo == Uplo::Upper || uplo == Uplo::Lower);
+    tlapack_check(normin == 'N' || normin == 'Y');
+    tlapack_check(n == ncols(A));
+    tlapack_check(n == size(x));
+    tlapack_check(n == size(cnorm));
 
     // Determine machine dependent parameters to control overflow.
     const real_t smlnum = safe_min<real_t>() / ulp<real_t>();
