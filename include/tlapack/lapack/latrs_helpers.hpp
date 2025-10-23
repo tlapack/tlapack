@@ -75,7 +75,12 @@ int latrs_calc_cnorm(uplo_t& uplo,
         // overflow threshold
         if (tmax <= overflow_threshold) {
             // Case 1: All entries in CNORM are valid floating-point numbers
-            tscal = (real_t)1 / (smlnum * tmax);
+            if constexpr (is_complex<T>) {
+                tscal = (real_t)0.5 / (smlnum * tmax);
+            }
+            else {
+                tscal = (real_t)1 / (smlnum * tmax);
+            }
             scal(tscal, cnorm);
         }
         else {
@@ -116,13 +121,30 @@ int latrs_calc_cnorm(uplo_t& uplo,
                         real_t sum = (real_t)0;
                         if (uplo == Uplo::Upper) {
                             for (idx_t i = 0; i < j; ++i) {
-                                sum += abs(A(i, j) * tscal);
+                                if constexpr (is_complex<T>) {
+                                    sum += tscal *
+                                           (abs(real(A(i, j)) / ((real_t)2.)) +
+                                            abs(imag(A(i, j)) / ((real_t)2.)));
+                                }
+                                else {
+                                    sum += abs(A(i, j) * tscal);
+                                }
                             }
                         }
                         else {
                             for (idx_t i = j + 1; i < n; ++i) {
-                                sum += abs(A(i, j) * tscal);
+                                if constexpr (is_complex<T>) {
+                                    sum += tscal *
+                                           (abs(real(A(i, j)) / ((real_t)2.)) +
+                                            abs(imag(A(i, j)) / ((real_t)2.)));
+                                }
+                                else {
+                                    sum += abs(A(i, j) * tscal);
+                                }
                             }
+                        }
+                        if constexpr (is_complex<T>) {
+                            tscal = (real_t)0.5 * tscal;
                         }
                         cnorm[j] = sum;
                     }
@@ -151,7 +173,8 @@ void latrs_calc_growth(uplo_t& uplo,
                        const matrixA_t& A,
                        vectorX_t& x,
                        vectorC_t& cnorm,
-                       real_type<type_t<matrixA_t>>& grow)
+                       real_type<type_t<matrixA_t>>& grow,
+                       real_type<type_t<matrixA_t>>& xmax)
 {
     using idx_t = size_type<matrixA_t>;
     using T = type_t<matrixA_t>;
@@ -165,8 +188,17 @@ void latrs_calc_growth(uplo_t& uplo,
     const real_t bignum = (real_t)1 / smlnum;
     const real_t overflow_threshold = safe_max<real_t>();
 
-    idx_t j = iamax(x);
-    real_t xmax = abs(x[j]);
+    if constexpr (is_complex<T>) {
+        xmax = (real_t)0;
+        for (idx_t i = 0; i < n; ++i) {
+            xmax = max(xmax, abs(real(x[i]) / (real_t)2.) +
+                                 abs(imag(x[i]) / (real_t)2.));
+        }
+    }
+    else {
+        idx_t j = iamax(x);
+        xmax = abs(x[j]);
+    }
     real_t xbnd = xmax;
 
     idx_t jfirst, jlast, jinc;
@@ -203,7 +235,12 @@ void latrs_calc_growth(uplo_t& uplo,
             // Compute GROW = 1/G(j) and XBND = 1/M(j).
             // Initially, G(0) = max{x(i), i=0,...,n-1}.
 
-            grow = (real_t)1 / max(xbnd, smlnum);
+            if constexpr (is_complex<T>) {
+                grow = (real_t)0.5 / max(xbnd, smlnum);
+            }
+            else {
+                grow = (real_t)1 / max(xbnd, smlnum);
+            }
             xbnd = grow;
             for (idx_t j = jfirst; j != jlast; j += jinc) {
                 // Exit the loop if the growth factor is too small.
@@ -211,9 +248,16 @@ void latrs_calc_growth(uplo_t& uplo,
                     // TODO: check if this is equivalent to goto 50
                     break;
                 }
-                // M(j) = G(j-1) / abs(A(j,j))
-                real_t tjj = abs(A(j, j));
-                xbnd = min(xbnd, min((real_t)1, tjj) * grow);
+                real_t tjj = abs1(A(j, j));
+                if (tjj >= smlnum) {
+                    // M(j) = G(j-1) / abs(A(j,j))
+                    xbnd = min(xbnd, min((real_t)1, tjj) * grow);
+                }
+                else {
+                    // M(j) could overflow, set XBND to 0.
+                    xbnd = (real_t)0;
+                }
+
                 if (tjj + cnorm[j] >= smlnum) {
                     // G(j) = G(j-1) * ( 1 + CNORM(j) / abs(A(j,j)) )
                     grow = grow * (tjj / (tjj + cnorm[j]));
@@ -229,7 +273,12 @@ void latrs_calc_growth(uplo_t& uplo,
             // A is unit triangular.
             //
             // Compute GROW = 1/G(j), where G(0) = max{x(i), i=1,...,n}.
-            grow = min((real_t)1, (real_t)1 / max(xbnd, smlnum));
+            if constexpr (is_complex<T>) {
+                grow = min((real_t)1, (real_t)0.5 / max(xbnd, smlnum));
+            }
+            else {
+                grow = min((real_t)1, (real_t)1 / max(xbnd, smlnum));
+            }
             for (idx_t j = jfirst; j != jlast; j += jinc) {
                 // Exit the loop if the growth factor is too small.
                 if (grow <= smlnum) {
@@ -241,13 +290,19 @@ void latrs_calc_growth(uplo_t& uplo,
         }
     }
     else {
+        // Compute the growth in A**T * x = b.
         if (diag == Diag::NonUnit) {
             // A is non-unit triangular.
             //
             // Compute GROW = 1/G(j) and XBND = 1/M(j).
             // Initially, M(0) = max{x(i), i=0,...,n-1}.
 
-            grow = (real_t)1 / max(xbnd, smlnum);
+            if constexpr (is_complex<T>) {
+                grow = (real_t)0.5 / max(xbnd, smlnum);
+            }
+            else {
+                grow = (real_t)1 / max(xbnd, smlnum);
+            }
             xbnd = grow;
             for (idx_t j = jfirst; j != jlast; j += jinc) {
                 // Exit the loop if the growth factor is too small.
@@ -258,9 +313,15 @@ void latrs_calc_growth(uplo_t& uplo,
                 real_t xj = (real_t)1 + cnorm[j];
                 grow = min(grow, xbnd / xj);
                 // M(j) = M(j-1)*( 1 + CNORM(j) ) / abs(A(j,j))
-                real_t tjj = abs(A(j, j));
-                if (xj > tjj) {
-                    xbnd = xbnd * (tjj / xj);
+                real_t tjj = abs1(A(j, j));
+                if (tjj >= smlnum) {
+                    if (xj > tjj) {
+                        xbnd = xbnd * (tjj / xj);
+                    }
+                }
+                else {
+                    // M(j) could overflow, set XBND to 0.
+                    xbnd = (real_t)0;
                 }
             }
             grow = min(grow, xbnd);
@@ -269,7 +330,12 @@ void latrs_calc_growth(uplo_t& uplo,
             // A is unit triangular.
             //
             // Compute GROW = 1/G(j), where G(0) = max{x(i), i=0,...,n-1}.
-            grow = min((real_t)1, (real_t)1 / max(xbnd, smlnum));
+            if constexpr (is_complex<T>) {
+                grow = min((real_t)1, (real_t)0.5 / max(xbnd, smlnum));
+            }
+            else {
+                grow = min((real_t)1, (real_t)1 / max(xbnd, smlnum));
+            }
             for (idx_t j = jfirst; j != jlast; j += jinc) {
                 // Exit the loop if the growth factor is too small.
                 if (grow <= smlnum) {
@@ -296,7 +362,8 @@ void latrs_solve_scaled_system(uplo_t& uplo,
                                vectorX_t& x,
                                real_type<type_t<matrixA_t>>& scale,
                                vectorC_t& cnorm,
-                               real_type<type_t<matrixA_t>>& tscal)
+                               real_type<type_t<matrixA_t>>& tscal,
+                               real_type<type_t<matrixA_t>>& xmax)
 {
     using idx_t = size_type<matrixA_t>;
     using T = type_t<matrixA_t>;
@@ -313,8 +380,6 @@ void latrs_solve_scaled_system(uplo_t& uplo,
     // Initialize scaling factor
     scale = (real_t)1;
 
-    idx_t j = iamax(x);
-    real_t xmax = abs1(x[j]);
     if (xmax > bignum) {
         // Scale X so that its components are less than or equal to
         // BIGNUM in absolute value.

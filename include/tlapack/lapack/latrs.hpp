@@ -206,13 +206,16 @@ int latrs(uplo_t& uplo,
     // Level 2 BLAS routine DTRSV can be used.
     //
     real_t grow;
+    real_t xmax;
     if (tscal != (real_t)1) {
         // If we already had to scale the column norms, then we
         // definitely cannot use TRSV, so no need to compute GROW.
         grow = (real_t)0;
+        idx_t j = iamax(x);
+        xmax = abs1(x[j]);
     }
     else {
-        latrs_calc_growth(uplo, trans, diag, A, x, cnorm, grow);
+        latrs_calc_growth(uplo, trans, diag, A, x, cnorm, grow, xmax);
     }
 
     // Initialize scaling factor
@@ -227,7 +230,8 @@ int latrs(uplo_t& uplo,
     //
     // Use a Level 1 BLAS solve, scaling intermediate results.
     //
-    latrs_solve_scaled_system(uplo, trans, diag, A, x, scale, cnorm, tscal);
+    latrs_solve_scaled_system(uplo, trans, diag, A, x, scale, cnorm, tscal,
+                              xmax);
 
     // Scale the column norms by 1/TSCAL for return.
     if (tscal != (real_t)1) {
