@@ -74,11 +74,22 @@ namespace tlapack {
  *                On entry, the right hand side B of the triangular system.
  *                On exit, x is overwritten by the solution vector x.
  *
- * @param[out] scale scalar.
+ * @param[out] scale real scalar.
  *             The scaling factor s for the triangular system
  *                A * x = s*b  or  A**T* x = s*b.
  *             If SCALE = 0, the matrix A is singular or badly scaled, and
  *             the vector x is an exact or approximate solution to A*x = 0.
+ *
+ * @param[in,out] cnorm real vector of length n.
+ *                If NORMIN = 'Y', CNORM is an input argument and CNORM(j)
+ *                contains the norm of the off-diagonal part of the j-th column
+ *                of A.  If TRANS = Trans::NoTrans, CNORM(j) must be greater
+ *                than or equal to the infinity-norm, and if TRANS =
+ *                Trans::Trans or Trans::ConjTrans, CNORM(j) must be greater
+ *                than or equal to the 1-norm.
+ *                If NORMIN = 'N', CNORM is an output argument and CNORM(j)
+ *                returns the 1-norm of the offdiagonal part of the j-th column
+ *                of A.
  *
  * @ingroup auxiliary
  *
