@@ -221,12 +221,12 @@ int latrs(uplo_t& uplo,
     // Initialize scaling factor
     scale = (real_t)1;
 
-    // if ((grow * tscal) > smlnum) {
-    //     // Use the Level 2 BLAS solve if the reciprocal of the bound on
-    //     // elements of X is not too small.
-    //     trsv(uplo, trans, diag, A, x);
-    //     return 0;
-    // }
+    if ((grow * tscal) > smlnum) {
+        // Use the Level 2 BLAS solve if the reciprocal of the bound on
+        // elements of X is not too small.
+        trsv(uplo, trans, diag, A, x);
+        return 0;
+    }
     //
     // Use a Level 1 BLAS solve, scaling intermediate results.
     //
