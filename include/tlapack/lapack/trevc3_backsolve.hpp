@@ -170,8 +170,8 @@ template <TLAPACK_MATRIX matrix_T_t,
           TLAPACK_VECTOR vector_v_t,
           enable_if_t<is_real<type_t<matrix_T_t>>, int> = 0>
 void trevc3_backsolve_double(const matrix_T_t& T,
-                             vector_v_t& v_real,
-                             vector_v_t& v_imag,
+                             vector_v_t& v_r,
+                             vector_v_t& v_i,
                              const size_type<matrix_T_t> k)
 {
     using idx_t = size_type<matrix_T_t>;
@@ -181,8 +181,8 @@ void trevc3_backsolve_double(const matrix_T_t& T,
     const idx_t n = nrows(T);
 
     tlapack_check(ncols(T) == n);
-    tlapack_check(size(v_real) == n);
-    tlapack_check(size(v_imag) == n);
+    tlapack_check(size(v_r) == n);
+    tlapack_check(size(v_i) == n);
     tlapack_check(k < n);
 
     TT alpha = T(k, k);
@@ -192,7 +192,7 @@ void trevc3_backsolve_double(const matrix_T_t& T,
     // real part of eigenvalue
     TT wr = alpha;
     // imaginary part of eigenvalue
-    TT wi = std::sqrt(std::abs(beta) * std::sqrt(std::abs(gamma)));
+    TT wi = std::sqrt(std::abs(beta)) * std::sqrt(std::abs(gamma));
 
     // Depending of whether beta or gamma is bigger, we set x2 = 1 or x3 = i
     TT x2, x3;
@@ -207,16 +207,20 @@ void trevc3_backsolve_double(const matrix_T_t& T,
 
     // Initialize v_real and v_imag to -T(0:k-1, k:k+1) * [x2; i * x3]
     for (idx_t i = 0; i < k; ++i) {
-        v_real[i] = -T(i, k) * x2;
-        v_imag[i] = -T(i, k + 1) * x3;
+        v_r[i] = -T(i, k) * x2;
+        v_i[i] = -T(i, k + 1) * x3;
     }
+    v_r[k] = x2;
+    v_i[k] = TT(0);
+    v_r[k + 1] = TT(0);
+    v_i[k + 1] = x3;
 
     // Now do a complex backsustitution using the shift wr + i*wi
     // but without forming complex numbers explicitly
     // on top of that, we need to take care of potential 2x2 blocks in T11
     auto T11 = slice(T, range(0, k), range(0, k));
-    auto v1_real = slice(v_real, range(0, k));
-    auto v1_imag = slice(v_imag, range(0, k));
+    auto v1_r = slice(v_r, range(0, k));
+    auto v1_i = slice(v_i, range(0, k));
 
     idx_t ii = 0;
     while (ii < k) {
@@ -229,29 +233,82 @@ void trevc3_backsolve_double(const matrix_T_t& T,
         }
 
         if (is_2x2_block) {
+            // 2x2 block
+
+            // Solve the complex 2x2 system:
+            // [T11(i-1,i-1)- (wr + i*wi)   T11(i-1,i)            ]
+            // [T11(i,  i-1)               T11(i,  i)- (wr + i*wi)]
+            // *
+            // x
+            // =
+            // [v1_r[i-1] + i*v1_i[i-1]]
+            // [v1_r[i]   + i*v1_i[i]  ]
+            // Using real arithmetic only with Cramer's rule
+
+            TT a11r = T11(i - 1, i - 1) - wr;
+            TT a11i = -wi;
+            TT a12 = T11(i - 1, i);
+            TT a21 = T11(i, i - 1);
+            TT a22r = T11(i, i) - wr;
+            TT a22i = -wi;
+
+            TT b1r = v1_r[i - 1];
+            TT b1i = v1_i[i - 1];
+            TT b2r = v1_r[i];
+            TT b2i = v1_i[i];
+
+            TT detr = a11r * a22r - a11i * a22i - a12 * a21;
+            TT deti = a11r * a22i + a11i * a22r;
+
+            TT denom = detr * detr + deti * deti;
+
+            TT c1r = a22r * b1r - a22i * b1i - a12 * b2r;
+            TT c1i = a22r * b1i + a22i * b1r - a12 * b2i;
+            TT x1r = (c1r * detr + c1i * deti) / denom;
+            TT x1i = (c1i * detr - c1r * deti) / denom;
+
+            TT c2r = (a11r * b2r - a11i * b2i) - (a21 * b1r);
+            TT c2i = (a11r * b2i + a11i * b2r) - (a21 * b1i);
+            TT x2r = (c2r * detr + c2i * deti) / denom;
+            TT x2i = (c2i * detr - c2r * deti) / denom;
+
+            v1_r[i - 1] = x1r;
+            v1_i[i - 1] = x1i;
+            v1_r[i] = x2r;
+            v1_i[i] = x2i;
+
+            // Update the right-hand side
+            for (idx_t j = 0; j + 1 < i; ++j) {
+                // Real part
+                v1_r[j] -= T11(j, i - 1) * v1_r[i - 1];
+                v1_r[j] -= T11(j, i) * v1_r[i];
+
+                // Imaginary part
+                v1_i[j] -= T11(j, i - 1) * v1_i[i - 1];
+                v1_i[j] -= T11(j, i) * v1_i[i];
+            }
+
+            ii += 2;
         }
         else {
             // 1x1 block
-            TT sum_real = TT(0);
-            TT sum_imag = TT(0);
-            for (idx_t j = i + 1; j < k; ++j) {
-                sum_real += T11(i, j) * v1_real[j];
-                sum_imag += T11(i, j) * v1_imag[j];
+
+            // Do the complex division:
+            // (v1_r[i] + i*v1_i[i]) / (T11(i, i) - (wr + i*wi))
+            // in real arithmetic only
+            TT a = v1_r[i];
+            TT b = v1_i[i];
+            TT c = T11(i, i) - wr;
+            TT d = -wi;
+            TT denom = c * c + d * d;
+            v1_r[i] = (a * c + b * d) / denom;
+            v1_i[i] = (b * c - a * d) / denom;
+
+            // Update the right-hand side
+            for (idx_t j = 0; j < i; ++j) {
+                v1_r[j] -= T11(j, i) * v1_r[i];
+                v1_i[j] -= T11(j, i) * v1_i[i];
             }
-
-            // Update v[i]
-            TT denom = (T11(i, i) - wr);
-            TT denom_sq = denom * denom + wi * wi;
-
-            TT v_real_i = ((v1_real[i] - sum_real) * denom +
-                           (v1_imag[i] - sum_imag) * wi) /
-                          denom_sq;
-            TT v_imag_i = ((v1_imag[i] - sum_imag) * denom -
-                           (v1_real[i] - sum_real) * wi) /
-                          denom_sq;
-
-            v1_real[i] = v_real_i;
-            v1_imag[i] = v_imag_i;
 
             ii += 1;
         }

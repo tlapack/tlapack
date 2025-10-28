@@ -47,7 +47,7 @@ TEMPLATE_TEST_CASE("TREVC3_backsolve correctly computes the right eigenvector",
 
     const int seed = GENERATE(2, 3);
 
-    const idx_t n = GENERATE(1, 2, 3, 5, 8, 10);
+    const idx_t n = GENERATE(1, 2, 3, 4, 5, 8, 10);
     const real_t zero(0);
     const real_t one(1);
 
@@ -58,9 +58,6 @@ TEMPLATE_TEST_CASE("TREVC3_backsolve correctly computes the right eigenvector",
     std::vector<TA> T_;
     auto T = new_matrix(T_, n, n);
 
-    std::vector<TA> v_;
-    auto v = new_vector(v_, n);
-
     mm.random(Uplo::Upper, T);
     // Set lower triangle to zero
     for (idx_t j = 0; j < n; ++j)
@@ -69,20 +66,22 @@ TEMPLATE_TEST_CASE("TREVC3_backsolve correctly computes the right eigenvector",
 
     // Randomly set some subdiagonal entries to non-zero to create 2x2 blocks
     if constexpr (is_real<TA>) {
-        // idx_t j = 0;
-        // while (j + 1 < n) {
-        //     if (rand_helper<float>(mm.gen) < 0.3f) {
-        //         T(j + 1, j) = rand_helper<real_t>(mm.gen);
-        //         j += 2;
-        //     }
-        //     else {
-        //         j += 1;
-        //     }
-        // }
-
-        // Set a 2x2 block for testing
-        if (n >= 4) {
-            T(1, 0) = TA(0.5);
+        idx_t j = 0;
+        while (j + 1 < n) {
+            if (rand_helper<float>(mm.gen) < 0.8f) {
+                // Generate a 2x2 block in normalized form
+                TA alpha = rand_helper<TA>(mm.gen);
+                TA beta = rand_helper<TA>(mm.gen);
+                TA gamma = rand_helper<TA>(mm.gen);
+                T(j, j) = alpha;
+                T(j, j + 1) = beta;
+                T(j + 1, j) = -gamma;
+                T(j + 1, j + 1) = alpha;
+                j += 2;
+            }
+            else {
+                j += 1;
+            }
         }
     }
 
@@ -104,25 +103,86 @@ TEMPLATE_TEST_CASE("TREVC3_backsolve correctly computes the right eigenvector",
             }
 
             if (is_2x2_block) {
-                continue;
+                if constexpr (is_real<TA>) {
+                    //
+                    // Compute right eigenvector using trevc3_backsolve_double
+                    //
+                    std::vector<TA> v_real_;
+                    auto v_real = new_vector(v_real_, n);
+                    std::vector<TA> v_imag_;
+                    auto v_imag = new_vector(v_imag_, n);
+
+                    trevc3_backsolve_double(T, v_real, v_imag, k);
+
+                    //
+                    // Verify that T*(v_real + i*v_imag) = lambda*(v_real +
+                    // i*v_imag)
+                    //
+
+                    TA alpha = T(k, k);
+                    TA beta = T(k, k + 1);
+                    TA gamma = T(k + 1, k);
+                    // eigenvalue
+                    TA lambda_real = alpha;
+                    TA lambda_imag =
+                        std::sqrt(std::abs(beta)) * std::sqrt(std::abs(gamma));
+
+                    std::vector<TA> Tv_real_;
+                    auto Tv_real = new_vector(Tv_real_, n);
+                    std::vector<TA> Tv_imag_;
+                    auto Tv_imag = new_vector(Tv_imag_, n);
+                    gemv(Op::NoTrans, one, T, v_real, zero, Tv_real);
+                    gemv(Op::NoTrans, one, T, v_imag, zero, Tv_imag);
+
+                    real_t normv = asum(v_real) + asum(v_imag);
+                    real_t tol = ulp<real_t>() * normv * real_t(n);
+
+                    std::vector<TA> v_real2_;
+                    auto v_real2 = new_vector(v_real2_, n);
+                    std::vector<TA> v_imag2_;
+                    auto v_imag2 = new_vector(v_imag2_, n);
+
+                    for (idx_t i = 0; i < n; ++i) {
+                        // Compute lambda * (v_real + i * v_imag)
+                        v_real2[i] =
+                            lambda_real * v_real[i] - lambda_imag * v_imag[i];
+                        v_imag2[i] =
+                            lambda_real * v_imag[i] + lambda_imag * v_real[i];
+                    }
+
+                    for (idx_t i = 0; i < n; ++i) {
+                        // Real part
+                        CHECK(std::abs(Tv_real[i] -
+                                       (lambda_real * v_real[i] -
+                                        lambda_imag * v_imag[i])) <= tol);
+                        // Imaginary part
+                        CHECK(std::abs(Tv_imag[i] -
+                                       (lambda_real * v_imag[i] +
+                                        lambda_imag * v_real[i])) <= tol);
+                    }
+                }
             }
-            //
-            // Compute right eigenvector using trevc3_backsolve_single
-            //
-            trevc3_backsolve_single(T, v, k);
+            else {
+                std::vector<TA> v_;
+                auto v = new_vector(v_, n);
+                //
+                // Compute right eigenvector using trevc3_backsolve_single
+                //
+                trevc3_backsolve_single(T, v, k);
 
-            //
-            // Verify that T*v = lambda*v
-            //
-            TA lambda = T(k, k);
-            std::vector<TA> Tv_;
-            auto Tv = new_vector(Tv_, n);
-            gemv(Op::NoTrans, one, T, v, zero, Tv);
+                //
+                // Verify that T*v = lambda*v
+                //
+                TA lambda = T(k, k);
+                std::vector<TA> Tv_;
+                auto Tv = new_vector(Tv_, n);
+                gemv(Op::NoTrans, one, T, v, zero, Tv);
 
-            real_t normv = asum(v);
-            real_t tol = ulp<real_t>() * normv * real_t(n);
-            for (idx_t i = 0; i < n; ++i) {
-                CHECK(std::abs(Tv[i] - lambda * v[i]) <= tol);
+                real_t normv = asum(v);
+                real_t tol = ulp<real_t>() * normv * real_t(n);
+                for (idx_t i = 0; i < n; ++i) {
+                    CHECK(std::abs(Tv[i] - lambda * v[i]) <= tol);
+                }
             }
         }
     }
