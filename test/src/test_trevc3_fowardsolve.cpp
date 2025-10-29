@@ -105,66 +105,62 @@ TEMPLATE_TEST_CASE(
 
             if (is_2x2_block) {
                 if constexpr (is_real<TA>) {
-                    // //
-                    // // Compute right eigenvector using
-                    // trevc3_backsolve_double
-                    // //
-                    // std::vector<TA> v_real_;
-                    // auto v_real = new_vector(v_real_, n);
-                    // std::vector<TA> v_imag_;
-                    // auto v_imag = new_vector(v_imag_, n);
+                    //
+                    // Compute left eigenvector using trevc3_forwardsolve_double
+                    //
+                    std::vector<TA> v_real_;
+                    auto v_real = new_vector(v_real_, n);
+                    std::vector<TA> v_imag_;
+                    auto v_imag = new_vector(v_imag_, n);
 
-                    // trevc3_backsolve_double(T, v_real, v_imag, k);
+                    trevc3_forwardsolve_double(T, v_real, v_imag, k);
 
-                    // //
-                    // // Verify that T*(v_real + i*v_imag) = lambda*(v_real +
-                    // // i*v_imag)
-                    // //
+                    //
+                    // Verify that (v_real + i*v_imag)*T = lambda*(v_real +
+                    // i*v_imag)
+                    //
 
-                    // TA alpha = T(k, k);
-                    // TA beta = T(k, k + 1);
-                    // TA gamma = T(k + 1, k);
-                    // // eigenvalue
-                    // TA lambda_real = alpha;
-                    // TA lambda_imag =
-                    //     std::sqrt(std::abs(beta)) *
-                    //     std::sqrt(std::abs(gamma));
+                    TA alpha = T(k, k);
+                    TA beta = T(k, k + 1);
+                    TA gamma = T(k + 1, k);
+                    // eigenvalue
+                    TA lambda_real = alpha;
+                    TA lambda_imag =
+                        std::sqrt(std::abs(beta)) * std::sqrt(std::abs(gamma));
 
-                    // std::vector<TA> Tv_real_;
-                    // auto Tv_real = new_vector(Tv_real_, n);
-                    // std::vector<TA> Tv_imag_;
-                    // auto Tv_imag = new_vector(Tv_imag_, n);
-                    // gemv(Op::NoTrans, one, T, v_real, zero, Tv_real);
-                    // gemv(Op::NoTrans, one, T, v_imag, zero, Tv_imag);
+                    std::vector<TA> Tv_real_;
+                    auto Tv_real = new_vector(Tv_real_, n);
+                    std::vector<TA> Tv_imag_;
+                    auto Tv_imag = new_vector(Tv_imag_, n);
+                    gemv(Op::Trans, one, T, v_real, zero, Tv_real);
+                    gemv(Op::Trans, one, T, v_imag, zero, Tv_imag);
 
-                    // real_t normv = asum(v_real) + asum(v_imag);
-                    // real_t tol = ulp<real_t>() * normv * real_t(n);
+                    real_t normv = asum(v_real) + asum(v_imag);
+                    real_t tol = ulp<real_t>() * normv * real_t(n);
 
-                    // std::vector<TA> v_real2_;
-                    // auto v_real2 = new_vector(v_real2_, n);
-                    // std::vector<TA> v_imag2_;
-                    // auto v_imag2 = new_vector(v_imag2_, n);
+                    std::vector<TA> v_real2_;
+                    auto v_real2 = new_vector(v_real2_, n);
+                    std::vector<TA> v_imag2_;
+                    auto v_imag2 = new_vector(v_imag2_, n);
 
-                    // for (idx_t i = 0; i < n; ++i) {
-                    //     // Compute lambda * (v_real + i * v_imag)
-                    //     v_real2[i] =
-                    //         lambda_real * v_real[i] - lambda_imag *
-                    //         v_imag[i];
-                    //     v_imag2[i] =
-                    //         lambda_real * v_imag[i] + lambda_imag *
-                    //         v_real[i];
-                    // }
+                    for (idx_t i = 0; i < n; ++i) {
+                        // Compute lambda * (v_real + i * v_imag)
+                        v_real2[i] =
+                            lambda_real * v_real[i] - lambda_imag * v_imag[i];
+                        v_imag2[i] =
+                            lambda_real * v_imag[i] + lambda_imag * v_real[i];
+                    }
 
-                    // for (idx_t i = 0; i < n; ++i) {
-                    //     // Real part
-                    //     CHECK(std::abs(Tv_real[i] -
-                    //                    (lambda_real * v_real[i] -
-                    //                     lambda_imag * v_imag[i])) <= tol);
-                    //     // Imaginary part
-                    //     CHECK(std::abs(Tv_imag[i] -
-                    //                    (lambda_real * v_imag[i] +
-                    //                     lambda_imag * v_real[i])) <= tol);
-                    // }
+                    for (idx_t i = 0; i < n; ++i) {
+                        // Real part
+                        CHECK(std::abs(Tv_real[i] -
+                                       (lambda_real * v_real[i] -
+                                        lambda_imag * v_imag[i])) <= tol);
+                        // Imaginary part
+                        CHECK(std::abs(Tv_imag[i] -
+                                       (lambda_real * v_imag[i] +
+                                        lambda_imag * v_real[i])) <= tol);
+                    }
                 }
             }
             else {
