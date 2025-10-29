@@ -317,4 +317,4 @@ void trevc3_backsolve_double(const matrix_T_t& T,
 
 }  // namespace tlapack
 
-#endif  // TLAPACK_TREVC3_HH
+#endif  // TLAPACK_TREVC3_BACKSOLVE_HH

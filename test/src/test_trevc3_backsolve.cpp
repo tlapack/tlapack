@@ -1,4 +1,4 @@
-/// @file test_trevc3.cpp
+/// @file test_trevc3_backsolve.cpp
 /// @author Thijs Steel, KU Leuven, Belgium
 /// @brief Test eigenvector calculations.
 //
