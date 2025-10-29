@@ -21,18 +21,18 @@ namespace tlapack {
  * Calculate the k-th left eigenvector of T using forward substitution.
  *
  * This is done by solving the triangular system
- *  v(T - w*I) = 0, where w is the k-th eigenvalue of T.
+ *  v**H * (T - w*I) = 0, where w is the k-th eigenvalue of T.
  *
  * This can be split into the block matrix:
  *                           (k-1)    1   (n-k)
- *  [v1  v2  v3] [ T11 - w*I  T12  T13      ]    [0] (k-1)
- *               [ 0          0    T23      ]  = [0] 1
- *               [ 0          0    T33 - w*I]    [0] (n-k)
+ *  [v1]**H  [ T11 - w*I  T12  T13      ]    [0] (k-1)
+ *  [v2]     [ 0          0    T23      ]  = [0] 1
+ *  [v3]     [ 0          0    T33 - w*I]    [0] (n-k)
  *
  * We choose v1 = 0
  *
  * The last block column then gives:
- * v3 * (T33 - w*I) = -v2 * T23
+ * v3**H * (T33 - w*I) = -v2**H * T23
  *
  * If we choose v2 = 1, we can solve for v3 using forward substitution.
  *
@@ -64,7 +64,7 @@ void trevc3_forwardsolve_single(const matrix_T_t& T,
     }
     v[k] = TT(1);
     for (idx_t i = k + 1; i < n; ++i) {
-        v[i] = -T(k, i);
+        v[i] = -conj(T(k, i));
     }
 
     TT w = T(k, k);  // eigenvalue
@@ -78,10 +78,10 @@ void trevc3_forwardsolve_single(const matrix_T_t& T,
         // consider
         for (idx_t i = 0; i < size(v3); ++i) {
             for (idx_t j = 0; j < i; ++j) {
-                v3[i] -= T33(j, i) * v3[j];
+                v3[i] -= conj(T33(j, i)) * v3[j];
             }
 
-            v3[i] = v3[i] / (T33(i, i) - w);
+            v3[i] = v3[i] / conj(T33(i, i) - w);
         }
     }
     else {
@@ -145,7 +145,7 @@ void trevc3_forwardsolve_single(const matrix_T_t& T,
  *
  * This can be split into the block matrix:
  *             (k-1)    1      1     (n-k-1)
- * (k-1)  [ v1 ]**T [ T11 - w*I  T12     T13    T14      ]   [0]
+ * (k-1)  [ v1 ]**H [ T11 - w*I  T12     T13    T14      ]   [0]
  * 1      [ v2 ]    [ 0          alpha   beta   T24      ] = [0]
  * 1      [ v3 ]    [ 0          gamma   alpha  T34      ] = [0]
  * (n-k-1)[ v4 ]    [ 0          0       0      T44 - w*I]   [0]
@@ -203,7 +203,7 @@ void trevc3_forwardsolve_double(const matrix_T_t& T,
         y3 = TT(1);
     }
 
-    // Initialize v_real and v_imag to -[y2, i * y3] * T(k:k+1, k+2:n-1)
+    // Initialize v_real and v_imag to -[y2; i * y3]**H * T(k:k+1, k+2:n-1)
     for (idx_t i = 0; i < k; ++i) {
         v_r[i] = TT(0);
         v_i[i] = TT(0);
@@ -244,7 +244,7 @@ void trevc3_forwardsolve_double(const matrix_T_t& T,
             }
 
             // Solve the complex 2x2 system:
-            // y
+            // y**H
             // *
             // [T44(i,i)- (wr + i*wi) T44(i,i+1)                 ]
             // [T44(i+1,  i)          T44(i+1,  i+1)- (wr + i*wi)]

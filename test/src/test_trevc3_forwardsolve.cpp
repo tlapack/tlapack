@@ -116,8 +116,13 @@ TEMPLATE_TEST_CASE(
                     trevc3_forwardsolve_double(T, v_real, v_imag, k);
 
                     //
-                    // Verify that (v_real + i*v_imag)*T = lambda*(v_real +
+                    // Verify that (v_real + i*v_imag)**H * T = lambda*(v_real +
                     // i*v_imag)
+                    // (or equivalently T**H * (v_real + i*v_imag) =
+                    // conj(lambda)*(v_real + i*v_imag))
+                    // and since lambda is a complex conjugate pair:
+                    // T**H * (v_real + i*v_imag) =
+                    // lambda*(v_real + i*v_imag)
                     //
 
                     TA alpha = T(k, k);
@@ -132,24 +137,11 @@ TEMPLATE_TEST_CASE(
                     auto Tv_real = new_vector(Tv_real_, n);
                     std::vector<TA> Tv_imag_;
                     auto Tv_imag = new_vector(Tv_imag_, n);
-                    gemv(Op::Trans, one, T, v_real, zero, Tv_real);
-                    gemv(Op::Trans, one, T, v_imag, zero, Tv_imag);
+                    gemv(Op::ConjTrans, one, T, v_real, zero, Tv_real);
+                    gemv(Op::ConjTrans, one, T, v_imag, zero, Tv_imag);
 
                     real_t normv = asum(v_real) + asum(v_imag);
                     real_t tol = ulp<real_t>() * normv * real_t(n);
-
-                    std::vector<TA> v_real2_;
-                    auto v_real2 = new_vector(v_real2_, n);
-                    std::vector<TA> v_imag2_;
-                    auto v_imag2 = new_vector(v_imag2_, n);
-
-                    for (idx_t i = 0; i < n; ++i) {
-                        // Compute lambda * (v_real + i * v_imag)
-                        v_real2[i] =
-                            lambda_real * v_real[i] - lambda_imag * v_imag[i];
-                        v_imag2[i] =
-                            lambda_real * v_imag[i] + lambda_imag * v_real[i];
-                    }
 
                     for (idx_t i = 0; i < n; ++i) {
                         // Real part
@@ -172,17 +164,18 @@ TEMPLATE_TEST_CASE(
                 trevc3_forwardsolve_single(T, v, k);
 
                 //
-                // Verify that v*T = lambda*v
+                // Verify that v**H * T = lambda*v**H
+                // (or equivalently T**H * v = conj(lambda)*v)
                 //
                 TA lambda = T(k, k);
                 std::vector<TA> Tv_;
                 auto Tv = new_vector(Tv_, n);
-                gemv(Op::Trans, one, T, v, zero, Tv);
+                gemv(Op::ConjTrans, one, T, v, zero, Tv);
 
                 real_t normv = asum(v);
                 real_t tol = ulp<real_t>() * normv * real_t(n);
                 for (idx_t i = 0; i < n; ++i) {
-                    CHECK(std::abs(Tv[i] - lambda * v[i]) <= tol);
+                    CHECK(std::abs(Tv[i] - conj(lambda) * v[i]) <= tol);
                 }
             }
         }
