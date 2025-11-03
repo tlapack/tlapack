@@ -142,15 +142,12 @@ int trevc(const side_t side,
             idx_t i = n - 1 - ii;
             if (HowMny::Select == howmny) {
                 if (select[i] == false) {
-                    ii++;
                     continue;
                 }
             }
             if (i > 0) {
                 if (T(i, i - 1) != TT(0)) {
-                    // Complex conjugate pair
-                    ii++;
-                    i--;
+                    continue;
                 }
             }
 
@@ -221,6 +218,95 @@ int trevc(const side_t side,
                         }
                     }
                     iVr -= 2;
+                }
+            }
+        }
+    }
+
+    if (side == Side::Left || side == Side::Both) {
+        //
+        // Compute left eigenvectors.
+        //
+        idx_t iVl = 0;  // current column of Vl to store the eigenvector
+        for (idx_t i = 0; i < n; i++) {
+            if (HowMny::Select == howmny) {
+                if (select[i] == false) {
+                    continue;
+                }
+            }
+            if (i > 0) {
+                if (T(i, i - 1) != TT(0)) {
+                    continue;
+                }
+            }
+
+            bool pair = false;
+            if (i < n - 1) {
+                if (T(i + 1, i) != TT(0)) {
+                    pair = true;
+                }
+            }
+
+            if (!pair) {
+                //
+                // Real eigenvalue
+                //
+
+                // Calculate eigenvector of the upper quasi-triangular matrix T
+                trevc3_forwardsolve_single(T, v1, i);
+
+                // Backtransform eigenvector if required
+                if (howmny == HowMny::Back) {
+                    auto Q_slice = slice(Vl, range(0, n), range(i, n));
+                    auto v1_slice = slice(v1, range(i, n));
+                    gemv(Op::NoTrans, TT(1), Q_slice, v1_slice, v2);
+                    for (idx_t k = 0; k < n; ++k) {
+                        Vl(k, i) = v2[k];
+                    }
+                }
+                else {
+                    // Copy the eigenvector to Vl
+                    for (idx_t k = 0; k < n; ++k) {
+                        Vl(k, iVl) = v1[k];
+                    }
+                }
+                iVl++;
+            }
+            else {
+                if constexpr (is_real<TT>) {
+                    // Complex conjugate pair
+                    // Calculate eigenvector of the upper quasi-triangular
+                    // matrix T
+                    trevc3_forwardsolve_double(T, v1, v2, i);
+
+                    // Backtransform eigenvector pair if required
+                    if (howmny == HowMny::Back) {
+                        auto Q_slice1 = slice(Vl, range(0, n), range(i, n));
+                        auto v1_slice = slice(v1, range(i, n));
+                        gemv(Op::NoTrans, TT(1), Q_slice1, v1_slice, v3);
+                        // copy v3 to Vl(:, i)
+                        for (idx_t k = 0; k < n; ++k) {
+                            Vl(k, i) = v3[k];
+                        }
+                        // Note: we assume that these eigenvectors are
+                        // constructed so that v2[i] = 0, otherwise, we would
+                        // need an extra workspace vector here.
+                        auto Q_slice2 = slice(Vl, range(0, n), range(i + 1, n));
+                        auto v2_slice = slice(v2, range(i + 1, n));
+                        gemv(Op::NoTrans, TT(1), Q_slice2, v2_slice, v3);
+                        // copy v3 to Vl(:, i+1)
+                        for (idx_t k = 0; k < n; ++k) {
+                            Vl(k, i + 1) = v3[k];
+                        }
+                    }
+                    else {
+                        // Copy the eigenvector pair to Vl
+                        for (idx_t k = 0; k < n; ++k) {
+                            Vl(k, iVl) = v1[k];
+                            Vl(k, iVl + 1) = v2[k];
+                        }
+                    }
+                    iVl += 2;
                 }
             }
         }

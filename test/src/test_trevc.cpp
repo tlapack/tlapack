@@ -52,7 +52,9 @@ TEMPLATE_TEST_CASE("TREVC correctly computes the eigenvectors",
     const idx_t n = GENERATE(1, 2, 3, 4, 5, 8, 10);
     const real_t zero(0);
     const real_t one(1);
+    // TODO: add test for howmny = HowMny::Select
     const HowMny howmny = GENERATE(HowMny::All, HowMny::Back);
+    const Side side = GENERATE(Side::Right, Side::Left, Side::Both);
 
     // Seed random number generator
     mm.gen.seed(seed);
@@ -72,7 +74,11 @@ TEMPLATE_TEST_CASE("TREVC correctly computes the eigenvectors",
     mm.random(A);
 
     DYNAMIC_SECTION(" n = " << n << " seed = " << seed << " howmny = "
-                            << (howmny == HowMny::All ? "All" : "Back"))
+                            << (howmny == HowMny::All ? "All" : "Back")
+                            << " side = "
+                            << (side == Side::Right
+                                    ? "Right"
+                                    : (side == Side::Left ? "Left" : "Both")))
     {
         // Calculate the Schur decomposition A = Q*T*Q**T
         lacpy(Uplo::General, A, T);
@@ -89,7 +95,9 @@ TEMPLATE_TEST_CASE("TREVC correctly computes the eigenvectors",
                 T(i, j) = TA(zero);
         lahqr(true, true, (idx_t)0, (idx_t)n, T, w, Q);
 
-        // Temporary check, make sure that A = Q*T*Q**T
+        // Sanity check, make sure that A = Q*T*Q**T
+        // Can be removed later as this just tests whether the test is
+        // constructed correctly
         std::vector<TA> temp_;
         auto temp = new_matrix(temp_, n, n);
         std::vector<TA> A_reconstructed_;
@@ -105,21 +113,23 @@ TEMPLATE_TEST_CASE("TREVC correctly computes the eigenvectors",
         REQUIRE(normDiff <= tol);
 
         // Now compute the eigenvectors using trevc
+        bool calcLeft = (side == Side::Left || side == Side::Both);
+        bool calcRight = (side == Side::Right || side == Side::Both);
         std::vector<TA> Vr_;
-        auto Vr = new_matrix(Vr_, n, n);
+        auto Vr = calcRight ? new_matrix(Vr_, n, n) : new_matrix(Vr_, 0, 0);
         std::vector<TA> Vl_;
-        auto Vl = new_matrix(Vl_, n, n);
+        auto Vl = calcLeft ? new_matrix(Vl_, n, n) : new_matrix(Vl_, 0, 0);
         std::vector<TA> work_;
         auto work = new_vector(work_, n * 3);
 
         auto select =
-            std::vector<bool>(n, false);  // Dummy, not used for HowMny::All
+            std::vector<bool>(0, false);  // Not used for howmny != Select
 
         Trevc3Opts opts;
         opts.nb = 16;
-        lacpy(Uplo::General, Q, Vr);
-        lacpy(Uplo::General, Q, Vl);
-        int info = trevc(Side::Right, howmny, select, T, Vl, Vr, work, opts);
+        if (calcLeft and howmny == HowMny::Back) lacpy(Uplo::General, Q, Vl);
+        if (calcRight and howmny == HowMny::Back) lacpy(Uplo::General, Q, Vr);
+        int info = trevc(side, howmny, select, T, Vl, Vr, work, opts);
         CHECK(info == 0);
 
         // Now verify the eigenvectors
@@ -133,8 +143,8 @@ TEMPLATE_TEST_CASE("TREVC correctly computes the eigenvectors",
                 }
             }
 
-            // Check the eigenvectors of the triangular matrix T
-            {
+            if (calcRight) {
+                // Check the right eigenvector(s)
                 std::vector<complex_t> v_;
                 auto v = new_vector(v_, n);
                 for (idx_t i = 0; i < n; ++i) {
@@ -150,7 +160,7 @@ TEMPLATE_TEST_CASE("TREVC correctly computes the eigenvectors",
 
                 real_t normDiff;
                 if (howmny == HowMny::All) {
-                    // Compute T * V - lambda * v
+                    // Compute T * v - lambda * v
                     std::vector<complex_t> Tv_;
                     auto Tv = new_vector(Tv_, n);
                     gemv(Op::NoTrans, one, T, v, zero, Tv);
@@ -160,12 +170,56 @@ TEMPLATE_TEST_CASE("TREVC correctly computes the eigenvectors",
                     normDiff = asum(Tv);
                 }
                 else {
-                    // Compute A * V - lambda * v
+                    // Compute A * v - lambda * v
                     std::vector<complex_t> Av_;
                     auto Av = new_vector(Av_, n);
                     gemv(Op::NoTrans, one, A, v, zero, Av);
                     for (idx_t i = 0; i < n; ++i) {
                         Av[i] -= lambda * v[i];
+                    }
+                    normDiff = asum(Av);
+                }
+
+                real_t normV = asum(v);
+                real_t tol_ev = ulp<real_t>() * std::max(real_t(1), normV) *
+                                real_t(n) * real_t(10);
+
+                REQUIRE(normDiff <= tol_ev);
+            }
+            if (calcLeft) {
+                // Check the left eigenvector(s)
+                std::vector<complex_t> v_;
+                auto v = new_vector(v_, n);
+                for (idx_t i = 0; i < n; ++i) {
+                    v[i] = complex_t(Vl(i, j));
+                }
+                if (pair) {
+                    // Complex conjugate pair
+                    if constexpr (is_real<TA>) {
+                        for (idx_t i = 0; i < n; ++i) {
+                            v[i] = complex_t(Vl(i, j), Vl(i, j + 1));
+                        }
+                    }
+                }
+
+                real_t normDiff;
+                if (howmny == HowMny::All) {
+                    // Compute v**H * T - lambda * v**H
+                    std::vector<complex_t> Tv_;
+                    auto Tv = new_vector(Tv_, n);
+                    gemv(Op::ConjTrans, one, T, v, zero, Tv);
+                    for (idx_t i = 0; i < n; ++i) {
+                        Tv[i] -= conj(lambda) * v[i];
+                    }
+                    normDiff = asum(Tv);
+                }
+                else {
+                    // Compute v**H * A - lambda * v**H
+                    std::vector<complex_t> Av_;
+                    auto Av = new_vector(Av_, n);
+                    gemv(Op::ConjTrans, one, A, v, zero, Av);
+                    for (idx_t i = 0; i < n; ++i) {
+                        Av[i] -= conj(lambda) * v[i];
                     }
                     normDiff = asum(Av);
                 }
