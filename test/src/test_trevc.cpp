@@ -150,9 +150,10 @@ TEMPLATE_TEST_CASE("TREVC correctly computes the eigenvectors",
                 }
                 if (pair) {
                     // Complex conjugate pair
-                    for (idx_t i = 0; i < n; ++i) {
-                        v[i] = complex_t(Vr(i, j)) +
-                               complex_t(0, 1) * complex_t(Vr(i, j + 1));
+                    if constexpr (is_real<TA>) {
+                        for (idx_t i = 0; i < n; ++i) {
+                            v[i] = complex_t(Vr(i, j), Vr(i, j + 1));
+                        }
                     }
                 }
 
