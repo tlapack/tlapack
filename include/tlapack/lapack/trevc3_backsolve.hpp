@@ -42,6 +42,10 @@ namespace tlapack {
  *
  * We should also handle potential overflow/underflow during the solve.
  * But this is not yet implemented.
+ *
+ * @param[in] T Upper quasi-triangular matrix
+ * @param[out] v Vector to store the right eigenvector
+ * @param[in] k Index of the eigenvector to compute
  */
 template <TLAPACK_MATRIX matrix_T_t, TLAPACK_VECTOR vector_v_t>
 void trevc3_backsolve_single(const matrix_T_t& T,
@@ -165,6 +169,14 @@ void trevc3_backsolve_single(const matrix_T_t& T,
  *
  * We should also handle potential overflow/underflow during the solve.
  * But this is not yet implemented.
+ *
+ * @param[in] T Upper quasi-triangular matrix
+ * @param[out] v_r Vector to store the real part of the right eigenvector
+ * @param[out] v_i Vector to store the imaginary part of the right eigenvector
+ * @param[in] k Index of the eigenvector to compute
+ *              It is assumed that k and k+1 form a complex conjugate pair
+ *              so k needs to be the first index of the 2x2 block, not the
+ *              second.
  */
 template <TLAPACK_MATRIX matrix_T_t,
           TLAPACK_VECTOR vector_v_t,

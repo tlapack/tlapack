@@ -27,13 +27,6 @@ enum class HowMny : char {
 };
 
 /**
- * Options struct for trevc3.
- */
-struct Trevc3Opts {
-    int nb = 64;  ///< Block size
-};
-
-/**
  *
  * TREVC computes some or all of the right and/or left eigenvectors of
  * an upper quasi-triangular matrix T.
@@ -61,6 +54,52 @@ struct Trevc3Opts {
  *                 = Side::Left: left eigenvectors only;
  *                 = Side::Both: both right and left eigenvectors.
  *
+ * @param[in] howmny tlapack::HowMny
+ *                   Specifies how many eigenvectors are to be computed:
+ *                   = HowMny::All: all right and/or left eigenvectors
+ *                   = HowMny::Back: all right and/or left eigenvectors,
+ *                   backtransformed by input matrix
+ *                   = HowMny::Select: selected right and/or left eigenvectors
+ *                   as indicated by the boolean array select.
+ *
+ * @param[in,out] select Boolean array of size n,
+ *                   where n is the order of the matrix
+ *                   T. On input, select specifies which eigenvectors are to be
+ *                   computed. On output, select indicates which eigenvectors
+ *                   were computed. Not referenced if howmny is not
+ *                   HowMny::Select.
+ *
+ * @param[in] T      n-by-n upper quasi-triangular matrix.
+ *                   The matrix T is in Schur canonical form
+ *
+ * @param[out] Vl    n-by-m matrix, where m is the number of left eigenvectors
+ *                   to be computed, as specified by howmny (or n if howmny !=
+ *                   HowMny::Select)
+ *                   On entry, if howmny == HowMny::Back, Vl must contain an
+ *                   n-by-n matrix Q (usually the orthogonal matrix
+ *                   that reduces A to Schur form).
+ *                   On exit, Vl contains:
+ *                   HowMny::All: the matrix Y of the left eigenvectors of T
+ *                   HowMny::Back: the matrix Q*Y
+ *                   HowMny::Select: the left eigenvectors of T specified by
+ *                   the boolean array select, stored consecutively in the
+ *                   columns of Vl, in the same order as their eigenvalues.
+ *
+ * @param[out] Vr    n-by-m matrix, where m is the number of right eigenvectors
+ *                   to be computed, as specified by howmny (or n if howmny !=
+ *                   HowMny::Select)
+ *                   On entry, if howmny == HowMny::Back, Vr must contain an
+ *                   n-by-n matrix Q (usually the orthogonal matrix
+ *                   that reduces A to Schur form).
+ *                   On exit, Vr contains:
+ *                   HowMny::All: the matrix X of the right eigenvectors of T
+ *                   HowMny::Back: the matrix Q*X
+ *                   HowMny::Select: the right eigenvectors of T specified by
+ *                   the boolean array select, stored consecutively in the
+ *                   columns of Vr, in the same order as their eigenvalues.
+ *
+ * @param[out] work  Workspace vector of size at least 3*n.
+ *
  * @ingroup trevc
  */
 template <TLAPACK_SIDE side_t,
@@ -75,8 +114,7 @@ int trevc(const side_t side,
           const matrix_T_t& T,
           matrix_Vl_t& Vl,
           matrix_Vr_t& Vr,
-          work_t& work,
-          const Trevc3Opts& opts = {})
+          work_t& work)
 {
     using idx_t = size_type<matrix_T_t>;
     using TT = type_t<matrix_T_t>;
@@ -85,9 +123,17 @@ int trevc(const side_t side,
 
     const idx_t n = nrows(T);
     // Number of columns of Vl and Vr
-    const idx_t mm = max(ncols(Vl), ncols(Vr));
-
-    const idx_t nb = opts.nb;
+    // const idx_t mm = max(ncols(Vl), ncols(Vr));
+    idx_t mm;
+    if (side == Side::Both) {
+        mm = std::min<idx_t>(ncols(Vl), ncols(Vr));
+    }
+    else if (side == Side::Left) {
+        mm = ncols(Vl);
+    }
+    else {
+        mm = ncols(Vr);
+    }
 
     // Quick return
     if (n == 0) return 0;

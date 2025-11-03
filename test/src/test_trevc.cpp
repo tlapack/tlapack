@@ -125,11 +125,9 @@ TEMPLATE_TEST_CASE("TREVC correctly computes the eigenvectors",
         auto select =
             std::vector<bool>(0, false);  // Not used for howmny != Select
 
-        Trevc3Opts opts;
-        opts.nb = 16;
         if (calcLeft and howmny == HowMny::Back) lacpy(Uplo::General, Q, Vl);
         if (calcRight and howmny == HowMny::Back) lacpy(Uplo::General, Q, Vr);
-        int info = trevc(side, howmny, select, T, Vl, Vr, work, opts);
+        int info = trevc(side, howmny, select, T, Vl, Vr, work);
         CHECK(info == 0);
 
         // Now verify the eigenvectors
