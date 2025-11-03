@@ -127,8 +127,7 @@ TEMPLATE_TEST_CASE("TREVC3_backsolve correctly computes the right eigenvector",
                     TA gamma = T(k + 1, k);
                     // eigenvalue
                     TA lambda_real = alpha;
-                    TA lambda_imag =
-                        std::sqrt(std::abs(beta)) * std::sqrt(std::abs(gamma));
+                    TA lambda_imag = sqrt(abs(beta)) * sqrt(abs(gamma));
 
                     std::vector<TA> Tv_real_;
                     auto Tv_real = new_vector(Tv_real_, n);
@@ -154,13 +153,13 @@ TEMPLATE_TEST_CASE("TREVC3_backsolve correctly computes the right eigenvector",
 
                     for (idx_t i = 0; i < n; ++i) {
                         // Real part
-                        CHECK(std::abs(Tv_real[i] -
-                                       (lambda_real * v_real[i] -
-                                        lambda_imag * v_imag[i])) <= tol);
+                        CHECK(abs(Tv_real[i] - (lambda_real * v_real[i] -
+                                                lambda_imag * v_imag[i])) <=
+                              tol);
                         // Imaginary part
-                        CHECK(std::abs(Tv_imag[i] -
-                                       (lambda_real * v_imag[i] +
-                                        lambda_imag * v_real[i])) <= tol);
+                        CHECK(abs(Tv_imag[i] - (lambda_real * v_imag[i] +
+                                                lambda_imag * v_real[i])) <=
+                              tol);
                     }
                 }
             }
@@ -186,7 +185,7 @@ TEMPLATE_TEST_CASE("TREVC3_backsolve correctly computes the right eigenvector",
 
                 real_t tol = ulp<real_t>() * normv * real_t(n);
                 for (idx_t i = 0; i < n; ++i) {
-                    CHECK(std::abs(Tv[i] - lambda * v[i]) <= tol);
+                    CHECK(abs(Tv[i] - lambda * v[i]) <= tol);
                 }
             }
         }

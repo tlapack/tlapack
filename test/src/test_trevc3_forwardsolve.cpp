@@ -134,8 +134,7 @@ TEMPLATE_TEST_CASE(
                     TA gamma = T(k + 1, k);
                     // eigenvalue
                     TA lambda_real = alpha;
-                    TA lambda_imag =
-                        std::sqrt(std::abs(beta)) * std::sqrt(std::abs(gamma));
+                    TA lambda_imag = sqrt(abs(beta)) * sqrt(abs(gamma));
 
                     complex_t lambda(lambda_real, lambda_imag);
 
@@ -146,7 +145,7 @@ TEMPLATE_TEST_CASE(
 
                     real_t tol = ulp<real_t>() * normv * real_t(n);
                     for (idx_t i = 0; i < n; ++i) {
-                        CHECK(std::abs(Tv[i] - conj(lambda) * v[i]) <= tol);
+                        CHECK(abs(Tv[i] - conj(lambda) * v[i]) <= tol);
                     }
                 }
             }
@@ -173,7 +172,7 @@ TEMPLATE_TEST_CASE(
 
                 real_t tol = ulp<real_t>() * normv * real_t(n);
                 for (idx_t i = 0; i < n; ++i) {
-                    CHECK(std::abs(Tv[i] - conj(lambda) * v[i]) <= tol);
+                    CHECK(abs(Tv[i] - conj(lambda) * v[i]) <= tol);
                 }
             }
         }

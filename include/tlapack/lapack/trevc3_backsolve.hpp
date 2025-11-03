@@ -204,11 +204,11 @@ void trevc3_backsolve_double(const matrix_T_t& T,
     // real part of eigenvalue
     TT wr = alpha;
     // imaginary part of eigenvalue
-    TT wi = std::sqrt(std::abs(beta)) * std::sqrt(std::abs(gamma));
+    TT wi = sqrt(abs(beta)) * sqrt(abs(gamma));
 
     // Depending of whether beta or gamma is bigger, we set x2 = 1 or x3 = i
     TT x2, x3;
-    if (std::abs(beta) >= std::abs(gamma)) {
+    if (abs(beta) >= abs(gamma)) {
         x2 = TT(1);
         x3 = wi / beta;
     }
