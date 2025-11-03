@@ -214,6 +214,10 @@ void trevc3_backsolve_double(const matrix_T_t& T,
     v_i[k] = TT(0);
     v_r[k + 1] = TT(0);
     v_i[k + 1] = x3;
+    for (idx_t i = k + 2; i < n; ++i) {
+        v_r[i] = TT(0);
+        v_i[i] = TT(0);
+    }
 
     // Now do a complex backsustitution using the shift wr + i*wi
     // but without forming complex numbers explicitly

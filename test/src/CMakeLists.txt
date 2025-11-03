@@ -122,6 +122,7 @@ add_executable(test_laed4 test_laed4.cpp)
 add_executable(test_lamrg test_lamrg.cpp)
 add_executable(test_trevc3_backsolve test_trevc3_backsolve.cpp testutils.cpp)
 add_executable(test_trevc3_forwardsolve test_trevc3_forwardsolve.cpp testutils.cpp)
+add_executable(test_trevc test_trevc.cpp testutils.cpp)
 
 if(TLAPACK_TEST_EIGEN)
   add_executable(test_eigenplugin test_eigenplugin.cpp)

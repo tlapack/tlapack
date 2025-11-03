@@ -18,7 +18,6 @@
 
 // Other routines
 #include <tlapack/blas/gemv.hpp>
-#include <tlapack/lapack/trevc3.hpp>
 #include <tlapack/lapack/trevc3_backsolve.hpp>
 
 using namespace tlapack;
@@ -114,6 +113,10 @@ TEMPLATE_TEST_CASE("TREVC3_backsolve correctly computes the right eigenvector",
 
                     trevc3_backsolve_double(T, v_real, v_imag, k);
 
+                    // Check that v_real + i*v_imag is nonzero
+                    real_t normv = asum(v_real) + asum(v_imag);
+                    REQUIRE(normv != real_t(0));
+
                     //
                     // Verify that T*(v_real + i*v_imag) = lambda*(v_real +
                     // i*v_imag)
@@ -134,7 +137,6 @@ TEMPLATE_TEST_CASE("TREVC3_backsolve correctly computes the right eigenvector",
                     gemv(Op::NoTrans, one, T, v_real, zero, Tv_real);
                     gemv(Op::NoTrans, one, T, v_imag, zero, Tv_imag);
 
-                    real_t normv = asum(v_real) + asum(v_imag);
                     real_t tol = ulp<real_t>() * normv * real_t(n);
 
                     std::vector<TA> v_real2_;
@@ -170,6 +172,10 @@ TEMPLATE_TEST_CASE("TREVC3_backsolve correctly computes the right eigenvector",
                 //
                 trevc3_backsolve_single(T, v, k);
 
+                // Check that v is nonzero
+                real_t normv = asum(v);
+                REQUIRE(normv != real_t(0));
+
                 //
                 // Verify that T*v = lambda*v
                 //
@@ -178,7 +184,6 @@ TEMPLATE_TEST_CASE("TREVC3_backsolve correctly computes the right eigenvector",
                 auto Tv = new_vector(Tv_, n);
                 gemv(Op::NoTrans, one, T, v, zero, Tv);
 
-                real_t normv = asum(v);
                 real_t tol = ulp<real_t>() * normv * real_t(n);
                 for (idx_t i = 0; i < n; ++i) {
                     CHECK(std::abs(Tv[i] - lambda * v[i]) <= tol);

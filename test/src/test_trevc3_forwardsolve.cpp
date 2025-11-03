@@ -18,7 +18,6 @@
 
 // Other routines
 #include <tlapack/blas/gemv.hpp>
-#include <tlapack/lapack/trevc3.hpp>
 #include <tlapack/lapack/trevc3_forwardsolve.hpp>
 
 using namespace tlapack;
@@ -115,6 +114,10 @@ TEMPLATE_TEST_CASE(
 
                     trevc3_forwardsolve_double(T, v_real, v_imag, k);
 
+                    // Check that v_real + i*v_imag is nonzero
+                    real_t normv = asum(v_real) + asum(v_imag);
+                    REQUIRE(normv != real_t(0));
+
                     //
                     // Verify that (v_real + i*v_imag)**H * T = lambda*(v_real +
                     // i*v_imag)
@@ -140,7 +143,6 @@ TEMPLATE_TEST_CASE(
                     gemv(Op::ConjTrans, one, T, v_real, zero, Tv_real);
                     gemv(Op::ConjTrans, one, T, v_imag, zero, Tv_imag);
 
-                    real_t normv = asum(v_real) + asum(v_imag);
                     real_t tol = ulp<real_t>() * normv * real_t(n);
 
                     for (idx_t i = 0; i < n; ++i) {
@@ -163,6 +165,10 @@ TEMPLATE_TEST_CASE(
                 //
                 trevc3_forwardsolve_single(T, v, k);
 
+                // Check that v is nonzero
+                real_t normv = asum(v);
+                REQUIRE(normv != real_t(0));
+
                 //
                 // Verify that v**H * T = lambda*v**H
                 // (or equivalently T**H * v = conj(lambda)*v)
@@ -172,7 +178,6 @@ TEMPLATE_TEST_CASE(
                 auto Tv = new_vector(Tv_, n);
                 gemv(Op::ConjTrans, one, T, v, zero, Tv);
 
-                real_t normv = asum(v);
                 real_t tol = ulp<real_t>() * normv * real_t(n);
                 for (idx_t i = 0; i < n; ++i) {
                     CHECK(std::abs(Tv[i] - conj(lambda) * v[i]) <= tol);
