@@ -196,11 +196,11 @@ void trevc3_forwardsolve_double(const matrix_T_t& T,
     TT y2, y3;
     if (std::abs(gamma) >= std::abs(beta)) {
         y2 = TT(1);
-        y3 = wi / gamma;
+        y3 = -wi / gamma;
     }
     else {
         y2 = -wi / beta;
-        y3 = TT(1);
+        y3 = -TT(1);
     }
 
     // Initialize v_real and v_imag to -[y2; i * y3]**H * T(k:k+1, k+2:n-1)
@@ -254,12 +254,12 @@ void trevc3_forwardsolve_double(const matrix_T_t& T,
             // Using real arithmetic only with Cramer's rule
 
             TT a11r = T44(i, i) - wr;
-            TT a11i = -wi;
+            TT a11i = wi;
             // a12 and a21 are switched to transpose the system
             TT a12 = T44(i + 1, i);
             TT a21 = T44(i, i + 1);
             TT a22r = T44(i + 1, i + 1) - wr;
-            TT a22i = -wi;
+            TT a22i = wi;
 
             TT b1r = v4_r[i];
             TT b1i = v4_i[i];
@@ -301,7 +301,7 @@ void trevc3_forwardsolve_double(const matrix_T_t& T,
             TT a = v4_r[i];
             TT b = v4_i[i];
             TT c = T44(i, i) - wr;
-            TT d = -wi;
+            TT d = wi;
             TT denom = c * c + d * d;
             v4_r[i] = (a * c + b * d) / denom;
             v4_i[i] = (b * c - a * d) / denom;
