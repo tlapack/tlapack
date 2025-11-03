@@ -35,7 +35,7 @@ struct Trevc3Opts {
 
 /**
  *
- * TREVC3 computes some or all of the right and/or left eigenvectors of
+ * TREVC computes some or all of the right and/or left eigenvectors of
  * an upper quasi-triangular matrix T.
  * Matrices of this type are produced by the Schur factorization of
  * a general matrix:  A = Q*T*Q**T
@@ -55,15 +55,13 @@ struct Trevc3Opts {
  * A to Schur form T, then Q*X and Q*Y are the matrices of right and
  * left eigenvectors of A.
  *
- * This uses a Level 3 BLAS version of the back transformation.
- *
  * @param[in] side tlapack::Side
  *                 Specifies whether right or left eigenvectors are required:
  *                 = Side::Right: right eigenvectors only;
  *                 = Side::Left: left eigenvectors only;
  *                 = Side::Both: both right and left eigenvectors.
  *
- * @ingroup trevc3
+ * @ingroup trevc
  */
 template <TLAPACK_SIDE side_t,
           TLAPACK_VECTOR select_t,
@@ -139,6 +137,7 @@ int trevc(const side_t side,
         //
         // Compute right eigenvectors.
         //
+        idx_t iVr = m - 1;  // current column of Vr to store the eigenvector
         for (idx_t ii = 0; ii < n; ii++) {
             idx_t i = n - 1 - ii;
             if (HowMny::Select == howmny) {
@@ -182,9 +181,10 @@ int trevc(const side_t side,
                 else {
                     // Copy the eigenvector to Vr
                     for (idx_t k = 0; k < n; ++k) {
-                        Vr(k, i) = v1[k];
+                        Vr(k, iVr) = v1[k];
                     }
                 }
+                iVr--;
             }
             else {
                 if constexpr (is_real<TT>) {
@@ -216,10 +216,11 @@ int trevc(const side_t side,
                     else {
                         // Copy the eigenvector pair to Vr
                         for (idx_t k = 0; k < n; ++k) {
-                            Vr(k, i) = v1[k];
-                            Vr(k, i + 1) = v2[k];
+                            Vr(k, iVr - 1) = v1[k];
+                            Vr(k, iVr) = v2[k];
                         }
                     }
+                    iVr -= 2;
                 }
             }
         }
