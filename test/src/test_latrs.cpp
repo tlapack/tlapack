@@ -174,7 +174,7 @@ TEMPLATE_TEST_CASE("latrs works for systems that don't need scaling",
     const real_t zero(0);
     const real_t one(1);
 
-    const real_t tol = real_t(5) * n * uroundoff<real_t>();
+    const real_t tol = real_t(5) * real_t(n) * uroundoff<real_t>();
 
     std::vector<TA> A_;
     auto A = new_matrix(A_, n, n);
