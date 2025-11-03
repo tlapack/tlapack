@@ -25,7 +25,7 @@ using namespace tlapack;
 TEMPLATE_TEST_CASE(
     "TREVC3_forwardsolve correctly computes the left eigenvector",
     "[eigenvalues][eigenvectors][trevc3]",
-    TLAPACK_TYPES_TO_TEST)
+    TLAPACK_LEGACY_REAL_TYPES_TO_TEST TLAPACK_LEGACY_COMPLEX_TYPES_TO_TEST)
 {
     using matrix_t = TestType;
     using TA = type_t<matrix_t>;

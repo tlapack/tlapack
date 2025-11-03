@@ -22,9 +22,10 @@
 
 using namespace tlapack;
 
-TEMPLATE_TEST_CASE("TREVC3_backsolve correctly computes the right eigenvector",
-                   "[eigenvalues][eigenvectors][trevc3]",
-                   TLAPACK_TYPES_TO_TEST)
+TEMPLATE_TEST_CASE(
+    "TREVC3_backsolve correctly computes the right eigenvector",
+    "[eigenvalues][eigenvectors][trevc3]",
+    TLAPACK_LEGACY_REAL_TYPES_TO_TEST TLAPACK_LEGACY_COMPLEX_TYPES_TO_TEST)
 {
     using matrix_t = TestType;
     using TA = type_t<matrix_t>;

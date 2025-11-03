@@ -25,9 +25,10 @@
 
 using namespace tlapack;
 
-TEMPLATE_TEST_CASE("TREVC correctly computes the eigenvectors",
-                   "[eigenvalues][eigenvectors][trevc]",
-                   TLAPACK_TYPES_TO_TEST)
+TEMPLATE_TEST_CASE(
+    "TREVC correctly computes the eigenvectors",
+    "[eigenvalues][eigenvectors][trevc]",
+    TLAPACK_LEGACY_REAL_TYPES_TO_TEST TLAPACK_LEGACY_COMPLEX_TYPES_TO_TEST)
 {
     using matrix_t = TestType;
     using TA = type_t<matrix_t>;
