@@ -155,6 +155,12 @@ template class tlapack::
 
 #endif
 
+#ifndef TLAPACK_LEGACY_TYPES_TO_TEST
+    #define TLAPACK_LEGACY_TYPES_TO_TEST  \
+        TLAPACK_LEGACY_REAL_TYPES_TO_TEST \
+        , TLAPACK_LEGACY_COMPLEX_TYPES_TO_TEST
+#endif
+
 //
 // List of matrix types that will be tested
 //

@@ -21,7 +21,7 @@ namespace tlapack {
 /// @brief Options struct for pbtrf_with_workspace()
 struct BlockedBandedCholeskyOpts : public EcOpts {
     constexpr BlockedBandedCholeskyOpts(const EcOpts& opts = {})
-        : EcOpts(opts){};
+        : EcOpts(opts) {};
 
     size_t nb = 32;  // Block size
 };
@@ -89,7 +89,7 @@ void pbtrf_with_workspace(uplo_t uplo,
                 // i2 = min(kd - ib, n - i - ib)
                 idx_t i2 = (kd + i < n) ? kd - ib : n - i - ib;
                 // i3 = min(ib, n-i-kd)
-                idx_t i3 = (n > i + kd) ? min(ib, n - i - kd) : 0;
+                idx_t i3 = (n > i + kd) ? min<idx_t>(ib, n - i - kd) : 0;
 
                 if (i2 > 0) {
                     auto A01 = slice(A, range(i, ib + i),
@@ -99,8 +99,9 @@ void pbtrf_with_workspace(uplo_t uplo,
                          tlapack::Op::ConjTrans, tlapack::Diag::NonUnit,
                          real_t(1), A00, A01);
 
-                    auto A11 = slice(A, range(i + ib, std::min(i + kd, n)),
-                                     range(i + ib, std::min(i + kd, n)));
+                    auto A11 =
+                        slice(A, range(i + ib, std::min<idx_t>(i + kd, n)),
+                              range(i + ib, std::min<idx_t>(i + kd, n)));
 
                     herk(tlapack::Uplo::Upper, tlapack::Op::ConjTrans,
                          real_t(-1), A01, real_t(1), A11);
@@ -120,17 +121,20 @@ void pbtrf_with_workspace(uplo_t uplo,
                          tlapack::Op::ConjTrans, tlapack::Diag::NonUnit,
                          real_t(1), A00, work02);
 
-                    auto A12 = slice(A, range(i + ib, i + kd),
-                                     range(i + kd, std::min(i + kd + i3, n)));
+                    auto A12 =
+                        slice(A, range(i + ib, i + kd),
+                              range(i + kd, std::min<idx_t>(i + kd + i3, n)));
 
-                    auto A01 = slice(A, range(i, ib + i),
-                                     range(i + ib, std::min(i + ib + i2, n)));
+                    auto A01 =
+                        slice(A, range(i, ib + i),
+                              range(i + ib, std::min<idx_t>(i + ib + i2, n)));
 
                     gemm(tlapack::Op::ConjTrans, tlapack::Op::NoTrans,
                          real_t(-1), A01, work02, real_t(1), A12);
 
-                    auto A22 = slice(A, range(i + kd, std::min(i + kd + i3, n)),
-                                     range(i + kd, std::min(i + kd + i3, n)));
+                    auto A22 =
+                        slice(A, range(i + kd, std::min<idx_t>(i + kd + i3, n)),
+                              range(i + kd, std::min<idx_t>(i + kd + i3, n)));
 
                     herk(tlapack::Uplo::Upper, tlapack::Op::ConjTrans,
                          real_t(-1), work02, real_t(1), A22);
@@ -158,7 +162,7 @@ void pbtrf_with_workspace(uplo_t uplo,
                 // i2 = min(kd - ib, n - i - ib)
                 idx_t i2 = (kd + i < n) ? kd - ib : n - i - ib;
                 // i3 = min(ib, n-i-kd)
-                idx_t i3 = (n > i + kd) ? min(ib, n - i - kd) : 0;
+                idx_t i3 = (n > i + kd) ? min<idx_t>(ib, n - i - kd) : 0;
 
                 if (i2 > 0) {
                     auto A10 =
@@ -179,8 +183,9 @@ void pbtrf_with_workspace(uplo_t uplo,
                     auto A10 =
                         slice(A, range(ib + i, ib + i2 + i), range(i, ib + i));
 
-                    auto A20 = slice(A, range(kd + i, min(kd + i3 + i, n)),
-                                     range(i, i + ib));
+                    auto A20 =
+                        slice(A, range(kd + i, min<idx_t>(kd + i3 + i, n)),
+                              range(i, i + ib));
 
                     auto work20 = slice(work, range(0, i3), range(0, ib));
 
