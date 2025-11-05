@@ -120,8 +120,8 @@ add_executable(test_steqr test_steqr.cpp testutils.cpp)
 # add_executable(test_laed2 test_laed2.cpp) LAED2 IS WIP
 add_executable(test_laed4 test_laed4.cpp)
 add_executable(test_lamrg test_lamrg.cpp)
-add_executable(test_trevc3_backsolve test_trevc3_backsolve.cpp testutils.cpp)
-add_executable(test_trevc3_forwardsolve test_trevc3_forwardsolve.cpp testutils.cpp)
+add_executable(test_trevc_backsolve test_trevc_backsolve.cpp testutils.cpp)
+add_executable(test_trevc_forwardsolve test_trevc_forwardsolve.cpp testutils.cpp)
 add_executable(test_trevc test_trevc.cpp testutils.cpp)
 
 if(TLAPACK_TEST_EIGEN)

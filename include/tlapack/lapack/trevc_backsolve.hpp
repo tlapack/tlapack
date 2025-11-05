@@ -1,4 +1,4 @@
-/// @file trevc3_backsolve.hpp
+/// @file trevc_backsolve.hpp
 /// @author Thijs Steel, KU Leuven, Belgium
 // based on A. Schwarz et al., "Scalable eigenvector computation for the
 // non-symmetric eigenvalue problem"
@@ -9,8 +9,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef TLAPACK_TREVC3_BACKSOLVE_HH
-#define TLAPACK_TREVC3_BACKSOLVE_HH
+#ifndef TLAPACK_TREVC_BACKSOLVE_HH
+#define TLAPACK_TREVC_BACKSOLVE_HH
 
 #include "tlapack/base/utils.hpp"
 #include "tlapack/blas/asum.hpp"
@@ -48,7 +48,7 @@ namespace tlapack {
  * @param[in] k Index of the eigenvector to compute
  */
 template <TLAPACK_MATRIX matrix_T_t, TLAPACK_VECTOR vector_v_t>
-void trevc3_backsolve_single(const matrix_T_t& T,
+void trevc_backsolve_single(const matrix_T_t& T,
                              vector_v_t& v,
                              const size_type<matrix_T_t> k)
 {
@@ -181,7 +181,7 @@ void trevc3_backsolve_single(const matrix_T_t& T,
 template <TLAPACK_MATRIX matrix_T_t,
           TLAPACK_VECTOR vector_v_t,
           enable_if_t<is_real<type_t<matrix_T_t>>, int> = 0>
-void trevc3_backsolve_double(const matrix_T_t& T,
+void trevc_backsolve_double(const matrix_T_t& T,
                              vector_v_t& v_r,
                              vector_v_t& v_i,
                              const size_type<matrix_T_t> k)

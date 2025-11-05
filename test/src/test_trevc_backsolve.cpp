@@ -1,4 +1,4 @@
-/// @file test_trevc3_forwardsolve.cpp
+/// @file test_trevc_backsolve.cpp
 /// @author Thijs Steel, KU Leuven, Belgium
 /// @brief Test eigenvector calculations.
 //
@@ -18,14 +18,13 @@
 
 // Other routines
 #include <tlapack/blas/gemv.hpp>
-#include <tlapack/lapack/trevc3_forwardsolve.hpp>
+#include <tlapack/lapack/trevc_backsolve.hpp>
 
 using namespace tlapack;
 
-TEMPLATE_TEST_CASE(
-    "TREVC3_forwardsolve correctly computes the left eigenvector",
-    "[eigenvalues][eigenvectors][trevc3]",
-    TLAPACK_LEGACY_TYPES_TO_TEST)
+TEMPLATE_TEST_CASE("TREVC_backsolve correctly computes the right eigenvector",
+                   "[eigenvalues][eigenvectors][trevc]",
+                   TLAPACK_LEGACY_TYPES_TO_TEST)
 {
     using matrix_t = TestType;
     using TA = type_t<matrix_t>;
@@ -68,7 +67,7 @@ TEMPLATE_TEST_CASE(
     if constexpr (is_real<TA>) {
         idx_t j = 0;
         while (j + 1 < n) {
-            if (rand_helper<float>(mm.gen) < 0.5f) {
+            if (rand_helper<float>(mm.gen) < 0.8f) {
                 // Generate a 2x2 block in normalized form
                 TA alpha = rand_helper<TA>(mm.gen);
                 TA beta = rand_helper<TA>(mm.gen);
@@ -105,28 +104,22 @@ TEMPLATE_TEST_CASE(
             if (is_2x2_block) {
                 if constexpr (is_real<TA>) {
                     //
-                    // Compute left eigenvector using trevc3_forwardsolve_double
+                    // Compute right eigenvector using trevc3_backsolve_double
                     //
                     std::vector<TA> v_real_;
                     auto v_real = new_vector(v_real_, n);
                     std::vector<TA> v_imag_;
                     auto v_imag = new_vector(v_imag_, n);
 
-                    trevc3_forwardsolve_double(T, v_real, v_imag, k);
+                    trevc_backsolve_double(T, v_real, v_imag, k);
 
-                    std::vector<complex_t> v_;
-                    auto v = new_vector(v_, n);
-                    for (idx_t i = 0; i < n; ++i) {
-                        v[i] = complex_t(v_real[i], v_imag[i]);
-                    }
-
-                    // Check that v_ is nonzero
-                    real_t normv = asum(v);
+                    // Check that v_real + i*v_imag is nonzero
+                    real_t normv = asum(v_real) + asum(v_imag);
                     REQUIRE(normv != real_t(0));
 
                     //
-                    // Verify that v_**H * T = lambda*v_**H
-                    // (or equivalently T**H * v_ = conj(lambda)*v_)
+                    // Verify that T*(v_real + i*v_imag) = lambda*(v_real +
+                    // i*v_imag)
                     //
 
                     TA alpha = T(k, k);
@@ -136,16 +129,37 @@ TEMPLATE_TEST_CASE(
                     TA lambda_real = alpha;
                     TA lambda_imag = sqrt(abs(beta)) * sqrt(abs(gamma));
 
-                    complex_t lambda(lambda_real, lambda_imag);
-
-                    std::vector<complex_t> Tv_;
-                    auto Tv = new_vector(Tv_, n);
-
-                    gemv(Op::ConjTrans, one, T, v_, zero, Tv);
+                    std::vector<TA> Tv_real_;
+                    auto Tv_real = new_vector(Tv_real_, n);
+                    std::vector<TA> Tv_imag_;
+                    auto Tv_imag = new_vector(Tv_imag_, n);
+                    gemv(Op::NoTrans, one, T, v_real, zero, Tv_real);
+                    gemv(Op::NoTrans, one, T, v_imag, zero, Tv_imag);
 
                     real_t tol = ulp<real_t>() * normv * real_t(n);
+
+                    std::vector<TA> v_real2_;
+                    auto v_real2 = new_vector(v_real2_, n);
+                    std::vector<TA> v_imag2_;
+                    auto v_imag2 = new_vector(v_imag2_, n);
+
                     for (idx_t i = 0; i < n; ++i) {
-                        CHECK(abs(Tv[i] - conj(lambda) * v[i]) <= tol);
+                        // Compute lambda * (v_real + i * v_imag)
+                        v_real2[i] =
+                            lambda_real * v_real[i] - lambda_imag * v_imag[i];
+                        v_imag2[i] =
+                            lambda_real * v_imag[i] + lambda_imag * v_real[i];
+                    }
+
+                    for (idx_t i = 0; i < n; ++i) {
+                        // Real part
+                        CHECK(abs(Tv_real[i] - (lambda_real * v_real[i] -
+                                                lambda_imag * v_imag[i])) <=
+                              tol);
+                        // Imaginary part
+                        CHECK(abs(Tv_imag[i] - (lambda_real * v_imag[i] +
+                                                lambda_imag * v_real[i])) <=
+                              tol);
                     }
                 }
             }
@@ -153,26 +167,25 @@ TEMPLATE_TEST_CASE(
                 std::vector<TA> v_;
                 auto v = new_vector(v_, n);
                 //
-                // Compute left eigenvector using trevc3_forwardsolve_single
+                // Compute right eigenvector using trevc3_backsolve_single
                 //
-                trevc3_forwardsolve_single(T, v, k);
+                trevc_backsolve_single(T, v, k);
 
                 // Check that v is nonzero
                 real_t normv = asum(v);
                 REQUIRE(normv != real_t(0));
 
                 //
-                // Verify that v**H * T = lambda*v**H
-                // (or equivalently T**H * v = conj(lambda)*v)
+                // Verify that T*v = lambda*v
                 //
                 TA lambda = T(k, k);
                 std::vector<TA> Tv_;
                 auto Tv = new_vector(Tv_, n);
-                gemv(Op::ConjTrans, one, T, v, zero, Tv);
+                gemv(Op::NoTrans, one, T, v, zero, Tv);
 
                 real_t tol = ulp<real_t>() * normv * real_t(n);
                 for (idx_t i = 0; i < n; ++i) {
-                    CHECK(abs(Tv[i] - conj(lambda) * v[i]) <= tol);
+                    CHECK(abs(Tv[i] - lambda * v[i]) <= tol);
                 }
             }
         }

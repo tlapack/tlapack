@@ -15,8 +15,8 @@
 #include "tlapack/base/utils.hpp"
 #include "tlapack/blas/asum.hpp"
 #include "tlapack/blas/gemv.hpp"
-#include "tlapack/lapack/trevc3_backsolve.hpp"
-#include "tlapack/lapack/trevc3_forwardsolve.hpp"
+#include "tlapack/lapack/trevc_backsolve.hpp"
+#include "tlapack/lapack/trevc_forwardsolve.hpp"
 
 namespace tlapack {
 
@@ -210,7 +210,7 @@ int trevc(const side_t side,
                 //
 
                 // Calculate eigenvector of the upper quasi-triangular matrix T
-                trevc3_backsolve_single(T, v1, i);
+                trevc_backsolve_single(T, v1, i);
 
                 // Backtransform eigenvector if required
                 if (howmny == HowMny::Back) {
@@ -234,7 +234,7 @@ int trevc(const side_t side,
                     // Complex conjugate pair
                     // Calculate eigenvector of the upper quasi-triangular
                     // matrix T
-                    trevc3_backsolve_double(T, v1, v2, i);
+                    trevc_backsolve_double(T, v1, v2, i);
 
                     // Backtransform eigenvector pair if required
                     if (howmny == HowMny::Back) {
@@ -299,7 +299,7 @@ int trevc(const side_t side,
                 //
 
                 // Calculate eigenvector of the upper quasi-triangular matrix T
-                trevc3_forwardsolve_single(T, v1, i);
+                trevc_forwardsolve_single(T, v1, i);
 
                 // Backtransform eigenvector if required
                 if (howmny == HowMny::Back) {
@@ -323,7 +323,7 @@ int trevc(const side_t side,
                     // Complex conjugate pair
                     // Calculate eigenvector of the upper quasi-triangular
                     // matrix T
-                    trevc3_forwardsolve_double(T, v1, v2, i);
+                    trevc_forwardsolve_double(T, v1, v2, i);
 
                     // Backtransform eigenvector pair if required
                     if (howmny == HowMny::Back) {
