@@ -21,7 +21,7 @@ namespace tlapack {
 /// @brief Options struct for pbtrf_with_workspace()
 struct BlockedBandedCholeskyOpts : public EcOpts {
     constexpr BlockedBandedCholeskyOpts(const EcOpts& opts = {})
-        : EcOpts(opts) {};
+        : EcOpts(opts){};
 
     size_t nb = 32;  // Block size
 };
