@@ -837,9 +837,8 @@ namespace traits {
         matrixA_t,
         matrixB_t,
         typename std::enable_if<
-            ((is_eigen_type<matrixA_t> ||
-              is_eigen_type<matrixB_t>)&&cast_to_eigen_type<matrixA_t> &&
-             cast_to_eigen_type<matrixB_t>),
+            ((is_eigen_type<matrixA_t> || is_eigen_type<matrixB_t>) &&
+             cast_to_eigen_type<matrixA_t> && cast_to_eigen_type<matrixB_t>),
             int>::type> {
         using T = scalar_type<type_t<matrixA_t>, type_t<matrixB_t>>;
 
@@ -860,9 +859,8 @@ namespace traits {
         vecA_t,
         vecB_t,
         typename std::enable_if<
-            ((is_eigen_type<vecA_t> ||
-              is_eigen_type<vecB_t>)&&cast_to_eigen_type<vecA_t> &&
-             cast_to_eigen_type<vecB_t>),
+            ((is_eigen_type<vecA_t> || is_eigen_type<vecB_t>) &&
+             cast_to_eigen_type<vecA_t> && cast_to_eigen_type<vecB_t>),
             int>::type> {
         using T = scalar_type<type_t<vecA_t>, type_t<vecB_t>>;
         using type = Eigen::Matrix<T, Eigen::Dynamic, 1>;
