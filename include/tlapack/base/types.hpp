@@ -269,13 +269,15 @@ constexpr internal::Conjugate CONJUGATE = {};
 // Sides
 
 enum class Side : char {
-    Left = 'L',  ///< left side
-    Right = 'R'  ///< right side
+    Left = 'L',   ///< left side
+    Right = 'R',  ///< right side
+    Both = 'B'    ///< both sides
 };
 inline std::ostream& operator<<(std::ostream& out, const Side v)
 {
     if (v == Side::Left) return out << "Left";
     if (v == Side::Right) return out << "Right";
+    if (v == Side::Both) return out << "Both";
     return out << "<Invalid>";
 }
 
@@ -286,6 +288,9 @@ namespace internal {
     struct RightSide {
         constexpr operator Side() const noexcept { return Side::Right; }
     };
+    struct BothSides {
+        constexpr operator Side() const noexcept { return Side::Both; }
+    };
 }  // namespace internal
 
 // Constant expressions for sides
@@ -294,6 +299,8 @@ namespace internal {
 constexpr internal::LeftSide LEFT_SIDE{};
 /// right side
 constexpr internal::RightSide RIGHT_SIDE{};
+/// both sides
+constexpr internal::BothSides BOTH_SIDES{};
 
 // -----------------------------------------------------------------------------
 // Norm types
