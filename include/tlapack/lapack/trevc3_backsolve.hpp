@@ -1,4 +1,4 @@
-/// @file trevc3.hpp
+/// @file trevc3_backsolve.hpp
 /// @author Thijs Steel, KU Leuven, Belgium
 // based on A. Schwarz et al., "Scalable eigenvector computation for the
 // non-symmetric eigenvalue problem"
@@ -9,8 +9,8 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef TLAPACK_TREVC3_HH
-#define TLAPACK_TREVC3_HH
+#ifndef TLAPACK_TREVC3_BACKSOLVE_HH
+#define TLAPACK_TREVC3_BACKSOLVE_HH
 
 #include "tlapack/base/utils.hpp"
 #include "tlapack/blas/asum.hpp"
