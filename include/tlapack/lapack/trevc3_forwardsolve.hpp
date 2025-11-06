@@ -32,7 +32,7 @@ void trevc3_forwardsolve(const matrix_T_t& T,
                          work_t& work,
                          size_type<matrix_T_t> ks,
                          size_type<matrix_T_t> ke,
-                         size_type<matrix_T_t> blocksize = 64)
+                         size_type<matrix_T_t> blocksize)
 {
     using idx_t = size_type<matrix_T_t>;
     using TT = type_t<matrix_T_t>;

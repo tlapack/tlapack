@@ -55,6 +55,7 @@ TEMPLATE_TEST_CASE("TREVC3 correctly computes the eigenvectors",
     // TODO: add test for howmny = HowMny::Select
     const HowMny howmny = GENERATE(HowMny::All, HowMny::Back);
     const Side side = GENERATE(Side::Right, Side::Left, Side::Both);
+    const idx_t nb = GENERATE(1, 2, 10, 64);
 
     // Seed random number generator
     mm.gen.seed(seed);
@@ -78,7 +79,8 @@ TEMPLATE_TEST_CASE("TREVC3 correctly computes the eigenvectors",
                             << " side = "
                             << (side == Side::Right
                                     ? "Right"
-                                    : (side == Side::Left ? "Left" : "Both")))
+                                    : (side == Side::Left ? "Left" : "Both"))
+                            << " block size = " << nb)
     {
         // Calculate the Schur decomposition A = Q*T*Q**T
         lacpy(Uplo::General, A, T);
@@ -119,15 +121,15 @@ TEMPLATE_TEST_CASE("TREVC3 correctly computes the eigenvectors",
         auto Vr = calcRight ? new_matrix(Vr_, n, n) : new_matrix(Vr_, 0, 0);
         std::vector<TA> Vl_;
         auto Vl = calcLeft ? new_matrix(Vl_, n, n) : new_matrix(Vl_, 0, 0);
-        std::vector<TA> work_;
-        auto work = new_vector(work_, 2 * n * max<idx_t>(n, 3) + n);
 
         auto select =
             std::vector<bool>(0, false);  // Not used for howmny != Select
 
         if (calcLeft and howmny == HowMny::Back) lacpy(Uplo::General, Q, Vl);
         if (calcRight and howmny == HowMny::Back) lacpy(Uplo::General, Q, Vr);
-        int info = trevc3(side, howmny, select, T, Vl, Vr, work);
+        Trevc3Opts opts;
+        opts.block_size = nb;
+        int info = trevc3(side, howmny, select, T, Vl, Vr, opts);
         CHECK(info == 0);
 
         // Now verify the eigenvectors
