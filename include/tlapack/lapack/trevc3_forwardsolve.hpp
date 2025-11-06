@@ -117,10 +117,10 @@ void trevc3_forwardsolve(const matrix_T_t& T,
 
         // Make sure we don't split 2x2 blocks
         if constexpr (is_real<TT>) {
-            if (be + 1 < n) {
+            if (be < n) {
                 // TODO: find a better way to check this so we don't
                 // always access other blocks of T
-                if (T(be + 1, be) != TT(0)) {
+                if (T(be, be - 1) != TT(0)) {
                     be += 1;
                     nb += 1;
                 }
@@ -143,6 +143,85 @@ void trevc3_forwardsolve(const matrix_T_t& T,
             if (pair) {
                 TT wr = shifts[k];
                 TT wi = shifts[k + 1];
+
+                for (idx_t i = 0; i < nb;) {
+                    bool is_2x2_block = false;
+                    if (i + 1 < nb) {
+                        if (T_ii(i + 1, i) != TT(0)) {
+                            is_2x2_block = true;
+                        }
+                    }
+
+                    if (is_2x2_block) {
+                        // 2x2 block
+
+                        for (idx_t j = 0; j < i; ++j) {
+                            X_ii(i, k) -= T_ii(j, i) * X_ii(j, k);
+                            X_ii(i, k + 1) -= T_ii(j, i) * X_ii(j, k + 1);
+                            X_ii(i + 1, k) -= T_ii(j, i + 1) * X_ii(j, k);
+                            X_ii(i + 1, k + 1) -=
+                                T_ii(j, i + 1) * X_ii(j, k + 1);
+                        }
+
+                        // Solve the complex 2x2 system
+                        // Using real arithmetic only with Cramer's rule
+
+                        TT a11r = T_ii(i, i) - wr;
+                        TT a11i = wi;
+                        // a12 and a21 are switched to transpose the system
+                        TT a12 = T_ii(i + 1, i);
+                        TT a21 = T_ii(i, i + 1);
+                        TT a22r = T_ii(i + 1, i + 1) - wr;
+                        TT a22i = wi;
+
+                        TT b1r = X_ii(i, k);
+                        TT b1i = X_ii(i, k + 1);
+                        TT b2r = X_ii(i + 1, k);
+                        TT b2i = X_ii(i + 1, k + 1);
+
+                        TT detr = a11r * a22r - a11i * a22i - a12 * a21;
+                        TT deti = a11r * a22i + a11i * a22r;
+
+                        TT denom = detr * detr + deti * deti;
+
+                        TT c1r = a22r * b1r - a22i * b1i - a12 * b2r;
+                        TT c1i = a22r * b1i + a22i * b1r - a12 * b2i;
+                        TT x1r = (c1r * detr + c1i * deti) / denom;
+                        TT x1i = (c1i * detr - c1r * deti) / denom;
+
+                        TT c2r = (a11r * b2r - a11i * b2i) - (a21 * b1r);
+                        TT c2i = (a11r * b2i + a11i * b2r) - (a21 * b1i);
+                        TT x2r = (c2r * detr + c2i * deti) / denom;
+                        TT x2i = (c2i * detr - c2r * deti) / denom;
+
+                        X_ii(i, k) = x1r;
+                        X_ii(i, k + 1) = x1i;
+                        X_ii(i + 1, k) = x2r;
+                        X_ii(i + 1, k + 1) = x2i;
+
+                        i += 2;
+                    }
+                    else {
+                        // 1x1 block
+                        for (idx_t j = 0; j < i; ++j) {
+                            X_ii(i, k) -= T_ii(j, i) * X_ii(j, k);
+                            X_ii(i, k + 1) -= T_ii(j, i) * X_ii(j, k + 1);
+                        }
+
+                        // Do the complex division:
+                        // (v1_r[i] + i*v1_i[i]) / (T11(i, i) - (wr + i*wi))
+                        // in real arithmetic only
+                        TT a = X_ii(i, k);
+                        TT b = X_ii(i, k + 1);
+                        TT c = T_ii(i, i) - wr;
+                        TT d = wi;
+                        TT denom = c * c + d * d;
+                        X_ii(i, k) = (a * c + b * d) / denom;
+                        X_ii(i, k + 1) = (b * c - a * d) / denom;
+
+                        i += 1;
+                    }
+                }
 
                 k += 2;
             }

@@ -66,25 +66,25 @@ TEMPLATE_TEST_CASE(
             T(i, j) = TA(zero);
 
     // Randomly set some subdiagonal entries to non-zero to create 2x2 blocks
-    // if constexpr (is_real<TA>) {
-    //     idx_t j = 0;
-    //     while (j + 1 < n) {
-    //         if (rand_helper<float>(mm.gen) < 0.8f) {
-    //             // Generate a 2x2 block in normalized form
-    //             TA alpha = rand_helper<TA>(mm.gen);
-    //             TA beta = rand_helper<TA>(mm.gen);
-    //             TA gamma = rand_helper<TA>(mm.gen);
-    //             T(j, j) = alpha;
-    //             T(j, j + 1) = beta;
-    //             T(j + 1, j) = -gamma;
-    //             T(j + 1, j + 1) = alpha;
-    //             j += 2;
-    //         }
-    //         else {
-    //             j += 1;
-    //         }
-    //     }
-    // }
+    if constexpr (is_real<TA>) {
+        idx_t j = 0;
+        while (j + 1 < n) {
+            if (rand_helper<float>(mm.gen) < 0.8f) {
+                // Generate a 2x2 block in normalized form
+                TA alpha = rand_helper<TA>(mm.gen);
+                TA beta = rand_helper<TA>(mm.gen);
+                TA gamma = rand_helper<TA>(mm.gen);
+                T(j, j) = alpha;
+                T(j, j + 1) = beta;
+                T(j + 1, j) = -gamma;
+                T(j + 1, j + 1) = alpha;
+                j += 2;
+            }
+            else {
+                j += 1;
+            }
+        }
+    }
 
     // Calculate eigenvectors using trevc
     std::vector<TA> Vr_;
