@@ -125,6 +125,7 @@ add_executable(test_trevc_forwardsolve test_trevc_forwardsolve.cpp testutils.cpp
 add_executable(test_trevc test_trevc.cpp testutils.cpp)
 add_executable(test_trevc3_backsolve test_trevc3_backsolve.cpp testutils.cpp )
 add_executable(test_trevc3_forwardsolve test_trevc3_forwardsolve.cpp testutils.cpp )
+add_executable(test_trevc3 test_trevc3.cpp testutils.cpp )
 
 if(TLAPACK_TEST_EIGEN)
   add_executable(test_eigenplugin test_eigenplugin.cpp)
