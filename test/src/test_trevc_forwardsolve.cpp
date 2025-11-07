@@ -22,10 +22,9 @@
 
 using namespace tlapack;
 
-TEMPLATE_TEST_CASE(
-    "TREVC_forwardsolve correctly computes the left eigenvector",
-    "[eigenvalues][eigenvectors][trevc]",
-    TLAPACK_LEGACY_TYPES_TO_TEST)
+TEMPLATE_TEST_CASE("TREVC_forwardsolve correctly computes the left eigenvector",
+                   "[eigenvalues][eigenvectors][trevc]",
+                   TLAPACK_LEGACY_TYPES_TO_TEST)
 {
     using matrix_t = TestType;
     using TA = type_t<matrix_t>;
