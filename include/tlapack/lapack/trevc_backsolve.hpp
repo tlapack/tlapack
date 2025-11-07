@@ -14,7 +14,9 @@
 
 #include "tlapack/base/utils.hpp"
 #include "tlapack/blas/asum.hpp"
-
+#include "tlapack/blas/iamax.hpp"
+#include "tlapack/lapack/ladiv.hpp"
+#include "tlapack/lapack/trevc_protect.hpp"
 namespace tlapack {
 
 /**
@@ -47,7 +49,9 @@ namespace tlapack {
  * @param[out] v Vector to store the right eigenvector
  * @param[in] k Index of the eigenvector to compute
  */
-template <TLAPACK_MATRIX matrix_T_t, TLAPACK_VECTOR vector_v_t>
+template <TLAPACK_MATRIX matrix_T_t,
+          TLAPACK_VECTOR vector_v_t,
+          enable_if_t<is_real<type_t<matrix_T_t>>, int> = 0>
 void trevc_backsolve_single(const matrix_T_t& T,
                             vector_v_t& v,
                             const size_type<matrix_T_t> k)
@@ -71,6 +75,7 @@ void trevc_backsolve_single(const matrix_T_t& T,
     for (idx_t i = k + 1; i < n; ++i) {
         v[i] = TT(0);
     }
+    real_t scale = real_t(1);
 
     TT w = T(k, k);  // eigenvalue
 
@@ -78,69 +83,183 @@ void trevc_backsolve_single(const matrix_T_t& T,
     auto T11 = slice(T, range(0, k), range(0, k));
     auto v1 = slice(v, range(0, k));
 
-    if constexpr (is_complex<TT>) {
-        // The matrix is complex, so there are no two-by-two blocks to
-        // consider
+    // The matrix is real, so we need to consider potential
+    // 2x2 blocks for complex conjugate eigenvalue pairs
 
-        for (idx_t ii = 0, i = k - 1; ii < k; ++ii, --i) {
+    idx_t ii = 0;
+    while (ii < k) {
+        idx_t i = k - 1 - ii;
+        bool is_2x2_block = false;
+        if (i > 0) {
+            if (T11(i, i - 1) != TT(0)) {
+                is_2x2_block = true;
+            }
+        }
+
+        if (is_2x2_block) {
+            // 2x2 block
+            // Solve the 2x2 system:
+            // [T11(i-1,i-1)-w  T11(i-1,i)    ] [v1[i-1]] = [rhs1]
+            // [T11(i,  i-1)    T11(i,  i)-w  ] [v1[i]  ]   [rhs2]
+            TT rhs1 = v1[i - 1];
+            TT rhs2 = v1[i];
+
+            TT a = T11(i - 1, i - 1) - w;
+            TT b = T11(i - 1, i);
+            TT c = T11(i, i - 1);
+            TT d = T11(i, i) - w;
+
+            TT det = a * d - b * c;
+
+            v1[i - 1] = (d * rhs1 - b * rhs2) / det;
+            v1[i] = (-c * rhs1 + a * rhs2) / det;
+
+            for (idx_t j = 0; j + 1 < i; ++j) {
+                v1[j] -= T11(j, i - 1) * v1[i - 1];
+                v1[j] -= T11(j, i) * v1[i];
+            }
+
+            ii += 2;
+        }
+        else {
+            // 1x1 block
             v1[i] = v1[i] / (T11(i, i) - w);
 
             for (idx_t j = 0; j < i; ++j) {
                 v1[j] -= T11(j, i) * v1[i];
             }
+
+            ii += 1;
         }
     }
-    else {
-        // The matrix is real, so we need to consider potential
-        // 2x2 blocks for complex conjugate eigenvalue pairs
+}
 
-        idx_t ii = 0;
-        while (ii < k) {
-            idx_t i = k - 1 - ii;
-            bool is_2x2_block = false;
-            if (i > 0) {
-                if (T11(i, i - 1) != TT(0)) {
-                    is_2x2_block = true;
-                }
+/**
+ * Calculate the k-th right eigenvector of T using backsubstitution.
+ *
+ * This is done by solving the triangular system
+ *  (T - w*I)x = 0, where w is the k-th eigenvalue of T.
+ *
+ * This can be split into the block matrix:
+ *             (k-1)    1   (n-k)
+ * (k-1)  [ T11 - w*I  T12  T13      ] [x1]   [0]
+ * 1      [ 0          0    T23      ] [x2] = [0]
+ * (n-k)  [ 0          0    T33 - w*I] [x3]   [0]
+ *
+ * Assuming that T33 - w*I is invertible (i.e., w is not a repeated eigenvalue),
+ * x3 = 0. (and even if it is not invertible, we can just choose x3 = 0)
+ *
+ * The first block row then gives:
+ * (T11 - w*I)x1 = -T12*x2
+ *
+ * If we choose x2 = 1, we can solve for x1 using backsubstitution.
+ *
+ * The only special thing to take care of is that we don't want to modify T,
+ * so we need to incorporate the shift -w*I during the backsubstitution.
+ *
+ * We should also handle potential overflow/underflow during the solve.
+ * But this is not yet implemented.
+ *
+ * @param[in] T Upper quasi-triangular matrix
+ * @param[out] v Vector to store the right eigenvector
+ * @param[in] k Index of the eigenvector to compute
+ */
+template <TLAPACK_MATRIX matrix_T_t,
+          TLAPACK_VECTOR vector_v_t,
+          enable_if_t<is_complex<type_t<matrix_T_t>>, int> = 0>
+void trevc_backsolve_single(const matrix_T_t& T,
+                            vector_v_t& v,
+                            const size_type<matrix_T_t> k)
+{
+    using idx_t = size_type<matrix_T_t>;
+    using TT = type_t<matrix_T_t>;
+    using real_t = real_type<TT>;
+    using range = pair<idx_t, idx_t>;
+
+    const idx_t n = nrows(T);
+
+    tlapack_check(ncols(T) == n);
+    tlapack_check(size(v) == n);
+    tlapack_check(k < n);
+
+    const real_t sf_max = safe_max<real_t>();
+    const real_t sf_min = safe_min<real_t>();
+
+    // Initialize v to [-T(0:k-1, k), 1, 0]
+    for (idx_t i = 0; i < k; ++i) {
+        v[i] = -T(i, k);
+    }
+    v[k] = TT(1);
+    for (idx_t i = k + 1; i < n; ++i) {
+        v[i] = TT(0);
+    }
+    real_t scale = real_t(1);
+
+    TT w = T(k, k);  // eigenvalue
+
+    // Backsubstitution to solve the system
+    auto T11 = slice(T, range(0, k), range(0, k));
+    auto v1 = slice(v, range(0, k));
+
+    for (idx_t ii = 0; ii < k; ++ii) {
+        idx_t i = k - 1 - ii;
+        // Scale factor so that we can safely calculate T11(i, i) - w
+        real_t scale1 = trevc_protectsum(T11(i, i), -w, sf_max);
+        TT denom = (scale1 * T11(i, i)) - (scale1 * w);
+        // Scale factor so that we can safely calculate v1[i] / (T11(i, i) - w)
+        real_t scale2 = trevc_protectdiv(v1[i], denom, sf_min, sf_max);
+
+        // Safely execute the division
+        v1[i] = ladiv(scale2 * v1[i], denom);
+
+        real_t scale12 = scale1 * scale2;
+        if (scale12 != real_t(1)) {
+            scale *= scale12;
+            // Apply scale1 and scale2 to all of v1
+            for (idx_t j = 0; j < i; ++j) {
+                v1[j] = scale12 * v1[j];
             }
+            for (idx_t j = i + 1; j < k; ++j) {
+                v1[j] = scale12 * v1[j];
+            }
+        }
 
-            if (is_2x2_block) {
-                // 2x2 block
-                // Solve the 2x2 system:
-                // [T11(i-1,i-1)-w  T11(i-1,i)    ] [v1[i-1]] = [rhs1]
-                // [T11(i,  i-1)    T11(i,  i)-w  ] [v1[i]  ]   [rhs2]
-                TT rhs1 = v1[i - 1];
-                TT rhs2 = v1[i];
+        // Now update v1[0:i-1] -= T11(0:i-1, i) * v1[i]
+        if (i > 0) {
+            real_t ivmax = iamax(slice(v1, range(0, i)));
+            real_t vmax = abs1(v1[ivmax]);
 
-                TT a = T11(i - 1, i - 1) - w;
-                TT b = T11(i - 1, i);
-                TT c = T11(i, i - 1);
-                TT d = T11(i, i) - w;
+            // TODO: it is probably better to precompute these
+            // and pass them as arguments
+            real_t itmax = iamax(slice(col(T11, i), range(0, i)));
+            real_t tmax = abs1(T11(itmax, i));
 
-                TT det = a * d - b * c;
+            real_t xnorm = abs1(v1[i]);
 
-                v1[i - 1] = (d * rhs1 - b * rhs2) / det;
-                v1[i] = (-c * rhs1 + a * rhs2) / det;
-
-                for (idx_t j = 0; j + 1 < i; ++j) {
-                    v1[j] -= T11(j, i - 1) * v1[i - 1];
-                    v1[j] -= T11(j, i) * v1[i];
+            // Scale factor so that
+            // (scale3*v1[0:i-1]) - T11(0:i-1, i) * (scale3 * v1[i]) does not
+            // overflow
+            real_t scale3 = trevc_protectupdate(vmax, tmax, xnorm, sf_max);
+            if (scale3 != real_t(1)) {
+                for (idx_t j = 0; j < i; ++j) {
+                    v1[j] = (scale3 * v1[j]) - T11(j, i) * (scale3 * v1[i]);
+                }
+                // Apply scale3 to all of v1
+                for (idx_t j = i; j < k; ++j) {
+                    v1[j] = scale3 * v1[j];
                 }
 
-                ii += 2;
+                scale *= scale3;
             }
             else {
-                // 1x1 block
-                v1[i] = v1[i] / (T11(i, i) - w);
-
                 for (idx_t j = 0; j < i; ++j) {
-                    v1[j] -= T11(j, i) * v1[i];
+                    v1[j] = (v1[j]) - T11(j, i) * (v1[i]);
                 }
-
-                ii += 1;
             }
         }
     }
+
+    v[k] = scale * v[k];
 }
 
 /**
