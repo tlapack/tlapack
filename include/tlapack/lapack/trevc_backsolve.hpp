@@ -49,8 +49,8 @@ namespace tlapack {
  */
 template <TLAPACK_MATRIX matrix_T_t, TLAPACK_VECTOR vector_v_t>
 void trevc_backsolve_single(const matrix_T_t& T,
-                             vector_v_t& v,
-                             const size_type<matrix_T_t> k)
+                            vector_v_t& v,
+                            const size_type<matrix_T_t> k)
 {
     using idx_t = size_type<matrix_T_t>;
     using TT = type_t<matrix_T_t>;
@@ -182,9 +182,9 @@ template <TLAPACK_MATRIX matrix_T_t,
           TLAPACK_VECTOR vector_v_t,
           enable_if_t<is_real<type_t<matrix_T_t>>, int> = 0>
 void trevc_backsolve_double(const matrix_T_t& T,
-                             vector_v_t& v_r,
-                             vector_v_t& v_i,
-                             const size_type<matrix_T_t> k)
+                            vector_v_t& v_r,
+                            vector_v_t& v_i,
+                            const size_type<matrix_T_t> k)
 {
     using idx_t = size_type<matrix_T_t>;
     using TT = type_t<matrix_T_t>;
