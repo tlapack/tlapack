@@ -47,7 +47,7 @@ int rot_sequence_unoptimized(
     // quick return
     if (k < 1) return 0;
 
-    if (direction == Direction::Forward) {
+    if (direction == Direction::Backward) {
         if (side == Side::Left) {
             for (idx_t i2 = k; i2 > 0; --i2) {
                 idx_t i = i2 - 1;
@@ -138,8 +138,8 @@ TEMPLATE_TEST_CASE("RQ of Hessenberg matrix is accurate",
         hessenberg_rq(R, cl, sl, cr, sr);
 
         // Check backward error
-        rot_sequence_unoptimized(LEFT_SIDE, FORWARD, cl, sl, H);
-        rot_sequence_unoptimized(RIGHT_SIDE, FORWARD, cr, sr, H);
+        rot_sequence_unoptimized(LEFT_SIDE, BACKWARD, cl, sl, H);
+        rot_sequence_unoptimized(RIGHT_SIDE, BACKWARD, cr, sr, H);
         real_t hnorm = lange(MAX_NORM, H);
         for (idx_t j = 0; j < n; ++j) {
             for (idx_t i = 0; i < n; ++i) {
