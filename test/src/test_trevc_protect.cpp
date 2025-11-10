@@ -1,6 +1,6 @@
-/// @file test_trevc_backsolve.cpp
+/// @file test_trevc_protect.cpp
 /// @author Thijs Steel, KU Leuven, Belgium
-/// @brief Test eigenvector calculations.
+/// @brief Test overflow protection routines for TREVC.
 //
 // Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 //
@@ -18,7 +18,7 @@
 
 // Other routines
 #include <tlapack/blas/gemv.hpp>
-#include <tlapack/lapack/trevc_backsolve.hpp>
+#include <tlapack/lapack/trevc_protect.hpp>
 
 using namespace tlapack;
 
