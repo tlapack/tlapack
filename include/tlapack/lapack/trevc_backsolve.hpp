@@ -67,6 +67,9 @@ void trevc_backsolve_single(const matrix_T_t& T,
     tlapack_check(size(v) == n);
     tlapack_check(k < n);
 
+    const real_t sf_max = safe_max<real_t>();
+    const real_t sf_min = safe_min<real_t>();
+
     // Initialize v to [-T(0:k-1, k), 1, 0]
     for (idx_t i = 0; i < k; ++i) {
         v[i] = -T(i, k);
@@ -101,18 +104,24 @@ void trevc_backsolve_single(const matrix_T_t& T,
             // Solve the 2x2 system:
             // [T11(i-1,i-1)-w  T11(i-1,i)    ] [v1[i-1]] = [rhs1]
             // [T11(i,  i-1)    T11(i,  i)-w  ] [v1[i]  ]   [rhs2]
-            TT rhs1 = v1[i - 1];
-            TT rhs2 = v1[i];
 
-            TT a = T11(i - 1, i - 1) - w;
-            TT b = T11(i - 1, i);
-            TT c = T11(i, i - 1);
-            TT d = T11(i, i) - w;
+            real_t scale1a = trevc_protectsum(T11(i - 1, i - 1), -w, sf_max);
+            real_t scale1b = trevc_protectsum(T11(i, i), -w, sf_max);
+            real_t scale1 = std::min<real_t>(scale1a, scale1b);
 
-            TT det = a * d - b * c;
+            TT a = (scale1 * T11(i - 1, i - 1)) - (scale1 * w);
+            TT b = (scale1 * T11(i - 1, i));
+            TT c = (scale1 * T11(i, i - 1));
+            TT d = (scale1 * T11(i, i)) - (scale1 * w);
 
-            v1[i - 1] = (d * rhs1 - b * rhs2) / det;
-            v1[i] = (-c * rhs1 + a * rhs2) / det;
+            v1[i - 1] = scale1 * v1[i - 1];
+            v1[i] = scale1 * v1[i];
+
+            real_t scale2;
+            trevc_2x2solve(a, b, c, d, v1[i - 1], v1[i], scale2, sf_min,
+                           sf_max);
+
+            // TODO: apply scale1 and scale2
 
             for (idx_t j = 0; j + 1 < i; ++j) {
                 v1[j] -= T11(j, i - 1) * v1[i - 1];
@@ -123,10 +132,63 @@ void trevc_backsolve_single(const matrix_T_t& T,
         }
         else {
             // 1x1 block
-            v1[i] = v1[i] / (T11(i, i) - w);
 
-            for (idx_t j = 0; j < i; ++j) {
-                v1[j] -= T11(j, i) * v1[i];
+            // In the paper, they scale here so that denom cannot overflow
+            // but this only happens if T11(i,i) and w are both very large
+            // not just if the matrix is ill-conditioned.
+            // The equations to take the scaling into account also don't
+            // seem fully correct.
+            TT denom = T11(i, i) - w;
+            // Scale factor so that we can safely calculate v1[i] / (T11(i, i) -
+            // w)
+            real_t scale1 = trevc_protectdiv(v1[i], denom, sf_min, sf_max);
+
+            // Safely execute the division
+            v1[i] = (scale1 * v1[i]) / denom;
+
+            if (scale1 != real_t(1)) {
+                scale *= scale1;
+                // Apply scale1 to all of v1
+                for (idx_t j = 0; j < i; ++j) {
+                    v1[j] = scale1 * v1[j];
+                }
+                for (idx_t j = i + 1; j < k; ++j) {
+                    v1[j] = scale1 * v1[j];
+                }
+            }
+
+            // Now update v1[0:i-1] -= T11(0:i-1, i) * v1[i]
+            if (i > 0) {
+                real_t ivmax = iamax(slice(v1, range(0, i)));
+                real_t vmax = abs1(v1[ivmax]);
+
+                // TODO: it is probably better to precompute these
+                // and pass them as arguments
+                real_t itmax = iamax(slice(col(T11, i), range(0, i)));
+                real_t tmax = abs1(T11(itmax, i));
+
+                real_t xnorm = abs1(v1[i]);
+
+                // Scale factor so that
+                // (scale2*v1[0:i-1]) - T11(0:i-1, i) * (scale2 * v1[i]) does
+                // not overflow
+                real_t scale2 = trevc_protectupdate(vmax, tmax, xnorm, sf_max);
+                if (scale2 != real_t(1)) {
+                    for (idx_t j = 0; j < i; ++j) {
+                        v1[j] = (scale2 * v1[j]) - T11(j, i) * (scale2 * v1[i]);
+                    }
+                    // Apply scale2 to all of v1
+                    for (idx_t j = i; j < k; ++j) {
+                        v1[j] = scale2 * v1[j];
+                    }
+
+                    scale *= scale2;
+                }
+                else {
+                    for (idx_t j = 0; j < i; ++j) {
+                        v1[j] = (v1[j]) - T11(j, i) * (v1[i]);
+                    }
+                }
             }
 
             ii += 1;
@@ -285,9 +347,6 @@ void trevc_backsolve_single(const matrix_T_t& T,
  *
  * The only special thing to take care of is that we don't want to modify T,
  * so we need to incorporate the shift -w*I during the backsubstitution.
- *
- * We should also handle potential overflow/underflow during the solve.
- * But this is not yet implemented.
  *
  * @param[in] T Upper quasi-triangular matrix
  * @param[out] v_r Vector to store the real part of the right eigenvector

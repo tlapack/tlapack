@@ -153,6 +153,157 @@ real_type<T> trevc_protectsum(T a, T b, real_type<T> sf_max)
     return std::min<real_type<T>>(xir, xii);
 }
 
+/**
+ * Robustly solve a 2x2 system of equations
+ * (a b) (x1) = scale * (rhs1)
+ * (c d) (x2)           (rhs2)
+ *
+ * where scale is a scaling factor to avoid overflow during the solve
+ *
+ *
+ *
+ */
+template <TLAPACK_SCALAR T, enable_if_t<is_real<T>, int> = 0>
+void trevc_2x2solve(
+    T a, T b, T c, T d, T& x1, T& x2, T& scale, T sf_min, T sf_max)
+{
+    //
+    // Step 1: compute LU factorization with complete pivoting
+    //
+    T abs_a = abs(a);
+    T abs_b = abs(b);
+    T abs_c = abs(c);
+    T abs_d = abs(d);
+
+    // Swap rows and columns to have the largest element in a
+    bool col_swapped = false;
+    if (abs_a >= abs_b) {
+        if (abs_a >= abs_c) {
+            if (abs_a >= abs_d) {
+                // a is largest, do nothing
+            }
+            else {
+                // d is largest
+
+                // swap columns
+                std::swap(a, b);
+                std::swap(c, d);
+                col_swapped = true;
+
+                // swap rows
+                std::swap(a, c);
+                std::swap(b, d);
+                std::swap(x1, x2);
+            }
+        }
+        else {
+            if (abs_c >= abs_d) {
+                // c is largest
+
+                // swap rows
+                std::swap(a, c);
+                std::swap(b, d);
+                std::swap(x1, x2);
+            }
+            else {
+                // d is largest
+
+                // swap columns
+                std::swap(a, b);
+                std::swap(c, d);
+                col_swapped = true;
+
+                // swap rows
+                std::swap(a, c);
+                std::swap(b, d);
+                std::swap(x1, x2);
+            }
+        }
+    }
+    else {
+        if (abs_b >= abs_c) {
+            if (abs_b >= abs_d) {
+                // b is largest
+
+                // swap columns
+                std::swap(a, b);
+                std::swap(c, d);
+                col_swapped = true;
+            }
+            else {
+                // d is largest
+
+                // swap columns
+                std::swap(a, b);
+                std::swap(c, d);
+                col_swapped = true;
+
+                // swap rows
+                std::swap(a, c);
+                std::swap(b, d);
+                std::swap(x1, x2);
+            }
+        }
+        else {
+            if (abs_c >= abs_d) {
+                // c is largest
+
+                // swap rows
+                std::swap(a, c);
+                std::swap(b, d);
+                std::swap(x1, x2);
+            }
+            else {
+                // d is largest
+
+                // swap columns
+                std::swap(a, b);
+                std::swap(c, d);
+                col_swapped = true;
+
+                // swap rows
+                std::swap(a, c);
+                std::swap(b, d);
+                std::swap(x1, x2);
+            }
+        }
+    }
+
+    // Step 2: LU factorization
+    // (a b) -> (1    0) (u00 u01)
+    // (c d)    (l10  1) (0   u11)
+    // Note that we don't do overflow protection
+    // for c/a or d - l10 * u01 here
+    // I don't really see how that would work anyway
+
+    T l10 = c / a;
+    T u00 = a;
+    T u01 = b;
+    T u11 = d - l10 * u01;
+
+    // Step 3: Solve Ly = scale1 * rhs
+    T scale1 = trevc_protectupdate(abs(x2), abs(l10), abs(x1), sf_max);
+    T y1 = scale1 * x1;
+    T y2 = (scale1 * x2) - l10 * (scale1 * y1);
+
+    // Step 4: Solve Ux = y
+    T scale2 = trevc_protectdiv(y2, u11, sf_min, sf_max);
+    y1 = scale2 * y1;
+    y2 = scale2 * y2;
+    x2 = y2 / u11;
+    T scale3 = trevc_protectupdate(abs(y1), abs(u01), abs(x2), sf_max);
+    x2 = scale3 * x2;
+    y1 = scale3 * y1;
+    y1 = y1 - u01 * x2;
+    T scale4 = trevc_protectdiv(y1, u00, sf_min, sf_max);
+    x1 = (scale4 * y1) / u00;
+
+    // Step 5: undo column swap
+    if (col_swapped) std::swap(x1, x2);
+
+    scale = scale1 * scale2 * scale3 * scale4;
+}
+
 }  // namespace tlapack
 
 #endif  // TLAPACK_TREVC_PROTECT_HH
