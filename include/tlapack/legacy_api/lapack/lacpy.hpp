@@ -39,8 +39,6 @@ namespace legacy {
     void lacpy(
         uplo_t uplo, idx_t m, idx_t n, const TA* A, idx_t lda, TB* B, idx_t ldb)
     {
-        using internal::create_matrix;
-
         // check arguments
         tlapack_check_false(uplo != Uplo::Lower && uplo != Uplo::Upper &&
                             uplo != Uplo::General);
