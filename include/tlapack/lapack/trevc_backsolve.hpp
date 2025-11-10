@@ -48,13 +48,17 @@ namespace tlapack {
  * @param[in] T Upper quasi-triangular matrix
  * @param[out] v Vector to store the right eigenvector
  * @param[in] k Index of the eigenvector to compute
+ * @param[in] colN Norms of the columns of T (to help with scaling)
  */
 template <TLAPACK_MATRIX matrix_T_t,
           TLAPACK_VECTOR vector_v_t,
+          TLAPACK_VECTOR vector_colN_t,
+          enable_if_t<is_real<type_t<vector_colN_t>>, int> = 0,
           enable_if_t<is_real<type_t<matrix_T_t>>, int> = 0>
 void trevc_backsolve_single(const matrix_T_t& T,
                             vector_v_t& v,
-                            const size_type<matrix_T_t> k)
+                            const size_type<matrix_T_t> k,
+                            const vector_colN_t& colN)
 {
     using idx_t = size_type<matrix_T_t>;
     using TT = type_t<matrix_T_t>;
@@ -162,10 +166,7 @@ void trevc_backsolve_single(const matrix_T_t& T,
                 real_t ivmax = iamax(slice(v1, range(0, i)));
                 real_t vmax = abs1(v1[ivmax]);
 
-                // TODO: it is probably better to precompute these
-                // and pass them as arguments
-                real_t itmax = iamax(slice(col(T11, i), range(0, i)));
-                real_t tmax = abs1(T11(itmax, i));
+                real_t tmax = colN[i];  // use precomputed column norms
 
                 real_t xnorm = abs1(v1[i]);
 
@@ -228,10 +229,13 @@ void trevc_backsolve_single(const matrix_T_t& T,
  */
 template <TLAPACK_MATRIX matrix_T_t,
           TLAPACK_VECTOR vector_v_t,
+          TLAPACK_VECTOR vector_colN_t,
+          enable_if_t<is_real<type_t<vector_colN_t>>, int> = 0,
           enable_if_t<is_complex<type_t<matrix_T_t>>, int> = 0>
 void trevc_backsolve_single(const matrix_T_t& T,
                             vector_v_t& v,
-                            const size_type<matrix_T_t> k)
+                            const size_type<matrix_T_t> k,
+                            const vector_colN_t& colN)
 {
     using idx_t = size_type<matrix_T_t>;
     using TT = type_t<matrix_T_t>;
@@ -265,24 +269,21 @@ void trevc_backsolve_single(const matrix_T_t& T,
 
     for (idx_t ii = 0; ii < k; ++ii) {
         idx_t i = k - 1 - ii;
-        // Scale factor so that we can safely calculate T11(i, i) - w
-        real_t scale1 = trevc_protectsum(T11(i, i), -w, sf_max);
-        TT denom = (scale1 * T11(i, i)) - (scale1 * w);
+        TT denom = T11(i, i) - w;
         // Scale factor so that we can safely calculate v1[i] / (T11(i, i) - w)
-        real_t scale2 = trevc_protectdiv(v1[i], denom, sf_min, sf_max);
+        real_t scale1 = trevc_protectdiv(v1[i], denom, sf_min, sf_max);
 
         // Safely execute the division
-        v1[i] = ladiv(scale2 * v1[i], denom);
+        v1[i] = ladiv(scale1 * v1[i], denom);
 
-        real_t scale12 = scale1 * scale2;
-        if (scale12 != real_t(1)) {
-            scale *= scale12;
-            // Apply scale1 and scale2 to all of v1
+        if (scale1 != real_t(1)) {
+            scale *= scale1;
+            // Apply scale1 to all of v1
             for (idx_t j = 0; j < i; ++j) {
-                v1[j] = scale12 * v1[j];
+                v1[j] = scale1 * v1[j];
             }
             for (idx_t j = i + 1; j < k; ++j) {
-                v1[j] = scale12 * v1[j];
+                v1[j] = scale1 * v1[j];
             }
         }
 
@@ -291,27 +292,24 @@ void trevc_backsolve_single(const matrix_T_t& T,
             real_t ivmax = iamax(slice(v1, range(0, i)));
             real_t vmax = abs1(v1[ivmax]);
 
-            // TODO: it is probably better to precompute these
-            // and pass them as arguments
-            real_t itmax = iamax(slice(col(T11, i), range(0, i)));
-            real_t tmax = abs1(T11(itmax, i));
+            real_t tmax = colN[i];  // use precomputed column norms
 
             real_t xnorm = abs1(v1[i]);
 
             // Scale factor so that
-            // (scale3*v1[0:i-1]) - T11(0:i-1, i) * (scale3 * v1[i]) does not
+            // (scale2*v1[0:i-1]) - T11(0:i-1, i) * (scale2 * v1[i]) does not
             // overflow
-            real_t scale3 = trevc_protectupdate(vmax, tmax, xnorm, sf_max);
-            if (scale3 != real_t(1)) {
+            real_t scale2 = trevc_protectupdate(vmax, tmax, xnorm, sf_max);
+            if (scale2 != real_t(1)) {
                 for (idx_t j = 0; j < i; ++j) {
-                    v1[j] = (scale3 * v1[j]) - T11(j, i) * (scale3 * v1[i]);
+                    v1[j] = (scale2 * v1[j]) - T11(j, i) * (scale2 * v1[i]);
                 }
-                // Apply scale3 to all of v1
+                // Apply scale2 to all of v1
                 for (idx_t j = i; j < k; ++j) {
-                    v1[j] = scale3 * v1[j];
+                    v1[j] = scale2 * v1[j];
                 }
 
-                scale *= scale3;
+                scale *= scale2;
             }
             else {
                 for (idx_t j = 0; j < i; ++j) {
@@ -358,11 +356,14 @@ void trevc_backsolve_single(const matrix_T_t& T,
  */
 template <TLAPACK_MATRIX matrix_T_t,
           TLAPACK_VECTOR vector_v_t,
+          TLAPACK_VECTOR vector_colN_t,
+          enable_if_t<is_real<type_t<vector_colN_t>>, int> = 0,
           enable_if_t<is_real<type_t<matrix_T_t>>, int> = 0>
 void trevc_backsolve_double(const matrix_T_t& T,
                             vector_v_t& v_r,
                             vector_v_t& v_i,
-                            const size_type<matrix_T_t> k)
+                            const size_type<matrix_T_t> k,
+                            vector_colN_t& colN)
 {
     using idx_t = size_type<matrix_T_t>;
     using TT = type_t<matrix_T_t>;

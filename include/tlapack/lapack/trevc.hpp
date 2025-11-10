@@ -107,6 +107,7 @@ template <TLAPACK_SIDE side_t,
           TLAPACK_MATRIX matrix_T_t,
           TLAPACK_MATRIX matrix_Vl_t,
           TLAPACK_MATRIX matrix_Vr_t,
+          TLAPACK_WORKSPACE rwork_t,
           TLAPACK_WORKSPACE work_t>
 int trevc(const side_t side,
           const HowMny howmny,
@@ -114,6 +115,7 @@ int trevc(const side_t side,
           const matrix_T_t& T,
           matrix_Vl_t& Vl,
           matrix_Vr_t& Vr,
+          rwork_t& rwork,
           work_t& work)
 {
     using idx_t = size_type<matrix_T_t>;
@@ -178,6 +180,12 @@ int trevc(const side_t side,
     auto [v1, work2] = reshape(work, n);
     auto [v2, work3] = reshape(work2, n);
     auto [v3, work4] = reshape(work3, n);
+    auto [colN, rwork2] = reshape(rwork, n);
+
+    for (idx_t j = 0; j < n; ++j) {
+        idx_t itmax = iamax(slice(col(T, j), range(0, n)));
+        colN[j] = abs1(T(itmax, j));
+    }
 
     if (side == Side::Right || side == Side::Both) {
         //
@@ -210,7 +218,7 @@ int trevc(const side_t side,
                 //
 
                 // Calculate eigenvector of the upper quasi-triangular matrix T
-                trevc_backsolve_single(T, v1, i);
+                trevc_backsolve_single(T, v1, i, colN);
 
                 // Backtransform eigenvector if required
                 if (howmny == HowMny::Back) {
@@ -234,7 +242,7 @@ int trevc(const side_t side,
                     // Complex conjugate pair
                     // Calculate eigenvector of the upper quasi-triangular
                     // matrix T
-                    trevc_backsolve_double(T, v1, v2, i);
+                    trevc_backsolve_double(T, v1, v2, i, colN);
 
                     // Backtransform eigenvector pair if required
                     if (howmny == HowMny::Back) {

@@ -93,9 +93,11 @@ TEMPLATE_TEST_CASE(
     auto Vl = new_matrix(Vl_, n, n);
     std::vector<TA> work_;
     auto work = new_vector(work_, n * 3);
+    std::vector<real_t> rwork_;
+    auto rwork = new_vector(rwork_, n);
 
     auto select = std::vector<bool>(n, true);
-    trevc(Side::Left, HowMny::All, select, T, Vl, Vr, work);
+    trevc(Side::Left, HowMny::All, select, T, Vl, Vr, rwork, work);
 
     idx_t nb = 3;
 
