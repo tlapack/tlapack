@@ -1,4 +1,4 @@
-/// @file test_trevc3_backsolve.cpp
+/// @file test_trevc_backsolve.cpp
 /// @author Thijs Steel, KU Leuven, Belgium
 /// @brief Test eigenvector calculations.
 //
@@ -18,13 +18,15 @@
 
 // Other routines
 #include <tlapack/blas/gemv.hpp>
+#include <tlapack/lapack/trevc.hpp>
 #include <tlapack/lapack/trevc3_backsolve.hpp>
 
 using namespace tlapack;
 
-TEMPLATE_TEST_CASE("TREVC3_backsolve correctly computes the right eigenvector",
-                   "[eigenvalues][eigenvectors][trevc3]",
-                   TLAPACK_LEGACY_TYPES_TO_TEST)
+TEMPLATE_TEST_CASE(
+    "TREVC3_backsolve correctly computes a block of right eigenvectors",
+    "[eigenvalues][eigenvectors][trevc3]",
+    TLAPACK_LEGACY_TYPES_TO_TEST)
 {
     using matrix_t = TestType;
     using TA = type_t<matrix_t>;
@@ -84,110 +86,65 @@ TEMPLATE_TEST_CASE("TREVC3_backsolve correctly computes the right eigenvector",
         }
     }
 
-    for (idx_t k = 0; k < n; ++k) {
-        DYNAMIC_SECTION(" n = " << n << " seed = " << seed << " k = " << k)
-        {
-            if (k > 0) {
-                if (T(k, k - 1) != TA(zero)) {
-                    // Skip the second value of a 2x2 block
-                    continue;
-                }
-            }
+    // Calculate eigenvectors using trevc
+    std::vector<TA> Vr_;
+    auto Vr = new_matrix(Vr_, n, n);
+    std::vector<TA> Vl_;
+    auto Vl = new_matrix(Vl_, 0, 0);
+    std::vector<TA> work_;
+    auto work = new_vector(work_, n * 3);
 
-            bool is_2x2_block = false;
-            if (k + 1 < n) {
-                if (T(k + 1, k) != TA(zero)) {
-                    is_2x2_block = true;
-                }
-            }
+    auto select = std::vector<bool>(n, true);
+    trevc(Side::Right, HowMny::All, select, T, Vl, Vr, work);
 
-            if (is_2x2_block) {
-                if constexpr (is_real<TA>) {
-                    //
-                    // Compute right eigenvector using trevc3_backsolve_double
-                    //
-                    std::vector<TA> v_real_;
-                    auto v_real = new_vector(v_real_, n);
-                    std::vector<TA> v_imag_;
-                    auto v_imag = new_vector(v_imag_, n);
+    idx_t nb = 3;
 
-                    trevc3_backsolve_double(T, v_real, v_imag, k);
+    for (idx_t k = 0; k < n;) {
+        idx_t nk = std::min(nb, n - k);
+        idx_t ks = k;
+        idx_t ke = k + nk;
 
-                    // Check that v_real + i*v_imag is nonzero
-                    real_t normv = asum(v_real) + asum(v_imag);
-                    REQUIRE(normv != real_t(0));
-
-                    //
-                    // Verify that T*(v_real + i*v_imag) = lambda*(v_real +
-                    // i*v_imag)
-                    //
-
-                    TA alpha = T(k, k);
-                    TA beta = T(k, k + 1);
-                    TA gamma = T(k + 1, k);
-                    // eigenvalue
-                    TA lambda_real = alpha;
-                    TA lambda_imag = sqrt(abs(beta)) * sqrt(abs(gamma));
-
-                    std::vector<TA> Tv_real_;
-                    auto Tv_real = new_vector(Tv_real_, n);
-                    std::vector<TA> Tv_imag_;
-                    auto Tv_imag = new_vector(Tv_imag_, n);
-                    gemv(Op::NoTrans, one, T, v_real, zero, Tv_real);
-                    gemv(Op::NoTrans, one, T, v_imag, zero, Tv_imag);
-
-                    real_t tol = ulp<real_t>() * normv * real_t(n);
-
-                    std::vector<TA> v_real2_;
-                    auto v_real2 = new_vector(v_real2_, n);
-                    std::vector<TA> v_imag2_;
-                    auto v_imag2 = new_vector(v_imag2_, n);
-
-                    for (idx_t i = 0; i < n; ++i) {
-                        // Compute lambda * (v_real + i * v_imag)
-                        v_real2[i] =
-                            lambda_real * v_real[i] - lambda_imag * v_imag[i];
-                        v_imag2[i] =
-                            lambda_real * v_imag[i] + lambda_imag * v_real[i];
-                    }
-
-                    for (idx_t i = 0; i < n; ++i) {
-                        // Real part
-                        CHECK(abs(Tv_real[i] - (lambda_real * v_real[i] -
-                                                lambda_imag * v_imag[i])) <=
-                              tol);
-                        // Imaginary part
-                        CHECK(abs(Tv_imag[i] - (lambda_real * v_imag[i] +
-                                                lambda_imag * v_real[i])) <=
-                              tol);
-                    }
-                }
-            }
-            else {
-                std::vector<TA> v_;
-                auto v = new_vector(v_, n);
-                //
-                // Compute right eigenvector using trevc3_backsolve_single
-                //
-                trevc3_backsolve_single(T, v, k);
-
-                // Check that v is nonzero
-                real_t normv = asum(v);
-                REQUIRE(normv != real_t(0));
-
-                //
-                // Verify that T*v = lambda*v
-                //
-                TA lambda = T(k, k);
-                std::vector<TA> Tv_;
-                auto Tv = new_vector(Tv_, n);
-                gemv(Op::NoTrans, one, T, v, zero, Tv);
-
-                real_t tol = ulp<real_t>() * normv * real_t(n);
-                for (idx_t i = 0; i < n; ++i) {
-                    CHECK(abs(Tv[i] - lambda * v[i]) <= tol);
+        // Make sure we don't split 2x2 blocks
+        if constexpr (is_real<TA>) {
+            if (ke < n) {
+                if (T(ke, ke - 1) != TA(zero)) {
+                    ke += 1;
+                    nk += 1;
                 }
             }
         }
+
+        DYNAMIC_SECTION(" n = " << n << " seed = " << seed << " ks = " << ks
+                                << " ke = " << ke)
+        {
+            std::vector<TA> X_;
+            auto X = new_matrix(X_, n, nk);
+
+            std::vector<TA> work2_;
+            auto work2 = new_vector(work2_, n * 3);
+
+            // Compute the block of eigenvectors using trevc3_backsolve
+            trevc3_backsolve(T, X, work2, ks, ke, 4);
+
+            // Compare the recomputed block with the original block
+            real_t normDiff = zero;
+            for (idx_t j = 0; j < nk; ++j) {
+                for (idx_t i = 0; i < n; ++i) {
+                    normDiff += abs(X(i, j) - Vr(i, ks + j));
+                }
+            }
+
+            real_t Vrnorm =
+                lange(Norm::Fro, slice(Vr, range(0, n), range(ks, ke)));
+
+            real_t tol = ulp<real_t>() * real_t(n) * real_t(5);
+            REQUIRE(normDiff <= tol * Vrnorm);
+
+            // TODO: Maybe just test this in the same way as trevc_backsolve?
+            // Comparing against Vr may cause issues if the eigenvectors are
+            // ill-conditioned
+        }
+
+        k += nk;
     }
 }

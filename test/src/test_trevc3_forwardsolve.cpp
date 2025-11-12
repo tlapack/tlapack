@@ -1,4 +1,4 @@
-/// @file test_trevc3_forwardsolve.cpp
+/// @file test_trevc_forwardsolve.cpp
 /// @author Thijs Steel, KU Leuven, Belgium
 /// @brief Test eigenvector calculations.
 //
@@ -18,12 +18,13 @@
 
 // Other routines
 #include <tlapack/blas/gemv.hpp>
+#include <tlapack/lapack/trevc.hpp>
 #include <tlapack/lapack/trevc3_forwardsolve.hpp>
 
 using namespace tlapack;
 
 TEMPLATE_TEST_CASE(
-    "TREVC3_forwardsolve correctly computes the left eigenvector",
+    "TREVC3_forwardsolve correctly computes a block of left eigenvectors",
     "[eigenvalues][eigenvectors][trevc3]",
     TLAPACK_LEGACY_TYPES_TO_TEST)
 {
@@ -68,7 +69,7 @@ TEMPLATE_TEST_CASE(
     if constexpr (is_real<TA>) {
         idx_t j = 0;
         while (j + 1 < n) {
-            if (rand_helper<float>(mm.gen) < 0.5f) {
+            if (rand_helper<float>(mm.gen) < 0.8f) {
                 // Generate a 2x2 block in normalized form
                 TA alpha = rand_helper<TA>(mm.gen);
                 TA beta = rand_helper<TA>(mm.gen);
@@ -85,96 +86,65 @@ TEMPLATE_TEST_CASE(
         }
     }
 
-    for (idx_t k = 0; k < n; ++k) {
-        DYNAMIC_SECTION(" n = " << n << " seed = " << seed << " k = " << k)
-        {
-            if (k > 0) {
-                if (T(k, k - 1) != TA(zero)) {
-                    // Skip the second value of a 2x2 block
-                    continue;
-                }
-            }
+    // Calculate eigenvectors using trevc
+    std::vector<TA> Vr_;
+    auto Vr = new_matrix(Vr_, 0, 0);
+    std::vector<TA> Vl_;
+    auto Vl = new_matrix(Vl_, n, n);
+    std::vector<TA> work_;
+    auto work = new_vector(work_, n * 3);
 
-            bool is_2x2_block = false;
-            if (k + 1 < n) {
-                if (T(k + 1, k) != TA(zero)) {
-                    is_2x2_block = true;
-                }
-            }
+    auto select = std::vector<bool>(n, true);
+    trevc(Side::Left, HowMny::All, select, T, Vl, Vr, work);
 
-            if (is_2x2_block) {
-                if constexpr (is_real<TA>) {
-                    //
-                    // Compute left eigenvector using trevc3_forwardsolve_double
-                    //
-                    std::vector<TA> v_real_;
-                    auto v_real = new_vector(v_real_, n);
-                    std::vector<TA> v_imag_;
-                    auto v_imag = new_vector(v_imag_, n);
+    idx_t nb = 3;
 
-                    trevc3_forwardsolve_double(T, v_real, v_imag, k);
+    for (idx_t k = 0; k < n;) {
+        idx_t nk = std::min(nb, n - k);
+        idx_t ks = k;
+        idx_t ke = k + nk;
 
-                    std::vector<complex_t> v_;
-                    auto v = new_vector(v_, n);
-                    for (idx_t i = 0; i < n; ++i) {
-                        v[i] = complex_t(v_real[i], v_imag[i]);
-                    }
-
-                    // Check that v_ is nonzero
-                    real_t normv = asum(v);
-                    REQUIRE(normv != real_t(0));
-
-                    //
-                    // Verify that v_**H * T = lambda*v_**H
-                    // (or equivalently T**H * v_ = conj(lambda)*v_)
-                    //
-
-                    TA alpha = T(k, k);
-                    TA beta = T(k, k + 1);
-                    TA gamma = T(k + 1, k);
-                    // eigenvalue
-                    TA lambda_real = alpha;
-                    TA lambda_imag = sqrt(abs(beta)) * sqrt(abs(gamma));
-
-                    complex_t lambda(lambda_real, lambda_imag);
-
-                    std::vector<complex_t> Tv_;
-                    auto Tv = new_vector(Tv_, n);
-
-                    gemv(Op::ConjTrans, one, T, v_, zero, Tv);
-
-                    real_t tol = ulp<real_t>() * normv * real_t(n);
-                    for (idx_t i = 0; i < n; ++i) {
-                        CHECK(abs(Tv[i] - conj(lambda) * v[i]) <= tol);
-                    }
-                }
-            }
-            else {
-                std::vector<TA> v_;
-                auto v = new_vector(v_, n);
-                //
-                // Compute left eigenvector using trevc3_forwardsolve_single
-                //
-                trevc3_forwardsolve_single(T, v, k);
-
-                // Check that v is nonzero
-                real_t normv = asum(v);
-                REQUIRE(normv != real_t(0));
-
-                //
-                // Verify that v**H * T = lambda*v**H
-                // (or equivalently T**H * v = conj(lambda)*v)
-                //
-                TA lambda = T(k, k);
-                std::vector<TA> Tv_;
-                auto Tv = new_vector(Tv_, n);
-                gemv(Op::ConjTrans, one, T, v, zero, Tv);
-
-                real_t tol = ulp<real_t>() * normv * real_t(n);
-                for (idx_t i = 0; i < n; ++i) {
-                    CHECK(abs(Tv[i] - conj(lambda) * v[i]) <= tol);
+        // Make sure we don't split 2x2 blocks
+        if constexpr (is_real<TA>) {
+            if (ke < n) {
+                if (T(ke, ke - 1) != TA(zero)) {
+                    ke += 1;
+                    nk += 1;
                 }
             }
         }
+
+        DYNAMIC_SECTION(" n = " << n << " seed = " << seed << " ks = " << ks
+                                << " ke = " << ke)
+        {
+            std::vector<TA> X_;
+            auto X = new_matrix(X_, n, nk);
+
+            std::vector<TA> work2_;
+            auto work2 = new_vector(work2_, n * 3);
+
+            // Compute the block of eigenvectors using trevc3_forwardsolve
+            trevc3_forwardsolve(T, X, work2, ks, ke, 4);
+
+            // Compare the recomputed block with the original block
+            real_t normDiff = zero;
+            for (idx_t j = 0; j < nk; ++j) {
+                for (idx_t i = 0; i < n; ++i) {
+                    normDiff += abs(X(i, j) - Vl(i, ks + j));
+                }
+            }
+
+            real_t Vrnorm =
+                lange(Norm::Fro, slice(Vl, range(0, n), range(ks, ke)));
+
+            real_t tol = ulp<real_t>() * real_t(n) * real_t(5);
+            REQUIRE(normDiff <= tol * Vrnorm);
+
+            // TODO: Maybe just test this in the same way as trevc_backsolve?
+            // Comparing against Vr may cause issues if the eigenvectors are
+            // ill-conditioned
+        }
+
+        k += nk;
     }
 }
