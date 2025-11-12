@@ -98,6 +98,8 @@ enum class HowMny : char {
  *                   the boolean array select, stored consecutively in the
  *                   columns of Vr, in the same order as their eigenvalues.
  *
+ * @param[out] rwork Workspace vector of size at least n.
+ *
  * @param[out] work  Workspace vector of size at least 3*n.
  *
  * @ingroup trevc
