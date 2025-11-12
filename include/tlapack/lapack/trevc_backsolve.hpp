@@ -43,12 +43,33 @@ namespace tlapack {
  * the backsubstitution.
  *
  * Eigenvectors are also likely to overflow during the solve. To avoid
- * this, we scale
+ * this, we scale detect overflow before it happens and scale the eigenvector
+ * accordingly.
  *
- * @param[in] T Upper quasi-triangular matrix
- * @param[out] v Vector to store the right eigenvector
- * @param[in] k Index of the eigenvector to compute
- * @param[in] colN Norms of the columns of T (to help with scaling)
+ * @param[in] T     n-by-n matrix
+ *                  Upper quasi-triangular matrix whose k-th eigenvector is to
+ *                  be computed. The matrix is assumed (without checking) to be
+ *                  in standardized Schur form. This mostly affects the 2x2
+ *                  blocks for complex conjugate eigenvalue pairs. Where we
+ *                  assume that the 2x2 blocks are of the form [ a  b; c  a ]
+ *                  with b and c having opposite signs.
+ *
+ * @param[out] v    size n vector
+ *                  On output, contains the k-th right eigenvector of T.
+ *
+ * @param[in] k     integer
+ *                  Index of the eigenvector to compute
+ *                  It is assumed without checking that k does not lie
+ *                  within a 2x2 block. I.e., T(k, k-1) == T(k+1,k) == 0.
+ *
+ * @param[in] colN  size n vector
+ *                  Infinity norms of the strictly upper triangular part of the
+ *                  columns of T.
+ *                  If T contains a 2x2 block at position i, then colN[i] is the
+ *                  infinity norm of the strictly upper triangular part of
+ *                  the nx2 block formed by columns i and i+1 and colN[i+1] = 0.
+ *                  An overestimate, like the 1-norm of the columns, also works,
+ *                  but it may lead to unnecessary scaling.
  */
 template <TLAPACK_MATRIX matrix_T_t,
           TLAPACK_VECTOR vector_v_t,
@@ -133,9 +154,7 @@ void trevc_backsolve_single(const matrix_T_t& T,
                 real_t ivmax = iamax(slice(v1, range(0, i - 1)));
                 real_t vmax = abs1(v1[ivmax]);
 
-                // Approximate inf norm of 2xn block as
-                // sum of column norms
-                real_t tmax = colN[i] + colN[i - 1];
+                real_t tmax = colN[i - 1];
 
                 real_t xnorm = max(abs1(v1[i]), abs1(v1[i - 1]));
 
@@ -349,17 +368,44 @@ void trevc_backsolve_single(const matrix_T_t& T,
  *
  * If we choose x3 = i or x2 = 1, we can solve for x1 using backsubstitution.
  *
- * The only special thing to take care of is that we don't want to modify T,
- * so we need to incorporate the shift -w*I during the backsubstitution.
+ * We don't want to modify T, so we need to incorporate the shift -w*I during
+ * the backsubstitution.
  *
- * @param[in] T Upper quasi-triangular matrix
- * @param[out] v_r Vector to store the real part of the right eigenvector
- * @param[out] v_i Vector to store the imaginary part of the right eigenvector
- * @param[in] k Index of the eigenvector to compute
- *              It is assumed that k and k+1 form a complex conjugate pair
- *              so k needs to be the first index of the 2x2 block, not the
- *              second.
- * @param[in] colN Infinity norms of the columns of T (to help with scaling)
+ * Eigenvectors are also likely to overflow during the solve. To avoid
+ * this, we scale detect overflow before it happens and scale the eigenvector
+ * accordingly.
+ *
+ * @param[in] T     n-by-n matrix
+ *                  Upper quasi-triangular matrix whose k-th eigenvector is to
+ *                  be computed. The matrix is assumed (without checking) to be
+ *                  in standardized Schur form. This mostly affects the 2x2
+ *                  blocks for complex conjugate eigenvalue pairs. Where we
+ *                  assume that the 2x2 blocks are of the form [ a  b; c  a ]
+ *                  with b and c having opposite signs.
+ *
+ * @param[out] v_r  size n vector
+ *                  On output, contains the real part of the k-th right
+ *                  eigenvector of T.
+ *
+ * @param[out] v_i  size n vector
+ *                  On output, contains the imaginary part of the k-th right
+ *                  eigenvector of T.
+ *
+ * @param[in] k     integer
+ *                  Index of the eigenvector to compute
+ *                  It is assumed without checking that k points to the
+ *                  beginning of a 2x2 block. I.e., T(k, k-1) == 0
+ *                  and T(k+1,k) != 0.
+ *
+ * @param[in] colN  size n vector
+ *                  Infinity norms of the strictly upper triangular part of the
+ *                  columns of T.
+ *                  If T contains a 2x2 block at position i, then
+ *                  colN[i] + colN[i+1] is the infinity norm of the strictly
+ *                  upper triangular part of the nx2 block formed by columns i
+ *                  and i+1.
+ *                  An overestimate, like the 1-norm of the columns, also works,
+ *                  but may lead to unnecessary scaling.
  */
 template <TLAPACK_MATRIX matrix_T_t,
           TLAPACK_VECTOR vector_v_t,
@@ -381,7 +427,7 @@ void trevc_backsolve_double(const matrix_T_t& T,
     tlapack_check(ncols(T) == n);
     tlapack_check(size(v_r) == n);
     tlapack_check(size(v_i) == n);
-    tlapack_check(k < n);
+    tlapack_check(k + 1 < n);
 
     const TT sf_max = safe_max<TT>();
     const TT sf_min = safe_min<TT>();
@@ -450,7 +496,6 @@ void trevc_backsolve_double(const matrix_T_t& T,
             // =
             // [v1_r[i-1] + i*v1_i[i-1]]
             // [v1_r[i]   + i*v1_i[i]  ]
-            // Using real arithmetic only with Cramer's rule
 
             TT a11r = T11(i - 1, i - 1) - wr;
             TT a11i = -wi;
@@ -564,37 +609,39 @@ void trevc_backsolve_double(const matrix_T_t& T,
                 }
             }
 
-            idx_t ivrmax = iamax(slice(v1_r, range(0, i)));
-            idx_t ivimax = iamax(slice(v1_i, range(0, i)));
-            TT vrmax = abs(v1_r[ivrmax]);
-            TT vimax = abs(v1_i[ivimax]);
+            if (i > 0) {
+                idx_t ivrmax = iamax(slice(v1_r, range(0, i)));
+                idx_t ivimax = iamax(slice(v1_i, range(0, i)));
+                TT vrmax = abs(v1_r[ivrmax]);
+                TT vimax = abs(v1_i[ivimax]);
 
-            TT scale2r =
-                trevc_protectupdate(vrmax, colN[i], abs(v1_r[i]), sf_max);
-            TT scale2i =
-                trevc_protectupdate(vimax, colN[i], abs(v1_i[i]), sf_max);
-            TT scale2 = min(scale2r, scale2i);
+                TT scale2r =
+                    trevc_protectupdate(vrmax, colN[i], abs(v1_r[i]), sf_max);
+                TT scale2i =
+                    trevc_protectupdate(vimax, colN[i], abs(v1_i[i]), sf_max);
+                TT scale2 = min(scale2r, scale2i);
 
-            if (scale2 != TT(1)) {
-                for (idx_t j = 0; j < i; ++j) {
-                    v1_r[j] =
-                        (scale2 * v1_r[j]) - T11(j, i) * (scale2 * v1_r[i]);
-                    v1_i[j] =
-                        (scale2 * v1_i[j]) - T11(j, i) * (scale2 * v1_i[i]);
+                if (scale2 != TT(1)) {
+                    for (idx_t j = 0; j < i; ++j) {
+                        v1_r[j] =
+                            (scale2 * v1_r[j]) - T11(j, i) * (scale2 * v1_r[i]);
+                        v1_i[j] =
+                            (scale2 * v1_i[j]) - T11(j, i) * (scale2 * v1_i[i]);
+                    }
+                    // Apply scale2 to all of v1
+                    for (idx_t j = i; j < k; ++j) {
+                        v1_r[j] = scale2 * v1_r[j];
+                        v1_i[j] = scale2 * v1_i[j];
+                    }
+
+                    scale *= scale2;
                 }
-                // Apply scale2 to all of v1
-                for (idx_t j = i; j < k; ++j) {
-                    v1_r[j] = scale2 * v1_r[j];
-                    v1_i[j] = scale2 * v1_i[j];
-                }
-
-                scale *= scale2;
-            }
-            else {
-                // Update the right-hand side
-                for (idx_t j = 0; j < i; ++j) {
-                    v1_r[j] -= T11(j, i) * v1_r[i];
-                    v1_i[j] -= T11(j, i) * v1_i[i];
+                else {
+                    // Update the right-hand side
+                    for (idx_t j = 0; j < i; ++j) {
+                        v1_r[j] -= T11(j, i) * v1_r[i];
+                        v1_i[j] -= T11(j, i) * v1_i[i];
+                    }
                 }
             }
 

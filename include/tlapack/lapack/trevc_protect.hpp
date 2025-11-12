@@ -475,6 +475,113 @@ void trevc_2x2solve(T ar,
     scale = scale1 * scale2 * scale3 * scale4;
 }
 
+/**
+ * Calculate the 1- or infinity-norms of the columns of the strictly
+ * upper triangular part of T.
+ * This is used to predict potential overflow during the solve.
+ *
+ * When calculating the infinity-norm for real matrices, 2x2 blocks
+ * are accounted for by storing the norm of the nx2 block in the first column
+ * of the block, and setting the second column norm to zero.
+ *
+ * When calculating the 1-norm for real matrices, 2x2 blocks
+ * are accounted for by storing the 1-norm of both columns in each corresponding
+ * position. The only difference with a 1x1 block is the that "strictly upper
+ * triangular" also leaves out the 2x2 block subdiagonal element. Note that this
+ * maintains the property that for each 2x2 block, colN[j] + colN[j+1] >
+ * inf-norm of the nx2 block formed by columns j and j+1.
+ *
+ * For complex numbers, we use abs1 instead of abs
+ *
+ * Note that there is no protection against overflow when calculating these
+ * norms.
+ *
+ * @param norm  Norm to use (1-norm or infinity-norm)
+ * @param T     n-by-n matrix
+ *              Upper quasi-triangular matrix
+ * @param colN  size n vector
+ *              On output, contains the column norms
+ */
+template <TLAPACK_MATRIX matrix_T_t, TLAPACK_VECTOR vector_colN_t>
+void trevc_colnorms(Norm norm, const matrix_T_t& T, vector_colN_t& colN)
+{
+    tlapack_check(norm == Norm::One || norm == Norm::Inf);
+
+    using idx_t = size_type<matrix_T_t>;
+    using TT = type_t<matrix_T_t>;
+    using real_t = real_type<TT>;
+    using range = pair<idx_t, idx_t>;
+
+    const idx_t n = nrows(T);
+
+    tlapack_check(ncols(T) == n);
+    tlapack_check(size(colN) == n);
+
+    if (norm == Norm::Inf) {
+        for (idx_t j = 0; j < n;) {
+            bool pair = false;
+            if (j + 1 < n) {
+                if (T(j + 1, j) != TT(0)) {
+                    pair = true;
+                }
+            }
+
+            if (pair) {
+                // 2x2 block
+                real_t colnorm = real_t(0);
+                for (idx_t i = 0; i < j; ++i) {
+                    colnorm = std::max<real_t>(
+                        colnorm, abs1(T(i, j)) + abs1(T(i, j + 1)));
+                }
+                colN[j] = colnorm;
+                colN[j + 1] = real_t(0);
+                j += 2;
+            }
+            else {
+                // 1x1 block
+                real_t colnorm = real_t(0);
+                for (idx_t i = 0; i < j; ++i) {
+                    colnorm = std::max<real_t>(colnorm, abs1(T(i, j)));
+                }
+                colN[j] = colnorm;
+                j += 1;
+            }
+        }
+    }
+    else if (norm == Norm::One) {
+        for (idx_t j = 0; j < n;) {
+            bool pair = false;
+            if (j + 1 < n) {
+                if (T(j + 1, j) != TT(0)) {
+                    pair = true;
+                }
+            }
+
+            if (pair) {
+                // 2x2 block
+                real_t colnorm1 = real_t(0);
+                real_t colnorm2 = real_t(0);
+                for (idx_t i = 0; i < j; ++i) {
+                    colnorm1 = colnorm1 + abs1(T(i, j));
+                    colnorm2 = colnorm2 + abs1(T(i, j + 1));
+                }
+                colN[j] = colnorm1;
+                colN[j + 1] = colnorm2;
+                j += 2;
+            }
+            else {
+                // 1x1 block
+                real_t colnorm = real_t(0);
+                for (idx_t i = 0; i < j; ++i) {
+                    colnorm = colnorm + abs1(T(i, j));
+                }
+                colN[j] = colnorm;
+                j += 1;
+            }
+        }
+    }
+}
+
 }  // namespace tlapack
 
 #endif  // TLAPACK_TREVC_PROTECT_HH

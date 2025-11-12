@@ -38,13 +38,32 @@ namespace tlapack {
  *
  * If we choose v2 = 1, we can solve for v3 using forward substitution.
  *
- * The only special thing to take care of is that we don't want to modify T,
- * so we need to incorporate the shift -w*I during the forward substitution.
+ * We don't want to modify T, so we need to incorporate the shift -w*I during
+ * the forward substitution.
  *
- * @param[in] T Upper quasi-triangular matrix
- * @param[out] v Vector to store the left eigenvector
- * @param[in] k Index of the eigenvector to compute
- * @param[in] colN Infinity norms of the columns of T (to help with scaling)
+ * Eigenvectors are also likely to overflow during the solve. To avoid
+ * this, we scale detect overflow before it happens and scale the eigenvector
+ * accordingly.
+ *
+ * @param[in] T     n-by-n matrix
+ *                  Upper quasi-triangular matrix whose k-th eigenvector is to
+ *                  be computed. The matrix is assumed (without checking) to be
+ *                  in standardized Schur form. This mostly affects the 2x2
+ *                  blocks for complex conjugate eigenvalue pairs. Where we
+ *                  assume that the 2x2 blocks are of the form [ a  b; c  a ]
+ *                  with b and c having opposite signs.
+ *
+ * @param[out] v    size n vector
+ *                  On output, contains the k-th left eigenvector of T.
+ *
+ * @param[in] k     integer
+ *                  Index of the eigenvector to compute
+ *                  It is assumed without checking that k does not lie
+ *                  within a 2x2 block. I.e., T(k, k-1) == T(k+1,k) == 0.
+ *
+ * @param[in] colN  size n vector
+ *                  1-norms of the strictly upper triangular part of the
+ *                  columns of T.
  */
 template <TLAPACK_MATRIX matrix_T_t,
           TLAPACK_VECTOR vector_v_t,
@@ -86,6 +105,7 @@ void trevc_forwardsolve_single(const matrix_T_t& T,
     // Forward substitution to solve the system
     auto T33 = slice(T, range(k + 1, n), range(k + 1, n));
     auto v3 = slice(v, range(k + 1, n));
+    auto colN33 = slice(colN, range(k + 1, n));
 
     // The matrix is real, so we need to consider potential
     // 2x2 blocks for complex conjugate eigenvalue pairs
@@ -105,10 +125,8 @@ void trevc_forwardsolve_single(const matrix_T_t& T,
             idx_t ivmax = iamax(slice(v3, range(0, size(v3))));
             real_t vmax = abs1(v3[ivmax]);
 
-            // Note, here we use the inf norm of the column of T, but really,
-            // it should be the 1-norm of the column.
-            real_t tnorm1 = colN[k + i];
-            real_t tnorm2 = colN[k + i + 1];
+            real_t tnorm1 = colN33[i];
+            real_t tnorm2 = colN33[i + 1];
             real_t scale1a =
                 trevc_protectupdate(abs(v3[i]), tnorm1, vmax, sf_max);
             real_t scale1b =
@@ -163,9 +181,7 @@ void trevc_forwardsolve_single(const matrix_T_t& T,
             idx_t ivmax = iamax(slice(v3, range(0, size(v3))));
             real_t vmax = abs1(v3[ivmax]);
 
-            // Note, here we use the inf norm of the column of T, but really,
-            // it should be the 1-norm of the column.
-            real_t tnorm = colN[k + i];
+            real_t tnorm = colN33[i];
             real_t scale1 =
                 trevc_protectupdate(abs(v3[i]), tnorm, vmax, sf_max);
 
@@ -248,6 +264,7 @@ void trevc_forwardsolve_single(const matrix_T_t& T,
     // Forward substitution to solve the system
     auto T33 = slice(T, range(k + 1, n), range(k + 1, n));
     auto v3 = slice(v, range(k + 1, n));
+    auto colN33 = slice(colN, range(k + 1, n));
 
     // The matrix is complex, so there are no two-by-two blocks to
     // consider
@@ -256,9 +273,7 @@ void trevc_forwardsolve_single(const matrix_T_t& T,
         idx_t ivmax = iamax(slice(v3, range(0, size(v3))));
         real_t vmax = abs1(v3[ivmax]);
 
-        // Note, here we use the inf norm of the column of T, but really,
-        // it should be the 1-norm of the column.
-        real_t tnorm = colN[k + i];
+        real_t tnorm = colN33[i];
         real_t scale1 = trevc_protectupdate(abs1(v3[i]), tnorm, vmax, sf_max);
 
         if (scale1 != real_t(1)) {
@@ -272,8 +287,6 @@ void trevc_forwardsolve_single(const matrix_T_t& T,
         for (idx_t j = 0; j < i; ++j) {
             v3[i] -= conj(T33(j, i)) * v3[j];
         }
-
-        // v3[i] = v3[i] / conj(T33(i, i) - w);
 
         // Step 2: division
 
@@ -318,20 +331,38 @@ void trevc_forwardsolve_single(const matrix_T_t& T,
  * If we choose y3 = i or y2 = 1, we can solve for y4 using forward
  * substitution.
  *
- * The only special thing to take care of is that we don't want to modify T,
- * so we need to incorporate the shift -w*I during the forward substitution.
+ * We don't want to modify T, so we need to incorporate the shift -w*I during
+ * the forward substitution.
  *
- * We should also handle potential overflow/underflow during the solve.
- * But this is not yet implemented.
+ * Eigenvectors are also likely to overflow during the solve. To avoid
+ * this, we scale detect overflow before it happens and scale the eigenvector
+ * accordingly.
  *
- * @param[in] T Upper quasi-triangular matrix
- * @param[out] v_r Vector to store the real part of the left eigenvector
- * @param[out] v_i Vector to store the imaginary part of the left eigenvector
- * @param[in] k Index of the eigenvector to compute
- *              It is assumed that k and k+1 form a complex conjugate pair
- *              so k needs to be the first index of the 2x2 block, not the
- *              second.
- * @param[in] colN Infinity norms of the columns of T (to help with scaling)
+ * @param[in] T     n-by-n matrix
+ *                  Upper quasi-triangular matrix whose k-th eigenvector is to
+ *                  be computed. The matrix is assumed (without checking) to be
+ *                  in standardized Schur form. This mostly affects the 2x2
+ *                  blocks for complex conjugate eigenvalue pairs. Where we
+ *                  assume that the 2x2 blocks are of the form [ a  b; c  a ]
+ *                  with b and c having opposite signs.
+ *
+ * @param[out] v_r  size n vector
+ *                  On output, contains the real part of the k-th left
+ *                  eigenvector of T.
+ *
+ * @param[out] v_i  size n vector
+ *                  On output, contains the imaginary part of the k-th left
+ *                  eigenvector of T.
+ *
+ * @param[in] k     integer
+ *                  Index of the eigenvector to compute
+ *                  It is assumed without checking that k points to the
+ *                  beginning of a 2x2 block. I.e., T(k, k-1) == 0
+ *                  and T(k+1,k) != 0.
+ *
+ * @param[in] colN  size n vector
+ *                  1-norms of the strictly upper triangular part of the
+ *                  columns of T.
  */
 template <TLAPACK_MATRIX matrix_T_t,
           TLAPACK_VECTOR vector_v_t,
@@ -399,6 +430,7 @@ void trevc_forwardsolve_double(const matrix_T_t& T,
     auto T44 = slice(T, range(k + 2, n), range(k + 2, n));
     auto v4_r = slice(v_r, range(k + 2, n));
     auto v4_i = slice(v_i, range(k + 2, n));
+    auto colN44 = slice(colN, range(k + 2, n));
 
     idx_t i = 0;
     while (i < size(v4_r)) {
@@ -417,15 +449,19 @@ void trevc_forwardsolve_double(const matrix_T_t& T,
             TT vmax_r = abs1(v4_r[ivrmax]);
             idx_t ivimax = iamax(slice(v4_i, range(0, size(v4_i))));
             TT vmax_i = abs1(v4_i[ivimax]);
-            TT vmax = vmax_r + vmax_i;
-            // Note, here we use the inf norm of the column of T, but really,
-            // it should be the 1-norm of the column.
-            TT tnorm1 = colN[k + i];
-            TT tnorm2 = colN[k + i + 1];
-            TT scale1a = trevc_protectupdate(abs(v4_r[i]) + abs(v4_i[i]),
-                                             tnorm1, vmax, sf_max);
-            TT scale1b = trevc_protectupdate(
-                abs(v4_r[i + 1]) + abs(v4_i[i + 1]), tnorm2, vmax, sf_max);
+
+            TT tnorm1 = colN44[i];
+            TT tnorm2 = colN44[i + 1];
+            TT scale1ar =
+                trevc_protectupdate(abs(v4_r[i]), tnorm1, vmax_r, sf_max);
+            TT scale1ai =
+                trevc_protectupdate(abs(v4_i[i]), tnorm1, vmax_i, sf_max);
+            TT scale1a = min(scale1ar, scale1ai);
+            TT scale1br =
+                trevc_protectupdate(abs(v4_r[i + 1]), tnorm2, vmax_r, sf_max);
+            TT scale1bi =
+                trevc_protectupdate(abs(v4_i[i + 1]), tnorm2, vmax_i, sf_max);
+            TT scale1b = min(scale1br, scale1bi);
             TT scale1 = min(scale1a, scale1b);
 
             if (scale1 != TT(1)) {
@@ -490,7 +526,7 @@ void trevc_forwardsolve_double(const matrix_T_t& T,
             idx_t ivimax = iamax(slice(v4_i, range(0, size(v4_i))));
             TT vmax_i = abs1(v4_i[ivimax]);
 
-            TT tnorm = colN[k + i];
+            TT tnorm = colN44[i];
             TT scale1a =
                 trevc_protectupdate(abs(v4_r[i]), tnorm, vmax_r, sf_max);
             TT scale1b =

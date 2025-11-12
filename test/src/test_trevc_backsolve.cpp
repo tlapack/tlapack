@@ -87,10 +87,7 @@ TEMPLATE_TEST_CASE("TREVC_backsolve correctly computes the right eigenvector",
     // Precompute column norms for scaling
     std::vector<real_t> colN_(n);
     auto colN = new_vector(colN_, n);
-    for (idx_t j = 0; j < n; ++j) {
-        idx_t itmax = iamax(slice(col(T, j), range(0, n)));
-        colN[j] = abs1(T(itmax, j));
-    }
+    trevc_colnorms(Norm::Inf, T, colN);
 
     for (idx_t k = 0; k < n; ++k) {
         DYNAMIC_SECTION(" n = " << n << " seed = " << seed << " k = " << k)
@@ -273,10 +270,7 @@ TEMPLATE_TEST_CASE(
     // Precompute column norms for scaling
     std::vector<real_t> colN_(n);
     auto colN = new_vector(colN_, n);
-    for (idx_t j = 0; j < n; ++j) {
-        idx_t itmax = iamax(slice(col(T, j), range(0, n)));
-        colN[j] = abs1(T(itmax, j));
-    }
+    trevc_colnorms(Norm::Inf, T, colN);
 
     for (idx_t k = 0; k < n; ++k) {
         DYNAMIC_SECTION(" n = " << n << " k = " << k)

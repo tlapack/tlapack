@@ -184,15 +184,11 @@ int trevc(const side_t side,
     auto [v3, work4] = reshape(work3, n);
     auto [colN, rwork2] = reshape(rwork, n);
 
-    for (idx_t j = 0; j < n; ++j) {
-        idx_t itmax = iamax(slice(col(T, j), range(0, n)));
-        colN[j] = abs1(T(itmax, j));
-    }
-
     if (side == Side::Right || side == Side::Both) {
         //
         // Compute right eigenvectors.
         //
+        trevc_colnorms(Norm::Inf, T, colN);
         idx_t iVr = m - 1;  // current column of Vr to store the eigenvector
         for (idx_t ii = 0; ii < n; ii++) {
             idx_t i = n - 1 - ii;
@@ -283,6 +279,7 @@ int trevc(const side_t side,
         //
         // Compute left eigenvectors.
         //
+        trevc_colnorms(Norm::One, T, colN);
         idx_t iVl = 0;  // current column of Vl to store the eigenvector
         for (idx_t i = 0; i < n; i++) {
             if (HowMny::Select == howmny) {
