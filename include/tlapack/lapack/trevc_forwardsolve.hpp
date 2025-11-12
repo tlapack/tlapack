@@ -39,6 +39,119 @@ namespace tlapack {
  * The only special thing to take care of is that we don't want to modify T,
  * so we need to incorporate the shift -w*I during the forward substitution.
  *
+ * @param[in] T Upper quasi-triangular matrix
+ * @param[out] v Vector to store the left eigenvector
+ * @param[in] k Index of the eigenvector to compute
+ * @param[in] colN Infinity norms of the columns of T (to help with scaling)
+ */
+template <TLAPACK_MATRIX matrix_T_t,
+          TLAPACK_VECTOR vector_v_t,
+          TLAPACK_VECTOR vector_colN_t,
+          enable_if_t<is_real<type_t<vector_colN_t>>, int> = 0,
+          enable_if_t<is_real<type_t<matrix_T_t>>, int> = 0>
+void trevc_forwardsolve_single(const matrix_T_t& T,
+                               vector_v_t& v,
+                               const size_type<matrix_T_t> k,
+                               const vector_colN_t& colN)
+{
+    using idx_t = size_type<matrix_T_t>;
+    using TT = type_t<matrix_T_t>;
+    using real_t = real_type<TT>;
+    using range = pair<idx_t, idx_t>;
+
+    const idx_t n = nrows(T);
+
+    tlapack_check(ncols(T) == n);
+    tlapack_check(size(v) == n);
+    tlapack_check(k < n);
+
+    // Initialize v to [0, 1, -T( k, k+1:n-1 )]
+    for (idx_t i = 0; i < k; ++i) {
+        v[i] = TT(0);
+    }
+    v[k] = TT(1);
+    for (idx_t i = k + 1; i < n; ++i) {
+        v[i] = -T(k, i);
+    }
+
+    TT w = T(k, k);  // eigenvalue
+
+    // Forward substitution to solve the system
+    auto T33 = slice(T, range(k + 1, n), range(k + 1, n));
+    auto v3 = slice(v, range(k + 1, n));
+
+    // The matrix is real, so we need to consider potential
+    // 2x2 blocks for complex conjugate eigenvalue pairs
+    idx_t i = 0;
+    while (i < size(v3)) {
+        bool is_2x2_block = false;
+        if (i + 1 < size(v3)) {
+            if (T33(i + 1, i) != TT(0)) {
+                is_2x2_block = true;
+            }
+        }
+
+        if (is_2x2_block) {
+            // 2x2 block
+
+            for (idx_t j = 0; j < i; ++j) {
+                v3[i] -= T33(j, i) * v3[j];
+                v3[i + 1] -= T33(j, i + 1) * v3[j];
+            }
+
+            // Solve the 2x2 (transposed) system:
+            // [T33(i,i)-w   T33(i+1,i)    ] [v3[i]  ] = [rhs1]
+            // [T33(i,i+1)   T33(i+1,i+1)-w] [v3[i+1]]   [rhs2]
+            TT rhs1 = v3[i];
+            TT rhs2 = v3[i + 1];
+
+            TT a = T33(i, i) - w;
+            TT b = T33(i + 1, i);
+            TT c = T33(i, i + 1);
+            TT d = T33(i + 1, i + 1) - w;
+
+            TT det = a * d - b * c;
+
+            v3[i] = (d * rhs1 - b * rhs2) / det;
+            v3[i + 1] = (-c * rhs1 + a * rhs2) / det;
+
+            i += 2;
+        }
+        else {
+            // 1x1 block
+            for (idx_t j = 0; j < i; ++j) {
+                v3[i] -= T33(j, i) * v3[j];
+            }
+
+            v3[i] = v3[i] / (T33(i, i) - w);
+
+            i += 1;
+        }
+    }
+}
+
+/**
+ * Calculate the k-th left eigenvector of T using forward substitution.
+ *
+ * This is done by solving the triangular system
+ *  v**H * (T - w*I) = 0, where w is the k-th eigenvalue of T.
+ *
+ * This can be split into the block matrix:
+ *                           (k-1)    1   (n-k)
+ *  [v1]**H  [ T11 - w*I  T12  T13      ]    [0] (k-1)
+ *  [v2]     [ 0          0    T23      ]  = [0] 1
+ *  [v3]     [ 0          0    T33 - w*I]    [0] (n-k)
+ *
+ * We choose v1 = 0
+ *
+ * The last block column then gives:
+ * v3**H * (T33 - w*I) = -v2**H * T23
+ *
+ * If we choose v2 = 1, we can solve for v3 using forward substitution.
+ *
+ * The only special thing to take care of is that we don't want to modify T,
+ * so we need to incorporate the shift -w*I during the forward substitution.
+ *
  * We should also handle potential overflow/underflow during the solve.
  * But this is not yet implemented.
  *
@@ -46,10 +159,15 @@ namespace tlapack {
  * @param[out] v Vector to store the left eigenvector
  * @param[in] k Index of the eigenvector to compute
  */
-template <TLAPACK_MATRIX matrix_T_t, TLAPACK_VECTOR vector_v_t>
+template <TLAPACK_MATRIX matrix_T_t,
+          TLAPACK_VECTOR vector_v_t,
+          TLAPACK_VECTOR vector_colN_t,
+          enable_if_t<is_real<type_t<vector_colN_t>>, int> = 0,
+          enable_if_t<is_complex<type_t<matrix_T_t>>, int> = 0>
 void trevc_forwardsolve_single(const matrix_T_t& T,
                                vector_v_t& v,
-                               const size_type<matrix_T_t> k)
+                               const size_type<matrix_T_t> k,
+                               const vector_colN_t& colN)
 {
     using idx_t = size_type<matrix_T_t>;
     using TT = type_t<matrix_T_t>;
@@ -77,66 +195,14 @@ void trevc_forwardsolve_single(const matrix_T_t& T,
     auto T33 = slice(T, range(k + 1, n), range(k + 1, n));
     auto v3 = slice(v, range(k + 1, n));
 
-    if constexpr (is_complex<TT>) {
-        // The matrix is complex, so there are no two-by-two blocks to
-        // consider
-        for (idx_t i = 0; i < size(v3); ++i) {
-            for (idx_t j = 0; j < i; ++j) {
-                v3[i] -= conj(T33(j, i)) * v3[j];
-            }
-
-            v3[i] = v3[i] / conj(T33(i, i) - w);
+    // The matrix is complex, so there are no two-by-two blocks to
+    // consider
+    for (idx_t i = 0; i < size(v3); ++i) {
+        for (idx_t j = 0; j < i; ++j) {
+            v3[i] -= conj(T33(j, i)) * v3[j];
         }
-    }
-    else {
-        // The matrix is real, so we need to consider potential
-        // 2x2 blocks for complex conjugate eigenvalue pairs
-        idx_t i = 0;
-        while (i < size(v3)) {
-            bool is_2x2_block = false;
-            if (i + 1 < size(v3)) {
-                if (T33(i + 1, i) != TT(0)) {
-                    is_2x2_block = true;
-                }
-            }
 
-            if (is_2x2_block) {
-                // 2x2 block
-
-                for (idx_t j = 0; j < i; ++j) {
-                    v3[i] -= T33(j, i) * v3[j];
-                    v3[i + 1] -= T33(j, i + 1) * v3[j];
-                }
-
-                // Solve the 2x2 (transposed) system:
-                // [T33(i,i)-w   T33(i+1,i)    ] [v3[i]  ] = [rhs1]
-                // [T33(i,i+1)   T33(i+1,i+1)-w] [v3[i+1]]   [rhs2]
-                TT rhs1 = v3[i];
-                TT rhs2 = v3[i + 1];
-
-                TT a = T33(i, i) - w;
-                TT b = T33(i + 1, i);
-                TT c = T33(i, i + 1);
-                TT d = T33(i + 1, i + 1) - w;
-
-                TT det = a * d - b * c;
-
-                v3[i] = (d * rhs1 - b * rhs2) / det;
-                v3[i + 1] = (-c * rhs1 + a * rhs2) / det;
-
-                i += 2;
-            }
-            else {
-                // 1x1 block
-                for (idx_t j = 0; j < i; ++j) {
-                    v3[i] -= T33(j, i) * v3[j];
-                }
-
-                v3[i] = v3[i] / (T33(i, i) - w);
-
-                i += 1;
-            }
-        }
+        v3[i] = v3[i] / conj(T33(i, i) - w);
     }
 }
 
@@ -178,11 +244,13 @@ void trevc_forwardsolve_single(const matrix_T_t& T,
  */
 template <TLAPACK_MATRIX matrix_T_t,
           TLAPACK_VECTOR vector_v_t,
+          TLAPACK_VECTOR vector_colN_t,
           enable_if_t<is_real<type_t<matrix_T_t>>, int> = 0>
 void trevc_forwardsolve_double(const matrix_T_t& T,
                                vector_v_t& v_r,
                                vector_v_t& v_i,
-                               const size_type<matrix_T_t> k)
+                               const size_type<matrix_T_t> k,
+                               const vector_colN_t& colN)
 {
     using idx_t = size_type<matrix_T_t>;
     using TT = type_t<matrix_T_t>;

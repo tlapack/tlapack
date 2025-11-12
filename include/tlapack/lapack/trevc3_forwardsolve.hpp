@@ -26,9 +26,11 @@ namespace tlapack {
  */
 template <TLAPACK_MATRIX matrix_T_t,
           TLAPACK_MATRIX matrix_X_t,
+          TLAPACK_VECTOR vector_colN_t,
           TLAPACK_WORKSPACE work_t>
 void trevc3_forwardsolve(const matrix_T_t& T,
                          matrix_X_t& X,
+                         vector_colN_t& colN,
                          work_t& work,
                          size_type<matrix_T_t> ks,
                          size_type<matrix_T_t> ke,
@@ -85,7 +87,8 @@ void trevc3_forwardsolve(const matrix_T_t& T,
                     // Complex conjugate pair
                     auto x1 = col(X_ii, k);
                     auto x2 = col(X_ii, k + 1);
-                    trevc_forwardsolve_double(Tii, x1, x2, k);
+                    auto colN_ii = slice(colN, range(ks, ke));
+                    trevc_forwardsolve_double(Tii, x1, x2, k, colN_ii);
                 }
                 k += 2;
             }
@@ -93,7 +96,8 @@ void trevc3_forwardsolve(const matrix_T_t& T,
                 shifts[k] = Tii(k, k);
                 // Real eigenvalue
                 auto x1 = col(X_ii, k);
-                trevc_forwardsolve_single(Tii, x1, k);
+                auto colN_ii = slice(colN, range(ks, ke));
+                trevc_forwardsolve_single(Tii, x1, k, colN_ii);
                 k += 1;
             }
         }

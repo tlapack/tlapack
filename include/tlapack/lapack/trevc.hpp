@@ -307,7 +307,7 @@ int trevc(const side_t side,
                 //
 
                 // Calculate eigenvector of the upper quasi-triangular matrix T
-                trevc_forwardsolve_single(T, v1, i);
+                trevc_forwardsolve_single(T, v1, i, colN);
 
                 // Backtransform eigenvector if required
                 if (howmny == HowMny::Back) {
@@ -331,7 +331,7 @@ int trevc(const side_t side,
                     // Complex conjugate pair
                     // Calculate eigenvector of the upper quasi-triangular
                     // matrix T
-                    trevc_forwardsolve_double(T, v1, v2, i);
+                    trevc_forwardsolve_double(T, v1, v2, i, colN);
 
                     // Backtransform eigenvector pair if required
                     if (howmny == HowMny::Back) {

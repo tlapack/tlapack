@@ -86,6 +86,14 @@ TEMPLATE_TEST_CASE(
         }
     }
 
+    // Precompute column norms for scaling
+    std::vector<real_t> colN_(n);
+    auto colN = new_vector(colN_, n);
+    for (idx_t j = 0; j < n; ++j) {
+        idx_t itmax = iamax(slice(col(T, j), range(0, n)));
+        colN[j] = abs1(T(itmax, j));
+    }
+
     // Calculate eigenvectors using trevc
     std::vector<TA> Vr_;
     auto Vr = new_matrix(Vr_, 0, 0);
@@ -126,7 +134,7 @@ TEMPLATE_TEST_CASE(
             auto work2 = new_vector(work2_, n * 3);
 
             // Compute the block of eigenvectors using trevc3_forwardsolve
-            trevc3_forwardsolve(T, X, work2, ks, ke, 4);
+            trevc3_forwardsolve(T, X, colN, work2, ks, ke, 4);
 
             // Compare the recomputed block with the original block
             real_t normDiff = zero;

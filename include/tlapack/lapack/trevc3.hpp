@@ -387,7 +387,7 @@ int trevc3_work(const side_t side,
             idx_t nb2 = i_end - i_start + 1;
 
             // Calculate the current block of eigenvectors of T
-            trevc3_forwardsolve(T, X, work2, i_start, i_end + 1,
+            trevc3_forwardsolve(T, X, colN, work2, i_start, i_end + 1,
                                 opts.block_size_solve);
 
             // If required, backtransform the eigenvectors to the original
