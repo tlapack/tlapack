@@ -9,6 +9,8 @@
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
 // Test utilities and definitions (must come before <T>LAPACK headers)
+#include <string>
+
 #include "testutils.hpp"
 
 // Auxiliary routines
@@ -218,7 +220,7 @@ TEMPLATE_TEST_CASE(
     mm.gen.seed(seed);
 
     // Define the matrices
-    idx_t n = 20;
+    idx_t n = GENERATE(20, 40);
 
     const TA a = 1.0e6 + 1;
     const TA b = 1;
@@ -243,19 +245,19 @@ TEMPLATE_TEST_CASE(
     }
 
     // Randomly set some subdiagonal entries to non-zero to create 2x2 blocks
-    // if constexpr (is_real<TA>) {
-    //     idx_t j = 0;
-    //     while (j + 1 < n) {
-    //         if (rand_helper<float>(mm.gen) < 0.8f) {
-    //             T(j + 1, j) = c;
-    //             T(j + 1, j + 1) = T(j, j);
-    //             j += 2;
-    //         }
-    //         else {
-    //             j += 1;
-    //         }
-    //     }
-    // }
+    if constexpr (is_real<TA>) {
+        idx_t j = 0;
+        while (j + 1 < n) {
+            if (rand_helper<float>(mm.gen) < 0.8f) {
+                T(j + 1, j) = c;
+                T(j + 1, j + 1) = T(j, j);
+                j += 2;
+            }
+            else {
+                j += 1;
+            }
+        }
+    }
 
     // Precompute column norms for scaling
     std::vector<real_t> colN_(n);

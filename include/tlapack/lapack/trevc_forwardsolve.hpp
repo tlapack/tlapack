@@ -101,6 +101,28 @@ void trevc_forwardsolve_single(const matrix_T_t& T,
         if (is_2x2_block) {
             // 2x2 block
 
+            // Step 1: update
+            idx_t ivmax = iamax(slice(v3, range(0, size(v3))));
+            real_t vmax = abs1(v3[ivmax]);
+
+            // Note, here we use the inf norm of the column of T, but really,
+            // it should be the 1-norm of the column.
+            real_t tnorm1 = colN[k + i];
+            real_t tnorm2 = colN[k + i + 1];
+            real_t scale1a =
+                trevc_protectupdate(abs(v3[i]), tnorm1, vmax, sf_max);
+            real_t scale1b =
+                trevc_protectupdate(abs(v3[i + 1]), tnorm2, vmax, sf_max);
+            real_t scale1 = min(scale1a, scale1b);
+
+            if (scale1 != real_t(1)) {
+                // Apply scale1 to all of v3
+                for (idx_t j = 0; j < size(v3); ++j) {
+                    v3[j] = scale1 * v3[j];
+                }
+                scale *= scale1;
+            }
+
             for (idx_t j = 0; j < i; ++j) {
                 v3[i] -= T33(j, i) * v3[j];
                 v3[i + 1] -= T33(j, i + 1) * v3[j];
@@ -109,18 +131,26 @@ void trevc_forwardsolve_single(const matrix_T_t& T,
             // Solve the 2x2 (transposed) system:
             // [T33(i,i)-w   T33(i+1,i)    ] [v3[i]  ] = [rhs1]
             // [T33(i,i+1)   T33(i+1,i+1)-w] [v3[i+1]]   [rhs2]
-            TT rhs1 = v3[i];
-            TT rhs2 = v3[i + 1];
 
             TT a = T33(i, i) - w;
             TT b = T33(i + 1, i);
             TT c = T33(i, i + 1);
             TT d = T33(i + 1, i + 1) - w;
 
-            TT det = a * d - b * c;
+            TT scale2;
+            trevc_2x2solve(a, b, c, d, v3[i], v3[i + 1], scale2, sf_min,
+                           sf_max);
 
-            v3[i] = (d * rhs1 - b * rhs2) / det;
-            v3[i + 1] = (-c * rhs1 + a * rhs2) / det;
+            // Apply scale2 to all of v3
+            if (scale2 != real_t(1)) {
+                scale *= scale2;
+                for (idx_t j = 0; j < i; ++j) {
+                    v3[j] = scale2 * v3[j];
+                }
+                for (idx_t j = i + 2; j < size(v3); ++j) {
+                    v3[j] = scale2 * v3[j];
+                }
+            }
 
             i += 2;
         }
@@ -349,6 +379,9 @@ void trevc_forwardsolve_double(const matrix_T_t& T,
     tlapack_check(size(v_i) == n);
     tlapack_check(k < n);
 
+    const TT sf_max = safe_max<TT>();
+    const TT sf_min = safe_min<TT>();
+
     TT alpha = T(k, k);
     TT beta = T(k, k + 1);
     TT gamma = T(k + 1, k);
@@ -368,6 +401,8 @@ void trevc_forwardsolve_double(const matrix_T_t& T,
         y2 = -wi / beta;
         y3 = -TT(1);
     }
+
+    TT scale = TT(1);
 
     // Initialize v_real and v_imag to -[y2; i * y3]**H * T(k:k+1, k+2:n-1)
     for (idx_t i = 0; i < k; ++i) {
@@ -402,6 +437,31 @@ void trevc_forwardsolve_double(const matrix_T_t& T,
         if (is_2x2_block) {
             // 2x2 block
 
+            // Step 1: update
+            idx_t ivrmax = iamax(slice(v4_r, range(0, size(v4_r))));
+            TT vmax_r = abs1(v4_r[ivrmax]);
+            idx_t ivimax = iamax(slice(v4_i, range(0, size(v4_i))));
+            TT vmax_i = abs1(v4_i[ivimax]);
+            TT vmax = vmax_r + vmax_i;
+            // Note, here we use the inf norm of the column of T, but really,
+            // it should be the 1-norm of the column.
+            TT tnorm1 = colN[k + i];
+            TT tnorm2 = colN[k + i + 1];
+            TT scale1a = trevc_protectupdate(abs(v4_r[i]) + abs(v4_i[i]),
+                                             tnorm1, vmax, sf_max);
+            TT scale1b = trevc_protectupdate(
+                abs(v4_r[i + 1]) + abs(v4_i[i + 1]), tnorm2, vmax, sf_max);
+            TT scale1 = min(scale1a, scale1b);
+
+            if (scale1 != TT(1)) {
+                // Apply scale1 to all of v4_r and v4_i
+                for (idx_t j = 0; j < size(v4_r); ++j) {
+                    v4_r[j] = scale1 * v4_r[j];
+                    v4_i[j] = scale1 * v4_i[j];
+                }
+                scale *= scale1;
+            }
+
             for (idx_t j = 0; j < i; ++j) {
                 v4_r[i] -= T44(j, i) * v4_r[j];
                 v4_i[i] -= T44(j, i) * v4_i[j];
@@ -409,7 +469,7 @@ void trevc_forwardsolve_double(const matrix_T_t& T,
                 v4_i[i + 1] -= T44(j, i + 1) * v4_i[j];
             }
 
-            // Solve the complex 2x2 system:
+            // Solve the (transposed) complex 2x2 system:
             // y**H
             // *
             // [T44(i,i)- (wr + i*wi) T44(i,i+1)                 ]
@@ -417,7 +477,6 @@ void trevc_forwardsolve_double(const matrix_T_t& T,
             // =
             // [v4_r[i] + i*v4_i[i]       ]
             // [v4_r[i+1]   + i*v4_i[i+1] ]
-            // Using real arithmetic only with Cramer's rule
 
             TT a11r = T44(i, i) - wr;
             TT a11i = wi;
@@ -427,54 +486,88 @@ void trevc_forwardsolve_double(const matrix_T_t& T,
             TT a22r = T44(i + 1, i + 1) - wr;
             TT a22i = wi;
 
-            TT b1r = v4_r[i];
-            TT b1i = v4_i[i];
-            TT b2r = v4_r[i + 1];
-            TT b2i = v4_i[i + 1];
+            TT scale2;
+            trevc_2x2solve(a11r, a11i, a12, TT(0), a21, TT(0), a22r, a22i,
+                           v4_r[i], v4_i[i], v4_r[i + 1], v4_i[i + 1], scale2,
+                           sf_min, sf_max);
 
-            TT detr = a11r * a22r - a11i * a22i - a12 * a21;
-            TT deti = a11r * a22i + a11i * a22r;
-
-            TT denom = detr * detr + deti * deti;
-
-            TT c1r = a22r * b1r - a22i * b1i - a12 * b2r;
-            TT c1i = a22r * b1i + a22i * b1r - a12 * b2i;
-            TT x1r = (c1r * detr + c1i * deti) / denom;
-            TT x1i = (c1i * detr - c1r * deti) / denom;
-
-            TT c2r = (a11r * b2r - a11i * b2i) - (a21 * b1r);
-            TT c2i = (a11r * b2i + a11i * b2r) - (a21 * b1i);
-            TT x2r = (c2r * detr + c2i * deti) / denom;
-            TT x2i = (c2i * detr - c2r * deti) / denom;
-
-            v4_r[i] = x1r;
-            v4_i[i] = x1i;
-            v4_r[i + 1] = x2r;
-            v4_i[i + 1] = x2i;
+            if (scale2 != TT(1)) {
+                // Apply scale2 to all of v4_r and v4_i
+                scale *= scale2;
+                for (idx_t j = 0; j < i; ++j) {
+                    v4_r[j] = scale2 * v4_r[j];
+                    v4_i[j] = scale2 * v4_i[j];
+                }
+                for (idx_t j = i + 2; j < size(v4_r); ++j) {
+                    v4_r[j] = scale2 * v4_r[j];
+                    v4_i[j] = scale2 * v4_i[j];
+                }
+            }
 
             i += 2;
         }
         else {
             // 1x1 block
+
+            // Step 1: update
+            idx_t ivrmax = iamax(slice(v4_r, range(0, size(v4_r))));
+            TT vmax_r = abs1(v4_r[ivrmax]);
+            idx_t ivimax = iamax(slice(v4_i, range(0, size(v4_i))));
+            TT vmax_i = abs1(v4_i[ivimax]);
+
+            TT tnorm = colN[k + i];
+            TT scale1a =
+                trevc_protectupdate(abs(v4_r[i]), tnorm, vmax_r, sf_max);
+            TT scale1b =
+                trevc_protectupdate(abs(v4_i[i]), tnorm, vmax_i, sf_max);
+            TT scale1 = min(scale1a, scale1b);
+
+            if (scale1 != TT(1)) {
+                // Apply scale1 to all of v4_r and v4_i
+                for (idx_t j = 0; j < size(v4_r); ++j) {
+                    v4_r[j] = scale1 * v4_r[j];
+                    v4_i[j] = scale1 * v4_i[j];
+                }
+                scale *= scale1;
+            }
+
             for (idx_t j = 0; j < i; ++j) {
                 v4_r[i] -= T44(j, i) * v4_r[j];
                 v4_i[i] -= T44(j, i) * v4_i[j];
             }
 
             // Do the complex division:
-            // (v1_r[i] + i*v1_i[i]) / (T11(i, i) - (wr + i*wi))
-            // in real arithmetic only
-            TT a = v4_r[i];
-            TT b = v4_i[i];
-            TT c = T44(i, i) - wr;
-            TT d = wi;
-            TT denom = c * c + d * d;
-            v4_r[i] = (a * c + b * d) / denom;
-            v4_i[i] = (b * c - a * d) / denom;
+            // (v4_r[i] + i*v4_i[i]) / (T44(i, i) - (wr + i*wi))
+            TT scale2 = trevc_protectdiv(v4_r[i], v4_i[i], T44(i, i) - wr, wi,
+                                         sf_min, sf_max);
+
+            TT tr, ti;
+            ladiv(scale2 * v4_r[i], scale2 * v4_i[i], T44(i, i) - wr, wi, tr,
+                  ti);
+            v4_r[i] = tr;
+            v4_i[i] = ti;
+
+            if (scale2 != TT(1)) {
+                // Apply scale2 to all of v4_r and v4_i
+                for (idx_t j = 0; j < i; ++j) {
+                    v4_r[j] = scale2 * v4_r[j];
+                    v4_i[j] = scale2 * v4_i[j];
+                }
+                for (idx_t j = i + 1; j < size(v4_r); ++j) {
+                    v4_r[j] = scale2 * v4_r[j];
+                    v4_i[j] = scale2 * v4_i[j];
+                }
+                scale *= scale2;
+            }
 
             i += 1;
         }
     }
+
+    v_r[k] = scale * v_r[k];
+    v_i[k] = scale * v_i[k];
+    v_r[k + 1] = scale * v_r[k + 1];
+    v_i[k + 1] = scale * v_i[k + 1];
 }
 
 }  // namespace tlapack

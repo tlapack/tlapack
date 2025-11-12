@@ -231,7 +231,7 @@ TEMPLATE_TEST_CASE(
     // Seed random number generator
     mm.gen.seed(seed);
 
-    idx_t n = 20;
+    idx_t n = GENERATE(20, 40);
 
     const TA a = 1.0e6 + 1;
     const TA b = 1;
@@ -259,7 +259,7 @@ TEMPLATE_TEST_CASE(
     if constexpr (is_real<TA>) {
         idx_t j = 0;
         while (j + 1 < n) {
-            if (rand_helper<float>(mm.gen) < 0.8f) {
+            if (rand_helper<float>(mm.gen) < 0.5f) {
                 T(j + 1, j) = c;
                 T(j + 1, j + 1) = T(j, j);
                 j += 2;
