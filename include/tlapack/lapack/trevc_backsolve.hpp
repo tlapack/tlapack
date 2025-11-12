@@ -39,11 +39,11 @@ namespace tlapack {
  *
  * If we choose x2 = 1, we can solve for x1 using backsubstitution.
  *
- * The only special thing to take care of is that we don't want to modify T,
- * so we need to incorporate the shift -w*I during the backsubstitution.
+ * We don't want to modify T, so we need to incorporate the shift -w*I during
+ * the backsubstitution.
  *
- * We should also handle potential overflow/underflow during the solve.
- * But this is not yet implemented.
+ * Eigenvectors are also likely to overflow during the solve. To avoid
+ * this, we scale
  *
  * @param[in] T Upper quasi-triangular matrix
  * @param[out] v Vector to store the right eigenvector
@@ -231,35 +231,7 @@ void trevc_backsolve_single(const matrix_T_t& T,
 }
 
 /**
- * Calculate the k-th right eigenvector of T using backsubstitution.
- *
- * This is done by solving the triangular system
- *  (T - w*I)x = 0, where w is the k-th eigenvalue of T.
- *
- * This can be split into the block matrix:
- *             (k-1)    1   (n-k)
- * (k-1)  [ T11 - w*I  T12  T13      ] [x1]   [0]
- * 1      [ 0          0    T23      ] [x2] = [0]
- * (n-k)  [ 0          0    T33 - w*I] [x3]   [0]
- *
- * Assuming that T33 - w*I is invertible (i.e., w is not a repeated eigenvalue),
- * x3 = 0. (and even if it is not invertible, we can just choose x3 = 0)
- *
- * The first block row then gives:
- * (T11 - w*I)x1 = -T12*x2
- *
- * If we choose x2 = 1, we can solve for x1 using backsubstitution.
- *
- * The only special thing to take care of is that we don't want to modify T,
- * so we need to incorporate the shift -w*I during the backsubstitution.
- *
- * We should also handle potential overflow/underflow during the solve.
- * But this is not yet implemented.
- *
- * @param[in] T Upper quasi-triangular matrix
- * @param[out] v Vector to store the right eigenvector
- * @param[in] k Index of the eigenvector to compute
- * @param[in] colN Norms of the columns of T (to help with scaling)
+ * Complex version of trevc_backsolve_single
  */
 template <TLAPACK_MATRIX matrix_T_t,
           TLAPACK_VECTOR vector_v_t,

@@ -206,34 +206,7 @@ void trevc_forwardsolve_single(const matrix_T_t& T,
 }
 
 /**
- * Calculate the k-th left eigenvector of T using forward substitution.
- *
- * This is done by solving the triangular system
- *  v**H * (T - w*I) = 0, where w is the k-th eigenvalue of T.
- *
- * This can be split into the block matrix:
- *                           (k-1)    1   (n-k)
- *  [v1]**H  [ T11 - w*I  T12  T13      ]    [0] (k-1)
- *  [v2]     [ 0          0    T23      ]  = [0] 1
- *  [v3]     [ 0          0    T33 - w*I]    [0] (n-k)
- *
- * We choose v1 = 0
- *
- * The last block column then gives:
- * v3**H * (T33 - w*I) = -v2**H * T23
- *
- * If we choose v2 = 1, we can solve for v3 using forward substitution.
- *
- * The only special thing to take care of is that we don't want to modify T,
- * so we need to incorporate the shift -w*I during the forward substitution.
- *
- * We should also handle potential overflow/underflow during the solve.
- * But this is not yet implemented.
- *
- * @param[in] T Upper quasi-triangular matrix
- * @param[out] v Vector to store the left eigenvector
- * @param[in] k Index of the eigenvector to compute
- * @param[in] colN Infinity norms of the columns of T (to help with scaling)
+ * Complex version of trevc_forwardsolve_single
  */
 template <TLAPACK_MATRIX matrix_T_t,
           TLAPACK_VECTOR vector_v_t,
