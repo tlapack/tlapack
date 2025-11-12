@@ -87,8 +87,8 @@ TEMPLATE_TEST_CASE(
         T res1 = a * x1 + b * x2 - r1;
         T res2 = c * x1 + d * x2 - r2;
 
-        T norma = std::max({abs1(a), abs1(b), abs1(c), abs1(d)});
-        T normr = std::max(abs1(r1), abs1(r2));
+        T norma = max(max(abs1(a), abs1(b)), max(abs1(c), abs1(d)));
+        T normr = max(abs1(r1), abs1(r2));
 
         REQUIRE(abs1(res1) <= tol * (norma + normr));
         REQUIRE(abs1(res2) <= tol * (norma + normr));
@@ -130,8 +130,8 @@ TEMPLATE_TEST_CASE(
     // Check residual
     T res1 = a * x1 + b * x2 - scale * r1;
     T res2 = c * x1 + d * x2 - scale * r2;
-    T norma = std::max({abs1(a), abs1(b), abs1(c), abs1(d)});
-    T normr = std::max(abs1(r1), abs1(r2));
+    T norma = max(max(abs1(a), abs1(b)), max(abs1(c), abs1(d)));
+    T normr = max(abs1(r1), abs1(r2));
     REQUIRE(abs1(res1) <= tol * (norma + normr));
     REQUIRE(abs1(res2) <= tol * (norma + normr));
 }
@@ -233,8 +233,8 @@ TEMPLATE_TEST_CASE(
         T res1 = a * x1 + b * x2 - r1;
         T res2 = c * x1 + d * x2 - r2;
 
-        real_t norma = std::max({abs1(a), abs1(b), abs1(c), abs1(d)});
-        real_t normr = scale * std::max(abs1(r1), abs1(r2));
+        real_t norma = max(max(abs1(a), abs1(b)), max(abs1(c), abs1(d)));
+        real_t normr = scale * max(abs1(r1), abs1(r2));
 
         REQUIRE(abs1(res1) <= tol * (norma + normr));
         REQUIRE(abs1(res2) <= tol * (norma + normr));
@@ -297,8 +297,8 @@ TEMPLATE_TEST_CASE(
     T res1 = a * x1 + b * x2 - (scale * r1);
     T res2 = c * x1 + d * x2 - (scale * r2);
 
-    real_t norma = std::max({abs1(a), abs1(b), abs1(c), abs1(d)});
-    real_t normr = scale * std::max(abs1(r1), abs1(r2));
+    real_t norma = max(max(abs1(a), abs1(b)), max(abs1(c), abs1(d)));
+    real_t normr = scale * max(abs1(r1), abs1(r2));
 
     REQUIRE(abs1(res1) <= tol * (norma + normr));
     REQUIRE(abs1(res2) <= tol * (norma + normr));
