@@ -14,6 +14,8 @@
 
 #include "tlapack/base/utils.hpp"
 #include "tlapack/blas/asum.hpp"
+#include "tlapack/lapack/ladiv.hpp"
+#include "tlapack/lapack/trevc_protect.hpp"
 
 namespace tlapack {
 
@@ -64,6 +66,11 @@ void trevc_forwardsolve_single(const matrix_T_t& T,
     tlapack_check(ncols(T) == n);
     tlapack_check(size(v) == n);
     tlapack_check(k < n);
+
+    real_t scale = real_t(1);
+
+    const real_t sf_max = safe_max<real_t>();
+    const real_t sf_min = safe_min<real_t>();
 
     // Initialize v to [0, 1, -T( k, k+1:n-1 )]
     for (idx_t i = 0; i < k; ++i) {
@@ -118,16 +125,54 @@ void trevc_forwardsolve_single(const matrix_T_t& T,
             i += 2;
         }
         else {
+            //
             // 1x1 block
+            //
+
+            // Step 1: update
+            idx_t ivmax = iamax(slice(v3, range(0, size(v3))));
+            real_t vmax = abs1(v3[ivmax]);
+
+            // Note, here we use the inf norm of the column of T, but really,
+            // it should be the 1-norm of the column.
+            real_t tnorm = colN[k + i];
+            real_t scale1 =
+                trevc_protectupdate(abs(v3[i]), tnorm, vmax, sf_max);
+
+            if (scale1 != real_t(1)) {
+                // Apply scale1 to all of v3
+                for (idx_t j = 0; j < size(v3); ++j) {
+                    v3[j] = scale1 * v3[j];
+                }
+                scale *= scale1;
+            }
+
             for (idx_t j = 0; j < i; ++j) {
                 v3[i] -= T33(j, i) * v3[j];
             }
 
-            v3[i] = v3[i] / (T33(i, i) - w);
+            // Step 2: division
+
+            real_t denom = T33(i, i) - w;
+            real_t scale2 = trevc_protectdiv(v3[i], denom, sf_min, sf_max);
+            v3[i] = (scale2 * v3[i]) / denom;
+
+            if (scale2 != real_t(1)) {
+                // Apply scale2 to all of v3
+                for (idx_t j = 0; j < i; ++j) {
+                    v3[j] = scale2 * v3[j];
+                }
+                for (idx_t j = i + 1; j < size(v3); ++j) {
+                    v3[j] = scale2 * v3[j];
+                }
+                scale *= scale2;
+            }
 
             i += 1;
         }
     }
+
+    v[k] = scale * v[k];
 }
 
 /**
@@ -180,6 +225,11 @@ void trevc_forwardsolve_single(const matrix_T_t& T,
     tlapack_check(size(v) == n);
     tlapack_check(k < n);
 
+    const real_t sf_max = safe_max<real_t>();
+    const real_t sf_min = safe_min<real_t>();
+
+    real_t scale = real_t(1);
+
     // Initialize v to [0, 1, -T( k, k+1:n-1 )]
     for (idx_t i = 0; i < k; ++i) {
         v[i] = TT(0);
@@ -198,12 +248,48 @@ void trevc_forwardsolve_single(const matrix_T_t& T,
     // The matrix is complex, so there are no two-by-two blocks to
     // consider
     for (idx_t i = 0; i < size(v3); ++i) {
+        // Step 1: update
+        idx_t ivmax = iamax(slice(v3, range(0, size(v3))));
+        real_t vmax = abs1(v3[ivmax]);
+
+        // Note, here we use the inf norm of the column of T, but really,
+        // it should be the 1-norm of the column.
+        real_t tnorm = colN[k + i];
+        real_t scale1 = trevc_protectupdate(abs1(v3[i]), tnorm, vmax, sf_max);
+
+        if (scale1 != real_t(1)) {
+            // Apply scale1 to all of v3
+            for (idx_t j = 0; j < size(v3); ++j) {
+                v3[j] = scale1 * v3[j];
+            }
+            scale *= scale1;
+        }
+
         for (idx_t j = 0; j < i; ++j) {
             v3[i] -= conj(T33(j, i)) * v3[j];
         }
 
-        v3[i] = v3[i] / conj(T33(i, i) - w);
+        // v3[i] = v3[i] / conj(T33(i, i) - w);
+
+        // Step 2: division
+
+        TT denom = conj(T33(i, i) - w);
+        real_t scale2 = trevc_protectdiv(v3[i], denom, sf_min, sf_max);
+        v3[i] = ladiv(scale2 * v3[i], denom);
+
+        if (scale2 != real_t(1)) {
+            // Apply scale2 to all of v3
+            for (idx_t j = 0; j < i; ++j) {
+                v3[j] = scale2 * v3[j];
+            }
+            for (idx_t j = i + 1; j < size(v3); ++j) {
+                v3[j] = scale2 * v3[j];
+            }
+            scale *= scale2;
+        }
     }
+
+    v[k] = scale * v[k];
 }
 
 /**

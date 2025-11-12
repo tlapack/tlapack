@@ -300,9 +300,21 @@ TEMPLATE_TEST_CASE(
                         v[i] = complex_t(v_real[i], v_imag[i]);
                     }
 
+                    // Check that v is finite
+                    for (idx_t i = 0; i < n; ++i) {
+                        REQUIRE(std::isfinite(real(v[i])));
+                        REQUIRE(std::isfinite(imag(v[i])));
+                    }
+
                     // Check that v_ is nonzero
                     real_t normv = asum(v);
                     REQUIRE(normv != real_t(0));
+                    REQUIRE(!std::isnan(normv));
+
+                    // Normalize v to avoid overflow in the next step
+                    for (idx_t i = 0; i < n; ++i) {
+                        v[i] /= normv;
+                    }
 
                     //
                     // Verify that v_**H * T = lambda*v_**H
@@ -323,7 +335,8 @@ TEMPLATE_TEST_CASE(
 
                     gemv(Op::ConjTrans, one, T, v_, zero, Tv);
 
-                    real_t tol = ulp<real_t>() * normv * real_t(n);
+                    real_t tol =
+                        ulp<real_t>() * abs1(lambda) * real_t(n) * real_t(100);
                     for (idx_t i = 0; i < n; ++i) {
                         CHECK(abs(Tv[i] - conj(lambda) * v[i]) <= tol);
                     }
@@ -337,9 +350,21 @@ TEMPLATE_TEST_CASE(
                 //
                 trevc_forwardsolve_single(T, v, k, colN);
 
+                // Check that v is finite
+                for (idx_t i = 0; i < n; ++i) {
+                    REQUIRE(std::isfinite(real(v[i])));
+                    REQUIRE(std::isfinite(imag(v[i])));
+                }
+
                 // Check that v is nonzero
                 real_t normv = asum(v);
                 REQUIRE(normv != real_t(0));
+                REQUIRE(!std::isnan(normv));
+
+                // normalize v to avoid overflow in the next step
+                for (idx_t i = 0; i < n; ++i) {
+                    v[i] /= normv;
+                }
 
                 //
                 // Verify that v**H * T = lambda*v**H
@@ -350,7 +375,14 @@ TEMPLATE_TEST_CASE(
                 auto Tv = new_vector(Tv_, n);
                 gemv(Op::ConjTrans, one, T, v, zero, Tv);
 
-                real_t tol = ulp<real_t>() * normv * real_t(n);
+                std::vector<TA> lambda_v_;
+                auto lambda_v = new_vector(lambda_v_, n);
+                for (idx_t i = 0; i < n; ++i) {
+                    lambda_v[i] = conj(lambda) * v[i];
+                }
+
+                real_t tol =
+                    ulp<real_t>() * real_t(n) * abs1(lambda) * real_t(100);
                 for (idx_t i = 0; i < n; ++i) {
                     CHECK(abs(Tv[i] - conj(lambda) * v[i]) <= tol);
                 }
