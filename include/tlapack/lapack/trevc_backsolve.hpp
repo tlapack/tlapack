@@ -259,6 +259,7 @@ void trevc_backsolve_single(const matrix_T_t& T,
  * @param[in] T Upper quasi-triangular matrix
  * @param[out] v Vector to store the right eigenvector
  * @param[in] k Index of the eigenvector to compute
+ * @param[in] colN Norms of the columns of T (to help with scaling)
  */
 template <TLAPACK_MATRIX matrix_T_t,
           TLAPACK_VECTOR vector_v_t,
@@ -386,6 +387,7 @@ void trevc_backsolve_single(const matrix_T_t& T,
  *              It is assumed that k and k+1 form a complex conjugate pair
  *              so k needs to be the first index of the 2x2 block, not the
  *              second.
+ * @param[in] colN Infinity norms of the columns of T (to help with scaling)
  */
 template <TLAPACK_MATRIX matrix_T_t,
           TLAPACK_VECTOR vector_v_t,
@@ -396,7 +398,7 @@ void trevc_backsolve_double(const matrix_T_t& T,
                             vector_v_t& v_r,
                             vector_v_t& v_i,
                             const size_type<matrix_T_t> k,
-                            vector_colN_t& colN)
+                            const vector_colN_t& colN)
 {
     using idx_t = size_type<matrix_T_t>;
     using TT = type_t<matrix_T_t>;

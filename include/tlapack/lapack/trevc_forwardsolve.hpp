@@ -233,6 +233,7 @@ void trevc_forwardsolve_single(const matrix_T_t& T,
  * @param[in] T Upper quasi-triangular matrix
  * @param[out] v Vector to store the left eigenvector
  * @param[in] k Index of the eigenvector to compute
+ * @param[in] colN Infinity norms of the columns of T (to help with scaling)
  */
 template <TLAPACK_MATRIX matrix_T_t,
           TLAPACK_VECTOR vector_v_t,
@@ -357,6 +358,7 @@ void trevc_forwardsolve_single(const matrix_T_t& T,
  *              It is assumed that k and k+1 form a complex conjugate pair
  *              so k needs to be the first index of the 2x2 block, not the
  *              second.
+ * @param[in] colN Infinity norms of the columns of T (to help with scaling)
  */
 template <TLAPACK_MATRIX matrix_T_t,
           TLAPACK_VECTOR vector_v_t,

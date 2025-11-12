@@ -158,6 +158,8 @@ WorkInfo trevc3_worksize(const side_t side,
  *                   the boolean array select, stored consecutively in the
  *                   columns of Vr, in the same order as their eigenvalues.
  *
+ * @param[out] rwork Workspace vector, size n
+ *
  * @param[out] work  Workspace vector, size specified by the workspace query
  *
  * @param[in] opts Trevc3Opts

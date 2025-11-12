@@ -19,7 +19,7 @@
 namespace tlapack {
 
 /**
- * Given two numbers a and b, calculate a scaling factor alpha \in (0, 1] such
+ * Given two numbers a and b, calculate a scaling factor alpha in (0, 1] such
  * that the division (a * alpha) / (b) cannot be larger than the threshold
  * safe_max
  *
@@ -49,7 +49,7 @@ T trevc_protectdiv(T a, T b, T sf_min, T sf_max)
 }
 
 /**
- * Given two numbers a and b, calculate a scaling factor alpha \in (0, 1] such
+ * Given two numbers a and b, calculate a scaling factor alpha in (0, 1] such
  * that the division (a * alpha) / (b) cannot be larger than the threshold
  * safe_max
  *
@@ -83,7 +83,7 @@ real_type<T> trevc_protectdiv(T a,
 }
 
 /**
- * Given two numbers a and b, calculate a scaling factor alpha \in (0, 1] such
+ * Given two numbers a and b, calculate a scaling factor alpha in (0, 1] such
  * that the division (a * alpha) / (b) cannot be larger than the threshold
  * safe_max
  *
@@ -118,7 +118,7 @@ real_type<T> trevc_protectdiv(
 
 /**
  * Given the infinity norms of the matrices Y, T, and X, calculate a scaling
- * factor scale \in (0, 1] such that the update Z = scale*Y - T * (scale * X)
+ * factor scale in (0, 1] such that the update Z = scale*Y - T * (scale * X)
  * does not overflow
  *
  * See algorithm 3 in "Robust solution of triangular linear systems"
@@ -152,11 +152,12 @@ T trevc_protectupdate(T ynorm, T tnorm, T xnorm, T sf_max)
 }
 
 /**
- * Calculate a scaling factor xi \in [0.5, 1] such that the sum (xi * a) + (xi *
+ * Calculate a scaling factor xi in [0.5, 1] such that the sum (xi * a) + (xi *
  * b) does not overflow
  *
  * @param a First addend
  * @param b Second addend
+ * @param sf_max Safe maximum threshold
  *
  * @return Scaling factor
  *
@@ -171,11 +172,12 @@ T trevc_protectsum(T a, T b, T sf_max)
 }
 
 /**
- * Calculate a scaling factor xi \in [0.5, 1] such that the sum (xi * a) + (xi *
+ * Calculate a scaling factor xi in [0.5, 1] such that the sum (xi * a) + (xi *
  * b) does not overflow
  *
  * @param a First addend
  * @param b Second addend
+ * @param sf_max Safe maximum threshold
  *
  * @return Scaling factor
  *
@@ -195,7 +197,17 @@ real_type<T> trevc_protectsum(T a, T b, real_type<T> sf_max)
  *
  * where scale is a scaling factor to avoid overflow during the solve
  *
- *
+ * @param a Coefficient a
+ * @param b Coefficient b
+ * @param c Coefficient c
+ * @param d Coefficient d
+ * @param x1 On input: right-hand side component rhs1
+ *               On output: solution component x1
+ * @param x2 On input: right-hand side component rhs2
+ *               On output: solution component x2
+ * @param scale On output: Scaling factor to avoid overflow
+ * @param sf_min Safe minimum threshold
+ * @param sf_max Safe maximum threshold
  *
  */
 template <TLAPACK_SCALAR T, enable_if_t<is_real<T>, int> = 0>
