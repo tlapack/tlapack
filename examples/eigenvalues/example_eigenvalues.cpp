@@ -17,6 +17,8 @@
 #include <tlapack/lapack/lansy.hpp>
 #include <tlapack/lapack/laset.hpp>
 #include <tlapack/lapack/multishift_qr.hpp>
+#include <tlapack/lapack/trevc.hpp>
+#include <tlapack/lapack/trevc3.hpp>
 #include <tlapack/lapack/unghr.hpp>
 
 // C++ headers
@@ -266,6 +268,24 @@ void run(size_t n,
         for (size_t i = j + 2; i < n; ++i)
             H(i, j) = 0.0;
 
+    // Record start time
+    auto startEigenvectors = std::chrono::high_resolution_clock::now();
+    {
+        int info;
+        std::vector<T> VL_;
+        auto VL = new_matrix(VL_, n, n);
+        std::vector<T> VR_;
+        auto VR = new_matrix(VR_, n, n);
+        std::vector<bool> select(n, true);  // all eigenvectors
+        info = tlapack::trevc3(tlapack::Side::Both, tlapack::HowMny::All,
+                               select, H, VL, VR);
+        // info = tlapack::trevc(tlapack::Side::Both, tlapack::HowMny::All,
+        // select,
+        //                       H, VL, VR);
+    }
+    // Record end time
+    auto endEigenvectors = std::chrono::high_resolution_clock::now();
+
     // Compute elapsed time in nanoseconds
     auto elapsedQHQ =
         std::chrono::duration_cast<std::chrono::nanoseconds>(endQHQ - startQHQ);
@@ -273,6 +293,9 @@ void run(size_t n,
         std::chrono::duration_cast<std::chrono::nanoseconds>(endQ - startQ);
     auto elapsedSchur = std::chrono::duration_cast<std::chrono::nanoseconds>(
         endSchur - startSchur);
+    auto elapsedEigenvectors =
+        std::chrono::duration_cast<std::chrono::nanoseconds>(endEigenvectors -
+                                                             startEigenvectors);
 
     // Print Q and H
     if (verbose) {
@@ -372,6 +395,8 @@ void run(size_t n,
               << std::endl;
     std::cout << "QR time = " << elapsedSchur.count() * 1.0e-9 << " s"
               << std::endl;
+    std::cout << "Eigenvectors time = " << elapsedEigenvectors.count() * 1.0e-9
+              << " s" << std::endl;
     std::cout << "||QHQ* - A||_F/||A||_F  = " << norm_repres_1
               << ",        ||Q'Q - I||_F  = " << norm_orth_1 << std::endl;
     std::cout << "AED calls   " << n_aed << std::endl
