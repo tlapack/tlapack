@@ -246,13 +246,6 @@ int trevc3_work(const side_t side,
 
     auto [X, work2] = reshape(work, n, opts.block_size + 1);
 
-    auto [colN, rwork2] = reshape(rwork, n);
-
-    for (idx_t j = 0; j < n; ++j) {
-        auto itmax = iamax(slice(col(T, j), range(0, n)));
-        colN[j] = abs1(T(itmax, j));
-    }
-
     if (side == Side::Right || side == Side::Both) {
         //
         // Compute right eigenvectors.
@@ -308,7 +301,7 @@ int trevc3_work(const side_t side,
             idx_t nb2 = i_end - i_start + 1;
 
             // Calculate the current block of eigenvectors of T
-            trevc3_backsolve(T, X, colN, work2, i_start, i_end + 1,
+            trevc3_backsolve(T, X, rwork, work2, i_start, i_end + 1,
                              opts.block_size_solve);
 
             // If required, backtransform the eigenvectors to the original
@@ -389,7 +382,7 @@ int trevc3_work(const side_t side,
             idx_t nb2 = i_end - i_start + 1;
 
             // Calculate the current block of eigenvectors of T
-            trevc3_forwardsolve(T, X, colN, work2, i_start, i_end + 1,
+            trevc3_forwardsolve(T, X, rwork, work2, i_start, i_end + 1,
                                 opts.block_size_solve);
 
             // If required, backtransform the eigenvectors to the original

@@ -17,21 +17,47 @@
 #include "tlapack/blas/gemm.hpp"
 #include "tlapack/lapack/laset.hpp"
 #include "tlapack/lapack/trevc_backsolve.hpp"
+#include "tlapack/lapack/trevc_protect.hpp"
 
 namespace tlapack {
 
 /**
  * Calculate the ks-th through ke-th (not inclusive) right eigenvector of T
  * using a blocked backsubstitution.
+ *
+ * @param[in] T      n-by-n matrix
+ *                   Upper quasi-triangular matrix whose eigenvectors are to
+ *                   be computed. The matrix is assumed (without checking) to be
+ *                   in standardized Schur form. This mostly affects the 2x2
+ *                   blocks for complex conjugate eigenvalue pairs. Where we
+ *                   assume that the 2x2 blocks are of the form [ a  b; c  a ]
+ *                   with b and c having opposite signs.
+ *
+ * @param[out] X     n-by-m matrix
+ *                   On output, contains the ks-th through ke-th (not inclusive)
+ *                   right eigenvectors of T, stored in the columns of X.
+ *
+ * @param[out] rwork Real workspace vector of size at least
+ *                   min(blocksize + (ke - ks),2*(ke - ks))
+ *
+ * @param[out] work  Workspace vector of size at least (ke - ks)
+ *
+ * @param[in] ks     integer
+ *
+ * @param[in] ke     integer
+ *                   ks and ke determine the range of eigenvectors to compute.
+ *
+ * @param[in] blocksize  integer
+ *                       The blocksize to use in the blocked backsubstitution.
+ *
  */
 template <TLAPACK_MATRIX matrix_T_t,
           TLAPACK_MATRIX matrix_X_t,
-          TLAPACK_VECTOR vector_colN_t,
-          enable_if_t<is_real<type_t<vector_colN_t>>, int> = 0,
+          TLAPACK_WORKSPACE rwork_t,
           TLAPACK_WORKSPACE work_t>
 void trevc3_backsolve(const matrix_T_t& T,
                       matrix_X_t& X,
-                      vector_colN_t& colN,
+                      rwork_t& rwork,
                       work_t& work,
                       size_type<matrix_T_t> ks,
                       size_type<matrix_T_t> ke,
@@ -43,6 +69,9 @@ void trevc3_backsolve(const matrix_T_t& T,
     using range = pair<idx_t, idx_t>;
 
     const idx_t n = nrows(T);
+
+    const real_t sf_max = safe_max<real_t>();
+    const real_t sf_min = safe_min<real_t>();
 
     tlapack_check(ncols(T) == n);
 
@@ -58,6 +87,9 @@ void trevc3_backsolve(const matrix_T_t& T,
         // Calculate the eigenvectors of the ks:ke block
         auto Tii = slice(T, range(ks, ke), range(ks, ke));
         auto X_ii = slice(X, range(ks, ke), range(0, nk));
+
+        auto [colN_ii, rwork2] = reshape(rwork, nk);
+        trevc_colnorms(Norm::Inf, Tii, colN_ii);
 
         for (idx_t k = 0; k < nk;) {
             bool pair = false;
@@ -88,7 +120,6 @@ void trevc3_backsolve(const matrix_T_t& T,
                     // Complex conjugate pair
                     auto x1 = col(X_ii, k);
                     auto x2 = col(X_ii, k + 1);
-                    auto colN_ii = slice(colN, range(ks, ke));
                     trevc_backsolve_double(Tii, x1, x2, k, colN_ii);
                 }
                 k += 2;
@@ -97,18 +128,41 @@ void trevc3_backsolve(const matrix_T_t& T,
                 shifts[k] = Tii(k, k);
                 // Real eigenvalue
                 auto x1 = col(X_ii, k);
-                auto colN_ii = slice(colN, range(ks, ke));
                 trevc_backsolve_single(Tii, x1, k, colN_ii);
                 k += 1;
             }
         }
 
-        auto T_ij = slice(T, range(0, ks), range(ks, ke));
-        auto X_i = slice(X, range(0, ks), range(0, nk));
-        // This is where you might think to initialize X_i as -T_ij
-        // But the multiplication below takes care of that because it also
-        // takes the element 1 into account
-        gemm(Op::NoTrans, Op::NoTrans, TT(-1), T_ij, X_ii, TT(1), X_i);
+        if (ks > 0) {
+            auto T_ij = slice(T, range(0, ks), range(ks, ke));
+            auto X_i = slice(X, range(0, ks), range(0, nk));
+
+            // Calculate scaling factors to avoid overflow in the matrix-matrix
+            // multiplication below
+            real_t t_inf_norm = lange(Norm::Inf, T_ij);
+            for (idx_t j = 0; j < nk; ++j) {
+                idx_t imax = iamax(col(X_ii, j));
+                real_t x_norm = abs(X_ii(imax, j));
+
+                imax = iamax(col(X_i, j));
+                real_t y_norm = abs(X_i(imax, j));
+
+                real_t scale =
+                    trevc_protectupdate(y_norm, t_inf_norm, x_norm, sf_max);
+
+                if (scale != real_t(1)) {
+                    // Scale X(:, j)
+                    for (idx_t i = 0; i <= ks + j; ++i) {
+                        X(i, j) = scale * X(i, j);
+                    }
+                }
+            }
+
+            // This is where you might think to initialize X_i as -T_ij
+            // But the multiplication below takes care of that because it also
+            // takes the element 1 into account
+            gemm(Op::NoTrans, Op::NoTrans, TT(-1), T_ij, X_ii, TT(1), X_i);
+        }
     }
 
     // Step 2: Now keep propagating the updates upwards, but keep the individual
@@ -134,6 +188,12 @@ void trevc3_backsolve(const matrix_T_t& T,
 
         auto T_ii = slice(T, range(bs, be), range(bs, be));
         auto X_ii = slice(X, range(bs, be), range(0, nk));
+        auto [colN_ii, rwork2] = reshape(rwork, nb);
+        trevc_colnorms(Norm::Inf, T_ii, colN_ii);
+        auto [scale_ii, rwork3] = reshape(rwork2, nk);
+        for (idx_t j = 0; j < nk; ++j) {
+            scale_ii[j] = real_t(1);
+        }
 
         for (idx_t k = 0; k < nk;) {
             bool pair = false;
@@ -254,7 +314,34 @@ void trevc3_backsolve(const matrix_T_t& T,
                     for (idx_t ii = 0; ii < nb; ++ii) {
                         idx_t i = nb - 1 - ii;
 
+                        real_t scale1 = trevc_protectdiv(
+                            X_ii(i, k), T_ii(i, i) - w, sf_min, sf_max);
+
+                        if (scale1 != real_t(1)) {
+                            // Scale the current part of the vector
+                            for (idx_t jj = 0; jj < nb; ++jj) {
+                                X_ii(jj, k) = scale1 * X_ii(jj, k);
+                            }
+                            scale_ii[k] *= scale1;
+                        }
+
                         X_ii(i, k) = X_ii(i, k) / (T_ii(i, i) - w);
+
+                        idx_t iymax = iamax(slice(X_ii, range(0, i), k));
+                        real_t ymax = abs1(X_ii(iymax, k));
+
+                        real_t tnorm = colN_ii[i];
+
+                        real_t scale2 = trevc_protectupdate(
+                            ymax, tnorm, abs1(X_ii(i, k)), sf_max);
+
+                        if (scale2 != real_t(1)) {
+                            // Scale the current part of the vector
+                            for (idx_t jj = 0; jj < nb; ++jj) {
+                                X_ii(jj, k) = scale2 * X_ii(jj, k);
+                            }
+                            scale_ii[k] *= scale2;
+                        }
 
                         for (idx_t j = 0; j < i; ++j) {
                             X_ii(j, k) -= T_ii(j, i) * X_ii(i, k);
@@ -302,7 +389,35 @@ void trevc3_backsolve(const matrix_T_t& T,
                         }
                         else {
                             // 1x1 block
+
+                            real_t scale1 = trevc_protectdiv(
+                                X_ii(i, k), T_ii(i, i) - w, sf_min, sf_max);
+
+                            if (scale1 != real_t(1)) {
+                                // Scale the current part of the vector
+                                for (idx_t jj = 0; jj < nb; ++jj) {
+                                    X_ii(jj, k) = scale1 * X_ii(jj, k);
+                                }
+                                scale_ii[k] *= scale1;
+                            }
+
                             X_ii(i, k) = X_ii(i, k) / (T_ii(i, i) - w);
+
+                            idx_t iymax = iamax(slice(X_ii, range(0, i), k));
+                            real_t ymax = abs(X_ii(iymax, k));
+
+                            real_t tnorm = colN_ii[i];
+
+                            real_t scale2 = trevc_protectupdate(
+                                ymax, tnorm, abs(X_ii(i, k)), sf_max);
+
+                            if (scale2 != real_t(1)) {
+                                // Scale the current part of the vector
+                                for (idx_t jj = 0; jj < nb; ++jj) {
+                                    X_ii(jj, k) = scale2 * X_ii(jj, k);
+                                }
+                                scale_ii[k] *= scale2;
+                            }
 
                             for (idx_t j = 0; j < i; ++j) {
                                 X_ii(j, k) -= T_ii(j, i) * X_ii(i, k);
@@ -317,9 +432,52 @@ void trevc3_backsolve(const matrix_T_t& T,
             }
         }
 
-        auto T_ij = slice(T, range(0, bs), range(bs, be));
-        auto X_i = slice(X, range(0, bs), range(0, nk));
-        gemm(Op::NoTrans, Op::NoTrans, TT(-1), T_ij, X_ii, TT(1), X_i);
+        // @TODO: this can be optimized further by combining the two loops
+
+        // @TODO: this scaling can also be delayed, requiring careful storage
+        // of which block has already been scaled by what factor
+        // See e.g. LAPACK's DLATRS3 implementation by Angelika Schwarz
+
+        // Apply the scale factors to the rest of X
+        for (idx_t j = 0; j < nk; ++j) {
+            real_t scale = scale_ii[j];
+            if (scale != real_t(1)) {
+                for (idx_t i = 0; i < bs; ++i) {
+                    X(i, j) = scale * X(i, j);
+                }
+                for (idx_t i = be; i <= ks + j; ++i) {
+                    X(i, j) = scale * X(i, j);
+                }
+            }
+        }
+
+        if (bs > 0) {
+            // Calculate scaling factors to avoid overflow in the matrix-matrix
+            // multiplication below
+            auto T_ij = slice(T, range(0, bs), range(bs, be));
+            auto X_i = slice(X, range(0, bs), range(0, nk));
+
+            real_t t_inf_norm = lange(Norm::Inf, T_ij);
+            for (idx_t j = 0; j < nk; ++j) {
+                idx_t imax = iamax(col(X_ii, j));
+                real_t x_norm = abs(X_ii(imax, j));
+
+                imax = iamax(col(X_i, j));
+                real_t y_norm = abs(X_i(imax, j));
+
+                real_t scale =
+                    trevc_protectupdate(y_norm, t_inf_norm, x_norm, sf_max);
+
+                if (scale != real_t(1)) {
+                    // Scale X(:, j)
+                    for (idx_t i = 0; i <= ks + j; ++i) {
+                        X(i, j) = scale * X(i, j);
+                    }
+                }
+            }
+
+            gemm(Op::NoTrans, Op::NoTrans, TT(-1), T_ij, X_ii, TT(1), X_i);
+        }
 
         iib += nb;
     }
