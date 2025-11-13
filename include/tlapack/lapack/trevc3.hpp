@@ -9,12 +9,13 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef TLAPACK_TREVC_HH
-#define TLAPACK_TREVC_HH
+#ifndef TLAPACK_TREVC3_HH
+#define TLAPACK_TREVC3_HH
 
 #include "tlapack/base/utils.hpp"
 #include "tlapack/blas/asum.hpp"
 #include "tlapack/blas/gemv.hpp"
+#include "tlapack/lapack/trevc.hpp"
 #include "tlapack/lapack/trevc3_backsolve.hpp"
 #include "tlapack/lapack/trevc3_forwardsolve.hpp"
 
@@ -30,13 +31,7 @@ struct Trevc3Opts {
     size_t block_size_solve = 64;
 };
 
-enum class HowMny : char {
-    All = 'A',    ///< all eigenvectors
-    Back = 'B',   ///< all eigenvectors, backtransformed by input matrix
-    Select = 'S'  ///< selected eigenvectors
-};
-
-/** Worspace query of TREVC3()
+/** Workspace query of TREVC3()
  *
  * @param[in] side tlapack::Side
  * @param[in] howmny tlapack::HowMny
@@ -517,4 +512,4 @@ int trevc3(const side_t side,
 }
 }  // namespace tlapack
 
-#endif  // TLAPACK_TREVC_HH
+#endif  // TLAPACK_TREVC3_HH
