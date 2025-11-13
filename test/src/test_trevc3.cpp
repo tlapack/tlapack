@@ -293,19 +293,19 @@ TEMPLATE_TEST_CASE(
     }
 
     // Randomly set some subdiagonal entries to non-zero to create 2x2 blocks
-    // if constexpr (is_real<TA>) {
-    //     idx_t j = 0;
-    //     while (j + 1 < n) {
-    //         if (rand_helper<float>(mm.gen) < 0.5f) {
-    //             T(j + 1, j) = c;
-    //             T(j + 1, j + 1) = T(j, j);
-    //             j += 2;
-    //         }
-    //         else {
-    //             j += 1;
-    //         }
-    //     }
-    // }
+    if constexpr (is_real<TA>) {
+        idx_t j = 0;
+        while (j + 1 < n) {
+            if (rand_helper<float>(mm.gen) < 0.5f) {
+                T(j + 1, j) = c;
+                T(j + 1, j + 1) = T(j, j);
+                j += 2;
+            }
+            else {
+                j += 1;
+            }
+        }
+    }
 
     const real_t zero(0);
     const real_t one(1);
@@ -315,18 +315,6 @@ TEMPLATE_TEST_CASE(
 
     // Seed random number generator
     mm.gen.seed(seed);
-
-    // Define the matrices
-    // std::vector<TA> A_;
-    // auto A = new_matrix(A_, n, n);
-    // std::vector<TA> Q_;
-    // auto Q = new_matrix(Q_, n, n);
-    // std::vector<TA> T_;
-    // auto T = new_matrix(T_, n, n);
-    // std::vector<TA> tau_;
-    // auto tau = new_vector(tau_, n - 1);
-    // std::vector<complex_t> w_;
-    // auto w = new_vector(w_, n);
 
     DYNAMIC_SECTION(" n = " << n << " seed = " << seed << " howmny = "
                             << (howmny == HowMny::All ? "All" : "Back")
