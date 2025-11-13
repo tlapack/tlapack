@@ -121,13 +121,15 @@ TEMPLATE_TEST_CASE("TREVC correctly computes the eigenvectors",
         auto Vl = calcLeft ? new_matrix(Vl_, n, n) : new_matrix(Vl_, 0, 0);
         std::vector<TA> work_;
         auto work = new_vector(work_, n * 3);
+        std::vector<real_t> rwork_;
+        auto rwork = new_vector(rwork_, n);
 
         auto select =
             std::vector<bool>(0, false);  // Not used for howmny != Select
 
         if (calcLeft and howmny == HowMny::Back) lacpy(Uplo::General, Q, Vl);
         if (calcRight and howmny == HowMny::Back) lacpy(Uplo::General, Q, Vr);
-        int info = trevc(side, howmny, select, T, Vl, Vr, work);
+        int info = trevc(side, howmny, select, T, Vl, Vr, rwork, work);
         CHECK(info == 0);
 
         // Now verify the eigenvectors

@@ -98,6 +98,8 @@ enum class HowMny : char {
  *                   the boolean array select, stored consecutively in the
  *                   columns of Vr, in the same order as their eigenvalues.
  *
+ * @param[out] rwork Workspace vector of size at least n.
+ *
  * @param[out] work  Workspace vector of size at least 3*n.
  *
  * @ingroup trevc
@@ -107,6 +109,7 @@ template <TLAPACK_SIDE side_t,
           TLAPACK_MATRIX matrix_T_t,
           TLAPACK_MATRIX matrix_Vl_t,
           TLAPACK_MATRIX matrix_Vr_t,
+          TLAPACK_WORKSPACE rwork_t,
           TLAPACK_WORKSPACE work_t>
 int trevc(const side_t side,
           const HowMny howmny,
@@ -114,6 +117,7 @@ int trevc(const side_t side,
           const matrix_T_t& T,
           matrix_Vl_t& Vl,
           matrix_Vr_t& Vr,
+          rwork_t& rwork,
           work_t& work)
 {
     using idx_t = size_type<matrix_T_t>;
@@ -178,11 +182,13 @@ int trevc(const side_t side,
     auto [v1, work2] = reshape(work, n);
     auto [v2, work3] = reshape(work2, n);
     auto [v3, work4] = reshape(work3, n);
+    auto [colN, rwork2] = reshape(rwork, n);
 
     if (side == Side::Right || side == Side::Both) {
         //
         // Compute right eigenvectors.
         //
+        trevc_colnorms(Norm::Inf, T, colN);
         idx_t iVr = m - 1;  // current column of Vr to store the eigenvector
         for (idx_t ii = 0; ii < n; ii++) {
             idx_t i = n - 1 - ii;
@@ -210,7 +216,7 @@ int trevc(const side_t side,
                 //
 
                 // Calculate eigenvector of the upper quasi-triangular matrix T
-                trevc_backsolve_single(T, v1, i);
+                trevc_backsolve_single(T, v1, i, colN);
 
                 // Backtransform eigenvector if required
                 if (howmny == HowMny::Back) {
@@ -234,7 +240,7 @@ int trevc(const side_t side,
                     // Complex conjugate pair
                     // Calculate eigenvector of the upper quasi-triangular
                     // matrix T
-                    trevc_backsolve_double(T, v1, v2, i);
+                    trevc_backsolve_double(T, v1, v2, i, colN);
 
                     // Backtransform eigenvector pair if required
                     if (howmny == HowMny::Back) {
@@ -273,6 +279,7 @@ int trevc(const side_t side,
         //
         // Compute left eigenvectors.
         //
+        trevc_colnorms(Norm::One, T, colN);
         idx_t iVl = 0;  // current column of Vl to store the eigenvector
         for (idx_t i = 0; i < n; i++) {
             if (HowMny::Select == howmny) {
@@ -299,7 +306,7 @@ int trevc(const side_t side,
                 //
 
                 // Calculate eigenvector of the upper quasi-triangular matrix T
-                trevc_forwardsolve_single(T, v1, i);
+                trevc_forwardsolve_single(T, v1, i, colN);
 
                 // Backtransform eigenvector if required
                 if (howmny == HowMny::Back) {
@@ -323,7 +330,7 @@ int trevc(const side_t side,
                     // Complex conjugate pair
                     // Calculate eigenvector of the upper quasi-triangular
                     // matrix T
-                    trevc_forwardsolve_double(T, v1, v2, i);
+                    trevc_forwardsolve_double(T, v1, v2, i, colN);
 
                     // Backtransform eigenvector pair if required
                     if (howmny == HowMny::Back) {

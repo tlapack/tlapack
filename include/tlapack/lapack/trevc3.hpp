@@ -158,6 +158,8 @@ WorkInfo trevc3_worksize(const side_t side,
  *                   the boolean array select, stored consecutively in the
  *                   columns of Vr, in the same order as their eigenvalues.
  *
+ * @param[out] rwork Workspace vector, size n
+ *
  * @param[out] work  Workspace vector, size specified by the workspace query
  *
  * @param[in] opts Trevc3Opts
@@ -169,6 +171,7 @@ template <TLAPACK_SIDE side_t,
           TLAPACK_MATRIX matrix_T_t,
           TLAPACK_MATRIX matrix_Vl_t,
           TLAPACK_MATRIX matrix_Vr_t,
+          TLAPACK_WORKSPACE rwork_t,
           TLAPACK_WORKSPACE work_t>
 int trevc3_work(const side_t side,
                 const HowMny howmny,
@@ -176,6 +179,7 @@ int trevc3_work(const side_t side,
                 const matrix_T_t& T,
                 matrix_Vl_t& Vl,
                 matrix_Vr_t& Vr,
+                rwork_t& rwork,
                 work_t& work,
                 const Trevc3Opts& opts = {})
 {
@@ -242,6 +246,13 @@ int trevc3_work(const side_t side,
 
     auto [X, work2] = reshape(work, n, opts.block_size + 1);
 
+    auto [colN, rwork2] = reshape(rwork, n);
+
+    for (idx_t j = 0; j < n; ++j) {
+        auto itmax = iamax(slice(col(T, j), range(0, n)));
+        colN[j] = abs1(T(itmax, j));
+    }
+
     if (side == Side::Right || side == Side::Both) {
         //
         // Compute right eigenvectors.
@@ -297,7 +308,7 @@ int trevc3_work(const side_t side,
             idx_t nb2 = i_end - i_start + 1;
 
             // Calculate the current block of eigenvectors of T
-            trevc3_backsolve(T, X, work2, i_start, i_end + 1,
+            trevc3_backsolve(T, X, colN, work2, i_start, i_end + 1,
                              opts.block_size_solve);
 
             // If required, backtransform the eigenvectors to the original
@@ -378,7 +389,7 @@ int trevc3_work(const side_t side,
             idx_t nb2 = i_end - i_start + 1;
 
             // Calculate the current block of eigenvectors of T
-            trevc3_forwardsolve(T, X, work2, i_start, i_end + 1,
+            trevc3_forwardsolve(T, X, colN, work2, i_start, i_end + 1,
                                 opts.block_size_solve);
 
             // If required, backtransform the eigenvectors to the original
@@ -506,7 +517,10 @@ int trevc3(const side_t side,
     Create<vector_type<matrix_T_t>> new_vector;
     std::vector<TT> work_;
     auto work = new_vector(work_, workinfo.m * workinfo.n);
-    return trevc3_work(side, howmny, select, T, Vl, Vr, work, opts);
+    std::vector<real_type<TT>> rwork_;
+    auto rwork = new_vector(rwork_, nrows(T));
+
+    return trevc3_work(side, howmny, select, T, Vl, Vr, rwork, work, opts);
 }
 }  // namespace tlapack
 

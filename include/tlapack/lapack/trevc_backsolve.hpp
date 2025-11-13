@@ -14,7 +14,9 @@
 
 #include "tlapack/base/utils.hpp"
 #include "tlapack/blas/asum.hpp"
-
+#include "tlapack/blas/iamax.hpp"
+#include "tlapack/lapack/ladiv.hpp"
+#include "tlapack/lapack/trevc_protect.hpp"
 namespace tlapack {
 
 /**
@@ -37,20 +39,47 @@ namespace tlapack {
  *
  * If we choose x2 = 1, we can solve for x1 using backsubstitution.
  *
- * The only special thing to take care of is that we don't want to modify T,
- * so we need to incorporate the shift -w*I during the backsubstitution.
+ * We don't want to modify T, so we need to incorporate the shift -w*I during
+ * the backsubstitution.
  *
- * We should also handle potential overflow/underflow during the solve.
- * But this is not yet implemented.
+ * Eigenvectors are also likely to overflow during the solve. To avoid
+ * this, we scale detect overflow before it happens and scale the eigenvector
+ * accordingly.
  *
- * @param[in] T Upper quasi-triangular matrix
- * @param[out] v Vector to store the right eigenvector
- * @param[in] k Index of the eigenvector to compute
+ * @param[in] T     n-by-n matrix
+ *                  Upper quasi-triangular matrix whose k-th eigenvector is to
+ *                  be computed. The matrix is assumed (without checking) to be
+ *                  in standardized Schur form. This mostly affects the 2x2
+ *                  blocks for complex conjugate eigenvalue pairs. Where we
+ *                  assume that the 2x2 blocks are of the form [ a  b; c  a ]
+ *                  with b and c having opposite signs.
+ *
+ * @param[out] v    size n vector
+ *                  On output, contains the k-th right eigenvector of T.
+ *
+ * @param[in] k     integer
+ *                  Index of the eigenvector to compute
+ *                  It is assumed without checking that k does not lie
+ *                  within a 2x2 block. I.e., T(k, k-1) == T(k+1,k) == 0.
+ *
+ * @param[in] colN  size n vector
+ *                  Infinity norms of the strictly upper triangular part of the
+ *                  columns of T.
+ *                  If T contains a 2x2 block at position i, then colN[i] is the
+ *                  infinity norm of the strictly upper triangular part of
+ *                  the nx2 block formed by columns i and i+1 and colN[i+1] = 0.
+ *                  An overestimate, like the 1-norm of the columns, also works,
+ *                  but it may lead to unnecessary scaling.
  */
-template <TLAPACK_MATRIX matrix_T_t, TLAPACK_VECTOR vector_v_t>
+template <TLAPACK_MATRIX matrix_T_t,
+          TLAPACK_VECTOR vector_v_t,
+          TLAPACK_VECTOR vector_colN_t,
+          enable_if_t<is_real<type_t<vector_colN_t>>, int> = 0,
+          enable_if_t<is_real<type_t<matrix_T_t>>, int> = 0>
 void trevc_backsolve_single(const matrix_T_t& T,
                             vector_v_t& v,
-                            const size_type<matrix_T_t> k)
+                            const size_type<matrix_T_t> k,
+                            const vector_colN_t& colN)
 {
     using idx_t = size_type<matrix_T_t>;
     using TT = type_t<matrix_T_t>;
@@ -63,6 +92,9 @@ void trevc_backsolve_single(const matrix_T_t& T,
     tlapack_check(size(v) == n);
     tlapack_check(k < n);
 
+    const real_t sf_max = safe_max<real_t>();
+    const real_t sf_min = safe_min<real_t>();
+
     // Initialize v to [-T(0:k-1, k), 1, 0]
     for (idx_t i = 0; i < k; ++i) {
         v[i] = -T(i, k);
@@ -71,6 +103,7 @@ void trevc_backsolve_single(const matrix_T_t& T,
     for (idx_t i = k + 1; i < n; ++i) {
         v[i] = TT(0);
     }
+    real_t scale = real_t(1);
 
     TT w = T(k, k);  // eigenvalue
 
@@ -78,69 +111,240 @@ void trevc_backsolve_single(const matrix_T_t& T,
     auto T11 = slice(T, range(0, k), range(0, k));
     auto v1 = slice(v, range(0, k));
 
-    if constexpr (is_complex<TT>) {
-        // The matrix is complex, so there are no two-by-two blocks to
-        // consider
+    // The matrix is real, so we need to consider potential
+    // 2x2 blocks for complex conjugate eigenvalue pairs
 
-        for (idx_t ii = 0, i = k - 1; ii < k; ++ii, --i) {
-            v1[i] = v1[i] / (T11(i, i) - w);
-
-            for (idx_t j = 0; j < i; ++j) {
-                v1[j] -= T11(j, i) * v1[i];
+    idx_t ii = 0;
+    while (ii < k) {
+        idx_t i = k - 1 - ii;
+        bool is_2x2_block = false;
+        if (i > 0) {
+            if (T11(i, i - 1) != TT(0)) {
+                is_2x2_block = true;
             }
         }
-    }
-    else {
-        // The matrix is real, so we need to consider potential
-        // 2x2 blocks for complex conjugate eigenvalue pairs
 
-        idx_t ii = 0;
-        while (ii < k) {
-            idx_t i = k - 1 - ii;
-            bool is_2x2_block = false;
-            if (i > 0) {
-                if (T11(i, i - 1) != TT(0)) {
-                    is_2x2_block = true;
+        if (is_2x2_block) {
+            // 2x2 block
+            // Solve the 2x2 system:
+            // [T11(i-1,i-1)-w  T11(i-1,i)    ] [v1[i-1]] = scale1 * [rhs1]
+            // [T11(i,  i-1)    T11(i,  i)-w  ] [v1[i]  ]            [rhs2]
+            TT a = T11(i - 1, i - 1) - w;
+            TT b = T11(i - 1, i);
+            TT c = T11(i, i - 1);
+            TT d = T11(i, i) - w;
+
+            real_t scale1;
+            trevc_2x2solve(a, b, c, d, v1[i - 1], v1[i], scale1, sf_min,
+                           sf_max);
+
+            // Apply scale1 to all of v1
+            if (scale1 != real_t(1)) {
+                scale *= scale1;
+                for (idx_t j = 0; j + 1 < i; ++j) {
+                    v1[j] = scale1 * v1[j];
+                }
+                for (idx_t j = i + 1; j < k; ++j) {
+                    v1[j] = scale1 * v1[j];
                 }
             }
 
-            if (is_2x2_block) {
-                // 2x2 block
-                // Solve the 2x2 system:
-                // [T11(i-1,i-1)-w  T11(i-1,i)    ] [v1[i-1]] = [rhs1]
-                // [T11(i,  i-1)    T11(i,  i)-w  ] [v1[i]  ]   [rhs2]
-                TT rhs1 = v1[i - 1];
-                TT rhs2 = v1[i];
+            // Safely update the right-hand side
+            if (i > 1) {
+                real_t ivmax = iamax(slice(v1, range(0, i - 1)));
+                real_t vmax = abs1(v1[ivmax]);
 
-                TT a = T11(i - 1, i - 1) - w;
-                TT b = T11(i - 1, i);
-                TT c = T11(i, i - 1);
-                TT d = T11(i, i) - w;
+                real_t tmax = colN[i - 1];
 
-                TT det = a * d - b * c;
+                real_t xnorm = max(abs1(v1[i]), abs1(v1[i - 1]));
 
-                v1[i - 1] = (d * rhs1 - b * rhs2) / det;
-                v1[i] = (-c * rhs1 + a * rhs2) / det;
+                real_t scale2 = trevc_protectupdate(vmax, tmax, xnorm, sf_max);
+                if (scale2 != real_t(1)) {
+                    // Apply update with scaling
+                    for (idx_t j = 0; j + 1 < i; ++j) {
+                        v1[j] = (scale2 * v1[j]) -
+                                T11(j, i - 1) * (scale2 * v1[i - 1]) -
+                                T11(j, i) * (scale2 * v1[i]);
+                    }
 
-                for (idx_t j = 0; j + 1 < i; ++j) {
-                    v1[j] -= T11(j, i - 1) * v1[i - 1];
-                    v1[j] -= T11(j, i) * v1[i];
+                    // Apply scale2 to all of v1
+                    for (idx_t j = i - 1; j < k; ++j) {
+                        v1[j] = scale2 * v1[j];
+                    }
+
+                    scale *= scale2;
+                }
+                else {
+                    for (idx_t j = 0; j + 1 < i; ++j) {
+                        v1[j] -= T11(j, i - 1) * v1[i - 1];
+                        v1[j] -= T11(j, i) * v1[i];
+                    }
+                }
+            }
+
+            ii += 2;
+        }
+        else {
+            // 1x1 block
+
+            // In the paper, they scale here so that denom cannot overflow
+            // but this only happens if T11(i,i) and w are both very large
+            // not just if the matrix is ill-conditioned.
+            // The equations to take the scaling into account also don't
+            // seem fully correct.
+            TT denom = T11(i, i) - w;
+            // Scale factor so that we can safely calculate v1[i] / (T11(i, i) -
+            // w)
+            real_t scale1 = trevc_protectdiv(v1[i], denom, sf_min, sf_max);
+
+            // Safely execute the division
+            v1[i] = (scale1 * v1[i]) / denom;
+
+            if (scale1 != real_t(1)) {
+                scale *= scale1;
+                // Apply scale1 to all of v1
+                for (idx_t j = 0; j < i; ++j) {
+                    v1[j] = scale1 * v1[j];
+                }
+                for (idx_t j = i + 1; j < k; ++j) {
+                    v1[j] = scale1 * v1[j];
+                }
+            }
+
+            // Now update v1[0:i-1] -= T11(0:i-1, i) * v1[i]
+            if (i > 0) {
+                real_t ivmax = iamax(slice(v1, range(0, i)));
+                real_t vmax = abs1(v1[ivmax]);
+
+                real_t tmax = colN[i];  // use precomputed column norms
+
+                real_t xnorm = abs1(v1[i]);
+
+                // Scale factor so that
+                // (scale2*v1[0:i-1]) - T11(0:i-1, i) * (scale2 * v1[i]) does
+                // not overflow
+                real_t scale2 = trevc_protectupdate(vmax, tmax, xnorm, sf_max);
+                if (scale2 != real_t(1)) {
+                    for (idx_t j = 0; j < i; ++j) {
+                        v1[j] = (scale2 * v1[j]) - T11(j, i) * (scale2 * v1[i]);
+                    }
+                    // Apply scale2 to all of v1
+                    for (idx_t j = i; j < k; ++j) {
+                        v1[j] = scale2 * v1[j];
+                    }
+
+                    scale *= scale2;
+                }
+                else {
+                    for (idx_t j = 0; j < i; ++j) {
+                        v1[j] = (v1[j]) - T11(j, i) * (v1[i]);
+                    }
+                }
+            }
+
+            ii += 1;
+        }
+    }
+
+    v[k] = scale * v[k];
+}
+
+/**
+ * Complex version of trevc_backsolve_single
+ */
+template <TLAPACK_MATRIX matrix_T_t,
+          TLAPACK_VECTOR vector_v_t,
+          TLAPACK_VECTOR vector_colN_t,
+          enable_if_t<is_real<type_t<vector_colN_t>>, int> = 0,
+          enable_if_t<is_complex<type_t<matrix_T_t>>, int> = 0>
+void trevc_backsolve_single(const matrix_T_t& T,
+                            vector_v_t& v,
+                            const size_type<matrix_T_t> k,
+                            const vector_colN_t& colN)
+{
+    using idx_t = size_type<matrix_T_t>;
+    using TT = type_t<matrix_T_t>;
+    using real_t = real_type<TT>;
+    using range = pair<idx_t, idx_t>;
+
+    const idx_t n = nrows(T);
+
+    tlapack_check(ncols(T) == n);
+    tlapack_check(size(v) == n);
+    tlapack_check(k < n);
+
+    const real_t sf_max = safe_max<real_t>();
+    const real_t sf_min = safe_min<real_t>();
+
+    // Initialize v to [-T(0:k-1, k), 1, 0]
+    for (idx_t i = 0; i < k; ++i) {
+        v[i] = -T(i, k);
+    }
+    v[k] = TT(1);
+    for (idx_t i = k + 1; i < n; ++i) {
+        v[i] = TT(0);
+    }
+    real_t scale = real_t(1);
+
+    TT w = T(k, k);  // eigenvalue
+
+    // Backsubstitution to solve the system
+    auto T11 = slice(T, range(0, k), range(0, k));
+    auto v1 = slice(v, range(0, k));
+
+    for (idx_t ii = 0; ii < k; ++ii) {
+        idx_t i = k - 1 - ii;
+        TT denom = T11(i, i) - w;
+        // Scale factor so that we can safely calculate v1[i] / (T11(i, i) - w)
+        real_t scale1 = trevc_protectdiv(v1[i], denom, sf_min, sf_max);
+
+        // Safely execute the division
+        v1[i] = ladiv(scale1 * v1[i], denom);
+
+        if (scale1 != real_t(1)) {
+            scale *= scale1;
+            // Apply scale1 to all of v1
+            for (idx_t j = 0; j < i; ++j) {
+                v1[j] = scale1 * v1[j];
+            }
+            for (idx_t j = i + 1; j < k; ++j) {
+                v1[j] = scale1 * v1[j];
+            }
+        }
+
+        // Now update v1[0:i-1] -= T11(0:i-1, i) * v1[i]
+        if (i > 0) {
+            real_t ivmax = iamax(slice(v1, range(0, i)));
+            real_t vmax = abs1(v1[ivmax]);
+
+            real_t tmax = colN[i];  // use precomputed column norms
+
+            real_t xnorm = abs1(v1[i]);
+
+            // Scale factor so that
+            // (scale2*v1[0:i-1]) - T11(0:i-1, i) * (scale2 * v1[i]) does not
+            // overflow
+            real_t scale2 = trevc_protectupdate(vmax, tmax, xnorm, sf_max);
+            if (scale2 != real_t(1)) {
+                for (idx_t j = 0; j < i; ++j) {
+                    v1[j] = (scale2 * v1[j]) - T11(j, i) * (scale2 * v1[i]);
+                }
+                // Apply scale2 to all of v1
+                for (idx_t j = i; j < k; ++j) {
+                    v1[j] = scale2 * v1[j];
                 }
 
-                ii += 2;
+                scale *= scale2;
             }
             else {
-                // 1x1 block
-                v1[i] = v1[i] / (T11(i, i) - w);
-
                 for (idx_t j = 0; j < i; ++j) {
-                    v1[j] -= T11(j, i) * v1[i];
+                    v1[j] = (v1[j]) - T11(j, i) * (v1[i]);
                 }
-
-                ii += 1;
             }
         }
     }
+
+    v[k] = scale * v[k];
 }
 
 /**
@@ -164,27 +368,55 @@ void trevc_backsolve_single(const matrix_T_t& T,
  *
  * If we choose x3 = i or x2 = 1, we can solve for x1 using backsubstitution.
  *
- * The only special thing to take care of is that we don't want to modify T,
- * so we need to incorporate the shift -w*I during the backsubstitution.
+ * We don't want to modify T, so we need to incorporate the shift -w*I during
+ * the backsubstitution.
  *
- * We should also handle potential overflow/underflow during the solve.
- * But this is not yet implemented.
+ * Eigenvectors are also likely to overflow during the solve. To avoid
+ * this, we scale detect overflow before it happens and scale the eigenvector
+ * accordingly.
  *
- * @param[in] T Upper quasi-triangular matrix
- * @param[out] v_r Vector to store the real part of the right eigenvector
- * @param[out] v_i Vector to store the imaginary part of the right eigenvector
- * @param[in] k Index of the eigenvector to compute
- *              It is assumed that k and k+1 form a complex conjugate pair
- *              so k needs to be the first index of the 2x2 block, not the
- *              second.
+ * @param[in] T     n-by-n matrix
+ *                  Upper quasi-triangular matrix whose k-th eigenvector is to
+ *                  be computed. The matrix is assumed (without checking) to be
+ *                  in standardized Schur form. This mostly affects the 2x2
+ *                  blocks for complex conjugate eigenvalue pairs. Where we
+ *                  assume that the 2x2 blocks are of the form [ a  b; c  a ]
+ *                  with b and c having opposite signs.
+ *
+ * @param[out] v_r  size n vector
+ *                  On output, contains the real part of the k-th right
+ *                  eigenvector of T.
+ *
+ * @param[out] v_i  size n vector
+ *                  On output, contains the imaginary part of the k-th right
+ *                  eigenvector of T.
+ *
+ * @param[in] k     integer
+ *                  Index of the eigenvector to compute
+ *                  It is assumed without checking that k points to the
+ *                  beginning of a 2x2 block. I.e., T(k, k-1) == 0
+ *                  and T(k+1,k) != 0.
+ *
+ * @param[in] colN  size n vector
+ *                  Infinity norms of the strictly upper triangular part of the
+ *                  columns of T.
+ *                  If T contains a 2x2 block at position i, then
+ *                  colN[i] + colN[i+1] is the infinity norm of the strictly
+ *                  upper triangular part of the nx2 block formed by columns i
+ *                  and i+1.
+ *                  An overestimate, like the 1-norm of the columns, also works,
+ *                  but may lead to unnecessary scaling.
  */
 template <TLAPACK_MATRIX matrix_T_t,
           TLAPACK_VECTOR vector_v_t,
+          TLAPACK_VECTOR vector_colN_t,
+          enable_if_t<is_real<type_t<vector_colN_t>>, int> = 0,
           enable_if_t<is_real<type_t<matrix_T_t>>, int> = 0>
 void trevc_backsolve_double(const matrix_T_t& T,
                             vector_v_t& v_r,
                             vector_v_t& v_i,
-                            const size_type<matrix_T_t> k)
+                            const size_type<matrix_T_t> k,
+                            const vector_colN_t& colN)
 {
     using idx_t = size_type<matrix_T_t>;
     using TT = type_t<matrix_T_t>;
@@ -195,7 +427,10 @@ void trevc_backsolve_double(const matrix_T_t& T,
     tlapack_check(ncols(T) == n);
     tlapack_check(size(v_r) == n);
     tlapack_check(size(v_i) == n);
-    tlapack_check(k < n);
+    tlapack_check(k + 1 < n);
+
+    const TT sf_max = safe_max<TT>();
+    const TT sf_min = safe_min<TT>();
 
     TT alpha = T(k, k);
     TT beta = T(k, k + 1);
@@ -231,6 +466,8 @@ void trevc_backsolve_double(const matrix_T_t& T,
         v_i[i] = TT(0);
     }
 
+    TT scale = TT(1);
+
     // Now do a complex backsustitution using the shift wr + i*wi
     // but without forming complex numbers explicitly
     // on top of that, we need to take care of potential 2x2 blocks in T11
@@ -259,7 +496,6 @@ void trevc_backsolve_double(const matrix_T_t& T,
             // =
             // [v1_r[i-1] + i*v1_i[i-1]]
             // [v1_r[i]   + i*v1_i[i]  ]
-            // Using real arithmetic only with Cramer's rule
 
             TT a11r = T11(i - 1, i - 1) - wr;
             TT a11i = -wi;
@@ -273,35 +509,77 @@ void trevc_backsolve_double(const matrix_T_t& T,
             TT b2r = v1_r[i];
             TT b2i = v1_i[i];
 
-            TT detr = a11r * a22r - a11i * a22i - a12 * a21;
-            TT deti = a11r * a22i + a11i * a22r;
+            TT scale1;
+            trevc_2x2solve(a11r, a11i, a12, TT(0), a21, TT(0), a22r, a22i, b1r,
+                           b1i, b2r, b2i, scale1, sf_min, sf_max);
 
-            TT denom = detr * detr + deti * deti;
+            v1_r[i - 1] = b1r;
+            v1_i[i - 1] = b1i;
+            v1_r[i] = b2r;
+            v1_i[i] = b2i;
 
-            TT c1r = a22r * b1r - a22i * b1i - a12 * b2r;
-            TT c1i = a22r * b1i + a22i * b1r - a12 * b2i;
-            TT x1r = (c1r * detr + c1i * deti) / denom;
-            TT x1i = (c1i * detr - c1r * deti) / denom;
+            if (scale1 != TT(1)) {
+                scale *= scale1;
+                // Apply scale1 to all of v1
+                for (idx_t j = 0; j + 1 < i; ++j) {
+                    v1_r[j] = scale1 * v1_r[j];
+                    v1_i[j] = scale1 * v1_i[j];
+                }
+                for (idx_t j = i + 1; j < k; ++j) {
+                    v1_r[j] = scale1 * v1_r[j];
+                    v1_i[j] = scale1 * v1_i[j];
+                }
+            }
 
-            TT c2r = (a11r * b2r - a11i * b2i) - (a21 * b1r);
-            TT c2i = (a11r * b2i + a11i * b2r) - (a21 * b1i);
-            TT x2r = (c2r * detr + c2i * deti) / denom;
-            TT x2i = (c2i * detr - c2r * deti) / denom;
+            if (i > 1) {
+                idx_t ivrmax = iamax(slice(v1_r, range(0, i - 1)));
+                idx_t ivimax = iamax(slice(v1_i, range(0, i - 1)));
+                TT vrmax = abs(v1_r[ivrmax]);
+                TT vimax = abs(v1_i[ivimax]);
 
-            v1_r[i - 1] = x1r;
-            v1_i[i - 1] = x1i;
-            v1_r[i] = x2r;
-            v1_i[i] = x2i;
+                TT tmax = colN[i] + colN[i - 1];  // approximate 2xn block norm
 
-            // Update the right-hand side
-            for (idx_t j = 0; j + 1 < i; ++j) {
-                // Real part
-                v1_r[j] -= T11(j, i - 1) * v1_r[i - 1];
-                v1_r[j] -= T11(j, i) * v1_r[i];
+                TT xmaxr = abs(v1_r[i]) + abs(v1_r[i - 1]);
+                TT xmaxi = abs(v1_i[i]) + abs(v1_i[i - 1]);
 
-                // Imaginary part
-                v1_i[j] -= T11(j, i - 1) * v1_i[i - 1];
-                v1_i[j] -= T11(j, i) * v1_i[i];
+                TT scale2r = trevc_protectupdate(vrmax, tmax, xmaxr, sf_max);
+                TT scale2i = trevc_protectupdate(vimax, tmax, xmaxi, sf_max);
+                TT scale2 = min(scale2r, scale2i);
+
+                if (scale2 != TT(1)) {
+                    // Apply update with scaling
+                    for (idx_t j = 0; j + 1 < i; ++j) {
+                        // Real part
+                        v1_r[j] = (scale2 * v1_r[j]) -
+                                  T11(j, i - 1) * (scale2 * v1_r[i - 1]) -
+                                  T11(j, i) * (scale2 * v1_r[i]);
+
+                        // Imaginary part
+                        v1_i[j] = (scale2 * v1_i[j]) -
+                                  T11(j, i - 1) * (scale2 * v1_i[i - 1]) -
+                                  T11(j, i) * (scale2 * v1_i[i]);
+                    }
+
+                    // Apply scale2 to all of v1
+                    for (idx_t j = i - 1; j < k; ++j) {
+                        v1_r[j] = scale2 * v1_r[j];
+                        v1_i[j] = scale2 * v1_i[j];
+                    }
+
+                    scale *= scale2;
+                }
+                else {
+                    // Update the right-hand side
+                    for (idx_t j = 0; j + 1 < i; ++j) {
+                        // Real part
+                        v1_r[j] -= T11(j, i - 1) * v1_r[i - 1];
+                        v1_r[j] -= T11(j, i) * v1_r[i];
+
+                        // Imaginary part
+                        v1_i[j] -= T11(j, i - 1) * v1_i[i - 1];
+                        v1_i[j] -= T11(j, i) * v1_i[i];
+                    }
+                }
             }
 
             ii += 2;
@@ -309,26 +587,72 @@ void trevc_backsolve_double(const matrix_T_t& T,
         else {
             // 1x1 block
 
-            // Do the complex division:
             // (v1_r[i] + i*v1_i[i]) / (T11(i, i) - (wr + i*wi))
-            // in real arithmetic only
-            TT a = v1_r[i];
-            TT b = v1_i[i];
-            TT c = T11(i, i) - wr;
-            TT d = -wi;
-            TT denom = c * c + d * d;
-            v1_r[i] = (a * c + b * d) / denom;
-            v1_i[i] = (b * c - a * d) / denom;
+            TT scale1 = trevc_protectdiv(v1_r[i], v1_i[i], T11(i, i) - wr, -wi,
+                                         sf_min, sf_max);
+            TT a, b;
+            ladiv(scale1 * v1_r[i], scale1 * v1_i[i], T11(i, i) - wr, -wi, a,
+                  b);
+            v1_r[i] = a;
+            v1_i[i] = b;
 
-            // Update the right-hand side
-            for (idx_t j = 0; j < i; ++j) {
-                v1_r[j] -= T11(j, i) * v1_r[i];
-                v1_i[j] -= T11(j, i) * v1_i[i];
+            if (scale1 != TT(1)) {
+                scale *= scale1;
+                // Apply scale1 to all of v1
+                for (idx_t j = 0; j < i; ++j) {
+                    v1_r[j] = scale1 * v1_r[j];
+                    v1_i[j] = scale1 * v1_i[j];
+                }
+                for (idx_t j = i + 1; j < k; ++j) {
+                    v1_r[j] = scale1 * v1_r[j];
+                    v1_i[j] = scale1 * v1_i[j];
+                }
+            }
+
+            if (i > 0) {
+                idx_t ivrmax = iamax(slice(v1_r, range(0, i)));
+                idx_t ivimax = iamax(slice(v1_i, range(0, i)));
+                TT vrmax = abs(v1_r[ivrmax]);
+                TT vimax = abs(v1_i[ivimax]);
+
+                TT scale2r =
+                    trevc_protectupdate(vrmax, colN[i], abs(v1_r[i]), sf_max);
+                TT scale2i =
+                    trevc_protectupdate(vimax, colN[i], abs(v1_i[i]), sf_max);
+                TT scale2 = min(scale2r, scale2i);
+
+                if (scale2 != TT(1)) {
+                    for (idx_t j = 0; j < i; ++j) {
+                        v1_r[j] =
+                            (scale2 * v1_r[j]) - T11(j, i) * (scale2 * v1_r[i]);
+                        v1_i[j] =
+                            (scale2 * v1_i[j]) - T11(j, i) * (scale2 * v1_i[i]);
+                    }
+                    // Apply scale2 to all of v1
+                    for (idx_t j = i; j < k; ++j) {
+                        v1_r[j] = scale2 * v1_r[j];
+                        v1_i[j] = scale2 * v1_i[j];
+                    }
+
+                    scale *= scale2;
+                }
+                else {
+                    // Update the right-hand side
+                    for (idx_t j = 0; j < i; ++j) {
+                        v1_r[j] -= T11(j, i) * v1_r[i];
+                        v1_i[j] -= T11(j, i) * v1_i[i];
+                    }
+                }
             }
 
             ii += 1;
         }
     }
+
+    v_r[k] = scale * v_r[k];
+    v_r[k + 1] = scale * v_r[k + 1];
+    v_i[k] = scale * v_i[k];
+    v_i[k + 1] = scale * v_i[k + 1];
 }
 
 }  // namespace tlapack
