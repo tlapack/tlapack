@@ -379,7 +379,7 @@ void trevc3_backsolve(const matrix_T_t& T,
                                             T_ii(j, i) * (scale2 * v1_i[i]);
                                     }
                                     // Apply scale2 to all of v1
-                                    for (idx_t j = i; j < k; ++j) {
+                                    for (idx_t j = i; j < nb; ++j) {
                                         v1_r[j] = scale2 * v1_r[j];
                                         v1_i[j] = scale2 * v1_i[j];
                                     }
@@ -508,7 +508,7 @@ void trevc3_backsolve(const matrix_T_t& T,
                                     }
 
                                     // Apply scale2 to all of v1
-                                    for (idx_t j = i + 1; j < nb; ++j) {
+                                    for (idx_t j = i - 1; j < nb; ++j) {
                                         X_ii(j, k) = scale2 * X_ii(j, k);
                                     }
 

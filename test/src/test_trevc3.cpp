@@ -278,7 +278,7 @@ TEMPLATE_TEST_CASE(
 
     // Define the matrices
 
-    const idx_t n = GENERATE(20, 40);
+    const idx_t n = GENERATE(20, 40, 60);
     std::vector<TA> T_;
     auto T = new_matrix(T_, n, n);
 
