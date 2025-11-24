@@ -33,7 +33,7 @@ jobs:
           - 'test/include'
           - 'test/src'
     steps:
-    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+    - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
     - name: Run clang-format style check for C/C++ programs.
       uses: jidicula/clang-format-action@6cd220de46c89139a0365edae93eee8eb30ca8fe # v4.16.0
       with:
