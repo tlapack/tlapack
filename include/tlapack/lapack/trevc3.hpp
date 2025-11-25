@@ -306,8 +306,8 @@ int trevc3_work(const side_t side,
                 auto X_block = slice(X, range(0, i_end + 1), range(0, nb2));
                 auto [Qx, work3] = reshape(work2, n, nb2);
 
-                gemm(Op::NoTrans, Op::NoTrans, TT(1), Q_slice, X_block, TT(0),
-                     Qx);
+                gemm(Op::NoTrans, Op::NoTrans, TT(1), Q_slice, X_block,
+                     StrongZero(), Qx);
 
                 auto Vr_block =
                     slice(Vr, range(0, n), range(i_start, i_end + 1));
@@ -387,8 +387,8 @@ int trevc3_work(const side_t side,
                 auto X_block = slice(X, range(i_start, n), range(0, nb2));
                 auto [Qx, work3] = reshape(work2, n, nb2);
 
-                gemm(Op::NoTrans, Op::NoTrans, TT(1), Q_slice, X_block, TT(0),
-                     Qx);
+                gemm(Op::NoTrans, Op::NoTrans, TT(1), Q_slice, X_block,
+                     StrongZero(), Qx);
 
                 auto Vl_block =
                     slice(Vl, range(0, n), range(i_start, i_end + 1));
