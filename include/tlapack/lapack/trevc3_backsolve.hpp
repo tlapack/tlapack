@@ -425,24 +425,26 @@ void trevc3_backsolve(const matrix_T_t& T,
 
                         X_ii(i, k) = X_ii(i, k) / (T_ii(i, i) - w);
 
-                        idx_t iymax = iamax(slice(X_ii, range(0, i), k));
-                        real_t ymax = abs1(X_ii(iymax, k));
+                        if (i > 0) {
+                            idx_t iymax = iamax(slice(X_ii, range(0, i), k));
+                            real_t ymax = abs1(X_ii(iymax, k));
 
-                        real_t tnorm = colN_ii[i];
+                            real_t tnorm = colN_ii[i];
 
-                        real_t scale2 = trevc_protectupdate(
-                            ymax, tnorm, abs1(X_ii(i, k)), sf_max);
+                            real_t scale2 = trevc_protectupdate(
+                                ymax, tnorm, abs1(X_ii(i, k)), sf_max);
 
-                        if (scale2 != real_t(1)) {
-                            // Scale the current part of the vector
-                            for (idx_t jj = 0; jj < nb; ++jj) {
-                                X_ii(jj, k) = scale2 * X_ii(jj, k);
+                            if (scale2 != real_t(1)) {
+                                // Scale the current part of the vector
+                                for (idx_t jj = 0; jj < nb; ++jj) {
+                                    X_ii(jj, k) = scale2 * X_ii(jj, k);
+                                }
+                                scale_ii[k] *= scale2;
                             }
-                            scale_ii[k] *= scale2;
-                        }
 
-                        for (idx_t j = 0; j < i; ++j) {
-                            X_ii(j, k) -= T_ii(j, i) * X_ii(i, k);
+                            for (idx_t j = 0; j < i; ++j) {
+                                X_ii(j, k) -= T_ii(j, i) * X_ii(i, k);
+                            }
                         }
                     }
                 }
@@ -542,24 +544,27 @@ void trevc3_backsolve(const matrix_T_t& T,
 
                             X_ii(i, k) = X_ii(i, k) / (T_ii(i, i) - w);
 
-                            idx_t iymax = iamax(slice(X_ii, range(0, i), k));
-                            real_t ymax = abs(X_ii(iymax, k));
+                            if (i > 0) {
+                                idx_t iymax =
+                                    iamax(slice(X_ii, range(0, i), k));
+                                real_t ymax = abs(X_ii(iymax, k));
 
-                            real_t tnorm = colN_ii[i];
+                                real_t tnorm = colN_ii[i];
 
-                            real_t scale2 = trevc_protectupdate(
-                                ymax, tnorm, abs(X_ii(i, k)), sf_max);
+                                real_t scale2 = trevc_protectupdate(
+                                    ymax, tnorm, abs(X_ii(i, k)), sf_max);
 
-                            if (scale2 != real_t(1)) {
-                                // Scale the current part of the vector
-                                for (idx_t jj = 0; jj < nb; ++jj) {
-                                    X_ii(jj, k) = scale2 * X_ii(jj, k);
+                                if (scale2 != real_t(1)) {
+                                    // Scale the current part of the vector
+                                    for (idx_t jj = 0; jj < nb; ++jj) {
+                                        X_ii(jj, k) = scale2 * X_ii(jj, k);
+                                    }
+                                    scale_ii[k] *= scale2;
                                 }
-                                scale_ii[k] *= scale2;
-                            }
 
-                            for (idx_t j = 0; j < i; ++j) {
-                                X_ii(j, k) -= T_ii(j, i) * X_ii(i, k);
+                                for (idx_t j = 0; j < i; ++j) {
+                                    X_ii(j, k) -= T_ii(j, i) * X_ii(i, k);
+                                }
                             }
 
                             ii += 1;
