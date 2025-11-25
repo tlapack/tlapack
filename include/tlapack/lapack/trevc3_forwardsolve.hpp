@@ -476,24 +476,27 @@ void trevc3_forwardsolve(const matrix_T_t& T,
                         else {
                             // 1x1 block
 
-                            idx_t ixmax = iamax(slice(X_ii, range(0, i), k));
-                            real_t xmax = abs(X_ii(ixmax, k));
+                            if (i > 0) {
+                                idx_t ixmax =
+                                    iamax(slice(X_ii, range(0, i), k));
+                                real_t xmax = abs(X_ii(ixmax, k));
 
-                            real_t tnorm = colN_ii[i];
+                                real_t tnorm = colN_ii[i];
 
-                            real_t scale1 = trevc_protectupdate(
-                                abs1(X_ii(i, k)), tnorm, xmax, sf_max);
+                                real_t scale1 = trevc_protectupdate(
+                                    abs1(X_ii(i, k)), tnorm, xmax, sf_max);
 
-                            if (scale1 != real_t(1)) {
-                                // Scale the current part of the vector
-                                for (idx_t jj = 0; jj < nb; ++jj) {
-                                    X_ii(jj, k) = scale1 * X_ii(jj, k);
+                                if (scale1 != real_t(1)) {
+                                    // Scale the current part of the vector
+                                    for (idx_t jj = 0; jj < nb; ++jj) {
+                                        X_ii(jj, k) = scale1 * X_ii(jj, k);
+                                    }
+                                    scale_ii[k] *= scale1;
                                 }
-                                scale_ii[k] *= scale1;
-                            }
 
-                            for (idx_t j = 0; j < i; ++j) {
-                                X_ii(i, k) -= T_ii(j, i) * X_ii(j, k);
+                                for (idx_t j = 0; j < i; ++j) {
+                                    X_ii(i, k) -= T_ii(j, i) * X_ii(j, k);
+                                }
                             }
 
                             real_t scale2 = trevc_protectdiv(
