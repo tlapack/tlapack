@@ -142,6 +142,31 @@
 
  end subroutine
 
+ subroutine fortran_strevc3(side, howmny, select, n, t,&
+    ldt, vl, ldvl, vr, ldvr, mm, m, info) bind(c,name='fortran_strevc3')
+    use,intrinsic:: iso_c_binding, only: c_float, c_int, c_bool, c_char
+    use, intrinsic :: iso_fortran_env
+    implicit none
+    integer(c_int)::n,ldt, ldvl, ldvr, info, mm, m
+    real(c_float),dimension(*):: t, vl, vr
+    character(c_char) :: side, howmny
+    logical(c_bool),dimension(*) :: select
+    external strevc3
+
+    real :: dummywork(1)
+    real, allocatable ::work(:)
+    integer :: lwork
+
+   call strevc3( side, howmny, select, n, t, ldt, vl, ldvl, vr, ldvr,&
+                  mm, m,dummywork, -1, info )
+   lwork = int( dummywork(1) )
+   allocate( work(lwork) )
+   call strevc3( side, howmny, select, n, t, ldt, vl, ldvl, vr, ldvr,&
+                  mm, m, work, lwork, info )
+   deallocate(work)
+
+ end subroutine
+
  subroutine fortran_slanv2(a, b, c, d, rt1r, rt1i, rt2r, rt2i,&
     cs, sn) bind(c,name='fortran_slanv2')
     use,intrinsic:: iso_c_binding, only: c_float
