@@ -17,6 +17,8 @@
 #include <tlapack/lapack/lansy.hpp>
 #include <tlapack/lapack/laset.hpp>
 #include <tlapack/lapack/multishift_qr.hpp>
+#include <tlapack/lapack/trevc.hpp>
+#include <tlapack/lapack/trevc3.hpp>
 #include <tlapack/lapack/unghr.hpp>
 
 // C++ headers
@@ -90,6 +92,7 @@ void fortran_sgehrd(const int* n,
                     const int* ldh,
                     float* tau,
                     int* info);
+
 void fortran_sorghr(const int* n,
                     const int* ilo,
                     const int* ihi,
@@ -97,6 +100,20 @@ void fortran_sorghr(const int* n,
                     const int* ldh,
                     float* tau,
                     int* info);
+
+void fortran_strevc3(const char* side,
+                     const char* howmny,
+                     const bool* select,
+                     const int* n,
+                     const float* T,
+                     const int* ldt,
+                     float* VL,
+                     const int* ldvl,
+                     float* VR,
+                     const int* ldvr,
+                     int* mm,
+                     int* m,
+                     int* info);
 }
 
 //------------------------------------------------------------------------------
@@ -105,6 +122,7 @@ void run(size_t n,
          int seed,
          bool use_fortran_gehrd_unghr = false,
          bool use_fortran_hqr = false,
+         bool use_fortran_trevc3 = false,
          bool verbose = false)
 {
     using real_t = tlapack::real_type<T>;
@@ -266,6 +284,38 @@ void run(size_t n,
         for (size_t i = j + 2; i < n; ++i)
             H(i, j) = 0.0;
 
+    // Record start time
+    auto startEigenvectors = std::chrono::high_resolution_clock::now();
+    {
+        int info;
+        std::vector<T> VL_;
+        auto VL = new_matrix(VL_, n, n);
+        std::vector<T> VR_;
+        auto VR = new_matrix(VR_, n, n);
+        // Copy Q to VL and VR
+        tlapack::lacpy(tlapack::Uplo::General, Q, VL);
+        tlapack::lacpy(tlapack::Uplo::General, Q, VR);
+        if constexpr (use_lapack && std::is_same_v<T, float>) {
+            if (use_fortran_trevc3) {
+                int mm = n;
+                int m;
+                fortran_strevc3("B", "B", nullptr, &len, H.ptr, &len, VL.ptr,
+                                &len, VR.ptr, &len, &mm, &m, &info);
+            }
+            else {
+                std::vector<bool> select(n, true);  // all eigenvectors
+                info =
+                    tlapack::trevc3(tlapack::Side::Both, tlapack::HowMny::Back,
+                                    select, H, VL, VR);
+                // info = tlapack::trevc(tlapack::Side::Both,
+                //                       tlapack::HowMny::Back, select, H, VL,
+                //                       VR);
+            }
+        }
+    }
+    // Record end time
+    auto endEigenvectors = std::chrono::high_resolution_clock::now();
+
     // Compute elapsed time in nanoseconds
     auto elapsedQHQ =
         std::chrono::duration_cast<std::chrono::nanoseconds>(endQHQ - startQHQ);
@@ -273,6 +323,9 @@ void run(size_t n,
         std::chrono::duration_cast<std::chrono::nanoseconds>(endQ - startQ);
     auto elapsedSchur = std::chrono::duration_cast<std::chrono::nanoseconds>(
         endSchur - startSchur);
+    auto elapsedEigenvectors =
+        std::chrono::duration_cast<std::chrono::nanoseconds>(endEigenvectors -
+                                                             startEigenvectors);
 
     // Print Q and H
     if (verbose) {
@@ -372,6 +425,8 @@ void run(size_t n,
               << std::endl;
     std::cout << "QR time = " << elapsedSchur.count() * 1.0e-9 << " s"
               << std::endl;
+    std::cout << "Eigenvectors time = " << elapsedEigenvectors.count() * 1.0e-9
+              << " s" << std::endl;
     std::cout << "||QHQ* - A||_F/||A||_F  = " << norm_repres_1
               << ",        ||Q'Q - I||_F  = " << norm_orth_1 << std::endl;
     std::cout << "AED calls   " << n_aed << std::endl
@@ -386,6 +441,7 @@ int main(int argc, char** argv)
     int n, seed;
     bool use_fortran_gehrd_unghr;
     bool use_fortran_hqr;
+    bool use_fortran_trevc3;
     bool verbose;
 
     // Default arguments
@@ -393,13 +449,14 @@ int main(int argc, char** argv)
     seed = (argc <= 2) ? 1302 : atoi(argv[2]);
     use_fortran_gehrd_unghr = (argc <= 3) ? false : atoi(argv[3]);
     use_fortran_hqr = (argc <= 4) ? false : atoi(argv[4]);
-    verbose = (argc <= 5) ? false : atoi(argv[5]);
+    use_fortran_trevc3 = (argc <= 5) ? false : atoi(argv[5]);
+    verbose = (argc <= 6) ? false : atoi(argv[6]);
 
     // Usage
-    if (argc > 6) {
+    if (argc > 7) {
         std::cout << "Usage: " << argv[0]
                   << " [n] [seed] [use_fortran_gehrd_unghr] [use_fortran_hqr] "
-                     "[verbose]"
+                     "[use_fortran_trevc3] [verbose]"
                   << std::endl
                   << "  n: matrix size (default: 100)" << std::endl
                   << "  seed: random seed (default: 1302)" << std::endl
@@ -418,31 +475,34 @@ int main(int argc, char** argv)
     std::cout << std::scientific << std::showpos;
 
     printf("run< float >( %d )", n);
-    run<float>(n, seed, use_fortran_gehrd_unghr, use_fortran_hqr, verbose);
+    run<float>(n, seed, use_fortran_gehrd_unghr, use_fortran_hqr,
+               use_fortran_trevc3, verbose);
     printf("-----------------------\n");
 
     printf("run< std::complex<float>  >( %d )", n);
     run<std::complex<float>>(n, seed, use_fortran_gehrd_unghr, use_fortran_hqr,
-                             verbose);
+                             use_fortran_trevc3, verbose);
     printf("-----------------------\n");
 
     printf("run< double >( %d )", n);
-    run<double>(n, seed, use_fortran_gehrd_unghr, use_fortran_hqr, verbose);
+    run<double>(n, seed, use_fortran_gehrd_unghr, use_fortran_hqr,
+                use_fortran_trevc3, verbose);
     printf("-----------------------\n");
 
     printf("run< std::complex<double>  >( %d )", n);
     run<std::complex<double>>(n, seed, use_fortran_gehrd_unghr, use_fortran_hqr,
-                              verbose);
+                              use_fortran_trevc3, verbose);
     printf("-----------------------\n");
 
     printf("run< long double >( %d )", n);
     run<long double>(n, seed, use_fortran_gehrd_unghr, use_fortran_hqr,
-                     verbose);
+                     use_fortran_trevc3, verbose);
     printf("-----------------------\n");
 
     printf("run< std::complex<long double>  >( %d )", n);
     run<std::complex<long double>>(n, seed, use_fortran_gehrd_unghr,
-                                   use_fortran_hqr, verbose);
+                                   use_fortran_hqr, use_fortran_trevc3,
+                                   verbose);
     printf("-----------------------\n");
 
     return 0;
