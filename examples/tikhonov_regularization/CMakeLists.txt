@@ -16,3 +16,14 @@ endif()
 # add the example tikhonov_regularization
 add_executable( example_tikhonov_regularization example_tikhonov_regularization.cpp )
 target_link_libraries( example_tikhonov_regularization PRIVATE tlapack )
+
+project( tik_multi_lam CXX )
+
+# Load <T>LAPACK
+if( NOT TARGET tlapack )
+  find_package( tlapack REQUIRED )
+endif()
+
+# add the example tik_multi_lam
+add_executable( example_tik_multi_lam example_tik_multi_lam.cpp )
+target_link_libraries( example_tik_multi_lam PRIVATE tlapack )
