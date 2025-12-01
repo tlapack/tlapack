@@ -34,9 +34,9 @@ int main(int argc, char** argv)
     double cpu_time_used;
 
 // Views
-#define A(i_, j_) A[(i_) + (j_)*lda]
-#define B(i_, j_) B[(i_) + (j_)*ldb]
-#define C(i_, j_) C[(i_) + (j_)*ldc]
+#define A(i_, j_) A[(i_) + (j_) * lda]
+#define B(i_, j_) B[(i_) + (j_) * ldb]
+#define C(i_, j_) C[(i_) + (j_) * ldc]
 
     // Allocate A, B, and C, and initialize all entries with 0
     A = calloc(lda * k, sizeof(double));  // m-by-k
