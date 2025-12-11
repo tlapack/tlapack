@@ -368,6 +368,32 @@ int trevc(const side_t side,
     return 0;
 }
 
+template <TLAPACK_SIDE side_t,
+          TLAPACK_VECTOR select_t,
+          TLAPACK_MATRIX matrix_T_t,
+          TLAPACK_MATRIX matrix_Vl_t,
+          TLAPACK_MATRIX matrix_Vr_t>
+int trevc(const side_t side,
+          const HowMny howmny,
+          select_t& select,
+          const matrix_T_t& T,
+          matrix_Vl_t& Vl,
+          matrix_Vr_t& Vr)
+{
+    using idx_t = size_type<matrix_T_t>;
+    using TT = type_t<matrix_T_t>;
+    Create<vector_type<matrix_T_t>> new_vector;
+
+    const idx_t n = nrows(T);
+
+    std::vector<TT> work_;
+    auto work = new_vector(work_, 3 * n);
+    std::vector<real_type<TT>> rwork_;
+    auto rwork = new_vector(rwork_, n);
+
+    return trevc(side, howmny, select, T, Vl, Vr, rwork, work);
+}
+
 }  // namespace tlapack
 
 #endif  // TLAPACK_TREVC_HH

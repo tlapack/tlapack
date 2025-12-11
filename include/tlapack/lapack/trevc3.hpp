@@ -9,12 +9,13 @@
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef TLAPACK_TREVC_HH
-#define TLAPACK_TREVC_HH
+#ifndef TLAPACK_TREVC3_HH
+#define TLAPACK_TREVC3_HH
 
 #include "tlapack/base/utils.hpp"
 #include "tlapack/blas/asum.hpp"
 #include "tlapack/blas/gemv.hpp"
+#include "tlapack/lapack/trevc.hpp"
 #include "tlapack/lapack/trevc3_backsolve.hpp"
 #include "tlapack/lapack/trevc3_forwardsolve.hpp"
 
@@ -30,13 +31,7 @@ struct Trevc3Opts {
     size_t block_size_solve = 64;
 };
 
-enum class HowMny : char {
-    All = 'A',    ///< all eigenvectors
-    Back = 'B',   ///< all eigenvectors, backtransformed by input matrix
-    Select = 'S'  ///< selected eigenvectors
-};
-
-/** Worspace query of TREVC3()
+/** Workspace query of TREVC3()
  *
  * @param[in] side tlapack::Side
  * @param[in] howmny tlapack::HowMny
@@ -246,13 +241,6 @@ int trevc3_work(const side_t side,
 
     auto [X, work2] = reshape(work, n, opts.block_size + 1);
 
-    auto [colN, rwork2] = reshape(rwork, n);
-
-    for (idx_t j = 0; j < n; ++j) {
-        auto itmax = iamax(slice(col(T, j), range(0, n)));
-        colN[j] = abs1(T(itmax, j));
-    }
-
     if (side == Side::Right || side == Side::Both) {
         //
         // Compute right eigenvectors.
@@ -308,7 +296,7 @@ int trevc3_work(const side_t side,
             idx_t nb2 = i_end - i_start + 1;
 
             // Calculate the current block of eigenvectors of T
-            trevc3_backsolve(T, X, colN, work2, i_start, i_end + 1,
+            trevc3_backsolve(T, X, rwork, work2, i_start, i_end + 1,
                              opts.block_size_solve);
 
             // If required, backtransform the eigenvectors to the original
@@ -318,8 +306,8 @@ int trevc3_work(const side_t side,
                 auto X_block = slice(X, range(0, i_end + 1), range(0, nb2));
                 auto [Qx, work3] = reshape(work2, n, nb2);
 
-                gemm(Op::NoTrans, Op::NoTrans, TT(1), Q_slice, X_block, TT(0),
-                     Qx);
+                gemm(Op::NoTrans, Op::NoTrans, TT(1), Q_slice, X_block,
+                     StrongZero(), Qx);
 
                 auto Vr_block =
                     slice(Vr, range(0, n), range(i_start, i_end + 1));
@@ -389,7 +377,7 @@ int trevc3_work(const side_t side,
             idx_t nb2 = i_end - i_start + 1;
 
             // Calculate the current block of eigenvectors of T
-            trevc3_forwardsolve(T, X, colN, work2, i_start, i_end + 1,
+            trevc3_forwardsolve(T, X, rwork, work2, i_start, i_end + 1,
                                 opts.block_size_solve);
 
             // If required, backtransform the eigenvectors to the original
@@ -399,8 +387,8 @@ int trevc3_work(const side_t side,
                 auto X_block = slice(X, range(i_start, n), range(0, nb2));
                 auto [Qx, work3] = reshape(work2, n, nb2);
 
-                gemm(Op::NoTrans, Op::NoTrans, TT(1), Q_slice, X_block, TT(0),
-                     Qx);
+                gemm(Op::NoTrans, Op::NoTrans, TT(1), Q_slice, X_block,
+                     StrongZero(), Qx);
 
                 auto Vl_block =
                     slice(Vl, range(0, n), range(i_start, i_end + 1));
@@ -524,4 +512,4 @@ int trevc3(const side_t side,
 }
 }  // namespace tlapack
 
-#endif  // TLAPACK_TREVC_HH
+#endif  // TLAPACK_TREVC3_HH
