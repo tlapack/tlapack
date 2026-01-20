@@ -68,9 +68,6 @@ namespace legacy {
               T* A,
               idx_t lda)
     {
-        using internal::create_banded_matrix;
-        using internal::create_matrix;
-
         // check arguments
         tlapack_check_false((matrixtype != MatrixType::General) &&
                             (matrixtype != MatrixType::Lower) &&

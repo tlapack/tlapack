@@ -348,7 +348,7 @@ Concepts are documented as Doxygen interfaces, i.e., using the tag `@interface`.
 
 ### Documentation of namespaces
 
-We currently do not document namespaces.
+Namespaces do not belong to a Doxygen group. They should contain a brief and, possibly, a detailed description.
 
 ### Documentation of macros
 
