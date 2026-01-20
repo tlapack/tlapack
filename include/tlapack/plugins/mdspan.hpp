@@ -691,10 +691,9 @@ namespace traits {
 
                 ||
 
-                ((is_mdspan_type<matrixA_t> || is_mdspan_type<matrixB_t>)&&(
-                     !is_mdspan_type<matrixA_t> ||
-                     !is_mdspan_type<
-                         matrixB_t>)&&cast_to_mdspan_type<matrixA_t> &&
+                ((is_mdspan_type<matrixA_t> || is_mdspan_type<matrixB_t>) &&
+                 (!is_mdspan_type<matrixA_t> || !is_mdspan_type<matrixB_t>) &&
+                 cast_to_mdspan_type<matrixA_t> &&
                  cast_to_mdspan_type<matrixB_t>),
             int>::type> {
         using T = scalar_type<type_t<matrixA_t>, type_t<matrixB_t>>;
@@ -733,10 +732,9 @@ namespace traits {
 
                 ||
 
-                ((is_mdspan_type<matrixA_t> || is_mdspan_type<matrixB_t>)&&(
-                     !is_mdspan_type<matrixA_t> ||
-                     !is_mdspan_type<
-                         matrixB_t>)&&cast_to_mdspan_type<matrixA_t> &&
+                ((is_mdspan_type<matrixA_t> || is_mdspan_type<matrixB_t>) &&
+                 (!is_mdspan_type<matrixA_t> || !is_mdspan_type<matrixB_t>) &&
+                 cast_to_mdspan_type<matrixA_t> &&
                  cast_to_mdspan_type<matrixB_t>),
             int>::type> {
         using T = scalar_type<type_t<matrixA_t>, type_t<matrixB_t>>;

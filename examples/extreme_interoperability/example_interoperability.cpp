@@ -13,8 +13,8 @@
 #include <tlapack/plugins/eigen.hpp>
 // clang-format on
 
-#include <tlapack/blas/trmm.hpp>
 #include <tlapack/blas/syr.hpp>
+#include <tlapack/blas/trmm.hpp>
 #include <tlapack/lapack/getrf.hpp>
 
 // If C++23 is not available, use std::mdspan from kokkos
