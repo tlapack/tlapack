@@ -241,3 +241,229 @@ TEMPLATE_TEST_CASE("TREVC3 correctly computes the eigenvectors",
         }
     }
 }
+
+TEMPLATE_TEST_CASE(
+    "TREVC3 correctly computes the eigenvectors when scaling is required",
+    "[eigenvalues][eigenvectors][trevc3]",
+    TLAPACK_LEGACY_TYPES_TO_TEST)
+{
+    using matrix_t = TestType;
+    using TA = type_t<matrix_t>;
+    using idx_t = size_type<matrix_t>;
+    using real_t = real_type<TA>;
+    using complex_t = complex_type<real_t>;
+    using range = pair<idx_t, idx_t>;
+    using vector_t = vector_type<TestType>;
+
+    // Eigenvalues and 16-bit types do not mix well
+    if constexpr (sizeof(real_t) <= 2) SKIP_TEST;
+
+    // Functor
+    Create<matrix_t> new_matrix;
+    Create<vector_t> new_vector;
+
+    // MatrixMarket reader
+    MatrixMarket mm;
+
+    const int seed = GENERATE(2);
+    mm.gen.seed(seed);
+
+    const TA a = 1.0e6 + 1;
+    const TA b = 1;
+    const TA c = 1.0e6;
+
+    // const TA a = 0;
+    // const TA b = -1;
+    // const TA c = 0.5;
+
+    // Define the matrices
+
+    const idx_t n = GENERATE(20, 40, 60);
+    std::vector<TA> T_;
+    auto T = new_matrix(T_, n, n);
+
+    // Matrix as described in section 3 of "Robust parallel eigenvector
+    // computation for the non-symmetric eigenvalue problem"
+    for (idx_t j = 0; j < n; ++j) {
+        for (idx_t i = 0; i < j; ++i)
+            T(i, j) = -c;
+        T(j, j) = a - b * TA(j);
+        for (idx_t i = j + 1; i < n; ++i)
+            T(i, j) = TA(0);
+    }
+
+    // Randomly set some subdiagonal entries to non-zero to create 2x2 blocks
+    if constexpr (is_real<TA>) {
+        idx_t j = 0;
+        while (j + 1 < n) {
+            if (rand_helper<float>(mm.gen) < 0.5f) {
+                T(j + 1, j) = c;
+                T(j + 1, j + 1) = T(j, j);
+                j += 2;
+            }
+            else {
+                j += 1;
+            }
+        }
+    }
+
+    const real_t zero(0);
+    const real_t one(1);
+    const HowMny howmny = HowMny::All;
+    const Side side = GENERATE(Side::Right, Side::Left, Side::Both);
+    const idx_t nb = 10;
+
+    // Seed random number generator
+    mm.gen.seed(seed);
+
+    DYNAMIC_SECTION(" n = " << n << " seed = " << seed << " howmny = "
+                            << (howmny == HowMny::All ? "All" : "Back")
+                            << " side = "
+                            << (side == Side::Right
+                                    ? "Right"
+                                    : (side == Side::Left ? "Left" : "Both"))
+                            << " block size = " << nb)
+    {
+        // Now compute the eigenvectors using trevc
+        bool calcLeft = (side == Side::Left || side == Side::Both);
+        bool calcRight = (side == Side::Right || side == Side::Both);
+        std::vector<TA> Vr_;
+        auto Vr = calcRight ? new_matrix(Vr_, n, n) : new_matrix(Vr_, 0, 0);
+        std::vector<TA> Vl_;
+        auto Vl = calcLeft ? new_matrix(Vl_, n, n) : new_matrix(Vl_, 0, 0);
+
+        auto select =
+            std::vector<bool>(0, false);  // Not used for howmny != Select
+
+        Trevc3Opts opts;
+        opts.block_size = nb;
+        int info = trevc3(side, howmny, select, T, Vl, Vr, opts);
+        CHECK(info == 0);
+
+        // Now verify the eigenvectors
+        for (idx_t j = 0; j < n;) {
+            bool pair = false;
+            if (j < n - 1) {
+                if (T(j + 1, j) != TA(0)) {
+                    pair = true;
+                }
+            }
+
+            // Get the j-th eigenvalue
+            complex_t lambda;
+            if (pair) {
+                if constexpr (is_real<TA>) {
+                    lambda = complex_t(T(j, j),
+                                       std::sqrt(-T(j + 1, j) * T(j, j + 1)));
+                }
+            }
+            else {
+                lambda = T(j, j);
+            }
+
+            if (calcRight) {
+                // Check the right eigenvector(s)
+                std::vector<complex_t> v_;
+                auto v = new_vector(v_, n);
+                for (idx_t i = 0; i < n; ++i) {
+                    v[i] = complex_t(Vr(i, j));
+                }
+                if (pair) {
+                    // Complex conjugate pair
+                    if constexpr (is_real<TA>) {
+                        for (idx_t i = 0; i < n; ++i) {
+                            v[i] = complex_t(Vr(i, j), Vr(i, j + 1));
+                        }
+                    }
+                }
+
+                // Make sure v is finite
+                for (idx_t i = 0; i < n; ++i) {
+                    REQUIRE(std::isfinite(real(v[i])));
+                    REQUIRE(std::isfinite(imag(v[i])));
+                }
+
+                // Make sure v is non-zero
+                real_t normv = asum(v);
+                REQUIRE(normv != real_t(0));
+                REQUIRE(!std::isnan(normv));
+
+                // Normalize v to avoid overflow in the next step
+                for (idx_t i = 0; i < n; ++i) {
+                    v[i] /= normv;
+                }
+
+                real_t normDiff;
+                // Compute T * v - lambda * v
+                std::vector<complex_t> Tv_;
+                auto Tv = new_vector(Tv_, n);
+                gemv(Op::NoTrans, one, T, v, zero, Tv);
+                for (idx_t i = 0; i < n; ++i) {
+                    Tv[i] -= lambda * v[i];
+                }
+                normDiff = asum(Tv);
+
+                real_t normV = asum(v);
+                real_t tol_ev =
+                    ulp<real_t>() * abs1(lambda) * real_t(n) * real_t(10);
+
+                REQUIRE(normDiff <= tol_ev);
+            }
+            if (calcLeft) {
+                // Check the left eigenvector(s)
+                std::vector<complex_t> v_;
+                auto v = new_vector(v_, n);
+                for (idx_t i = 0; i < n; ++i) {
+                    v[i] = complex_t(Vl(i, j));
+                }
+                if (pair) {
+                    // Complex conjugate pair
+                    if constexpr (is_real<TA>) {
+                        for (idx_t i = 0; i < n; ++i) {
+                            v[i] = complex_t(Vl(i, j), Vl(i, j + 1));
+                        }
+                    }
+                }
+
+                // Make sure v is finite
+                for (idx_t i = 0; i < n; ++i) {
+                    REQUIRE(std::isfinite(real(v[i])));
+                    REQUIRE(std::isfinite(imag(v[i])));
+                }
+
+                // Make sure v is non-zero
+                real_t normv = asum(v);
+                REQUIRE(normv != real_t(0));
+                REQUIRE(!std::isnan(normv));
+
+                // Normalize v to avoid overflow in the next step
+                for (idx_t i = 0; i < n; ++i) {
+                    v[i] /= normv;
+                }
+
+                real_t normDiff;
+                // Compute v**H * T - lambda * v**H
+                std::vector<complex_t> Tv_;
+                auto Tv = new_vector(Tv_, n);
+                gemv(Op::ConjTrans, one, T, v, zero, Tv);
+                for (idx_t i = 0; i < n; ++i) {
+                    Tv[i] -= conj(lambda) * v[i];
+                }
+                normDiff = asum(Tv);
+
+                real_t normV = asum(v);
+                real_t tol_ev =
+                    ulp<real_t>() * abs1(lambda) * real_t(n) * real_t(10);
+
+                REQUIRE(normDiff <= tol_ev);
+            }
+
+            if (pair) {
+                j += 2;
+            }
+            else {
+                j += 1;
+            }
+        }
+    }
+}
