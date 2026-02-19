@@ -18,11 +18,12 @@
 #include <tlapack/lapack/unmqr.hpp>
 
 /**
+ * @brief Note: This decomposition method is unstable when lambda > ||A||.
  * @param[in] A is an m-by-n matrix where m >= n.
  * @param[in,out] b
  *      On entry, b is a m-by-k matrix
  *
- *      On exit, by is an m-by-k matrix that stores the solution x in the first
+ *      On exit, b is an m-by-k matrix that stores the solution x in the first
  *      n rows.
  * @param[in] lambda scalar
  *
@@ -30,12 +31,14 @@
 
 using namespace tlapack;
 
-/// Solves Tikhonov regularized least squares using QR factorization
 template <TLAPACK_MATRIX matrixA_t,
           TLAPACK_MATRIX matrixb_t,
           TLAPACK_REAL real_t>
 void tik_qr(matrixA_t& A, matrixb_t& b, real_t lambda)
 {
+    tlapack_check(nrows(A) >= ncols(A));
+    tlapack_check(nrows(b) == nrows(A));
+
     // Initliazation for basic utilities
     using T = type_t<matrixA_t>;
     using idx_t = size_type<matrixA_t>;
