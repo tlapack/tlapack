@@ -1,5 +1,5 @@
 /// @file test_tikhonov.cpp Test if tikhonov regularized least squares problem
-/// is successfully solved
+/// is correctly solved.
 /// @author L. Carlos Gutierrez, University of Colorado Denver, USA
 //
 // Copyright (c) 2025, University of Colorado Denver. All rights reserved.
@@ -72,9 +72,9 @@ TEMPLATE_TEST_CASE("Testing all cases of Tikhonov",
 
             real_t normA = lange(FROB_NORM, A);
 
-            // Note: tikqr is unstable when lambda > ||A||. Therefore, the
+            // Note: tik_qr() is unstable when lambda > ||A||. Therefore, the
             // check will not be applied
-            if ((variant != TikVariant::QR) || (lambda < normA)) {
+            if ((variant != TikVariant::QR) || (lambda <= normA)) {
                 lacpy(GENERAL, b, bcopy);
                 lacpy(GENERAL, A, A_copy);
 
