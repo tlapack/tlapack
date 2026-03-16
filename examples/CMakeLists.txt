@@ -21,15 +21,17 @@ add_custom_command(
     "${CMAKE_CURRENT_BINARY_DIR}/geqr2/example_geqr2${CMAKE_EXECUTABLE_SUFFIX}"
     && echo ""
 )
-# add the example geqrtr
-add_subdirectory( geqrtr )
+
+# add the example trge_qr
+add_subdirectory( trge_qr )
 add_custom_command(
   OUTPUT run-all-examples-cmd APPEND
   COMMAND
-    echo "- example_geqrtr ----------------" &&
-    "${CMAKE_CURRENT_BINARY_DIR}/geqrtr/example_geqrtr${CMAKE_EXECUTABLE_SUFFIX}"
+    echo "- example_trge_qr ----------------" &&
+    "${CMAKE_CURRENT_BINARY_DIR}/trge_qr/example_trge_qr${CMAKE_EXECUTABLE_SUFFIX}"
     && echo ""
 )
+
 
 # add the example tikhonov_regularization
 add_subdirectory( tikhonov_regularization )
