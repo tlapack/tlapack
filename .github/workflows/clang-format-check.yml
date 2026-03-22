@@ -37,7 +37,7 @@ jobs:
     - name: Run clang-format style check for C/C++ programs.
       uses: jidicula/clang-format-action@3a18028048f01a66653b4e3bf8d968d2e7e2cb8b # v4.17.0
       with:
-        clang-format-version: '11'
+        clang-format-version: '18'
         check-path: ${{ matrix.path }}
         include-regex: '^.*\.(hpp|cpp|h\.in|c)$'
         fallback-style: 'Google'
