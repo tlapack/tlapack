@@ -20,6 +20,7 @@
 
 namespace tlapack {
 namespace starpu {
+    /// Functions that run on StarPU workers.
     namespace func {
 
         // ---------------------------------------------------------------------
@@ -68,8 +69,8 @@ namespace starpu {
             else if constexpr (mode == 1) {
                 using T = scalar_type<TA, TB, TC, alpha_t, beta_t>;
 
-                const cublasOperation_t opA = cuda::op2cublas(transA);
-                const cublasOperation_t opB = cuda::op2cublas(transB);
+                const cublasOperation_t opA = op2cublas(transA);
+                const cublasOperation_t opB = op2cublas(transB);
                 const T alpha_ = (T)alpha;
                 const T beta_ = (T)beta;
                 cublasStatus_t status;
@@ -248,8 +249,8 @@ namespace starpu {
                 using T = scalar_type<TA, TC, alpha_t, beta_t>;
                 using real_t = real_type<T>;
 
-                const cublasFillMode_t uplo_ = cuda::uplo2cublas(uplo);
-                const cublasOperation_t op_ = cuda::op2cublas(op);
+                const cublasFillMode_t uplo_ = uplo2cublas(uplo);
+                const cublasOperation_t op_ = op2cublas(op);
                 const real_t alpha_ = (real_t)alpha;
                 const real_t beta_ = (real_t)beta;
                 cublasStatus_t status;
@@ -418,10 +419,10 @@ namespace starpu {
             else if constexpr (mode == 1) {
                 using T = scalar_type<TA, TB, alpha_t>;
 
-                const cublasSideMode_t side_ = cuda::side2cublas(side);
-                const cublasFillMode_t uplo_ = cuda::uplo2cublas(uplo);
-                const cublasOperation_t op_ = cuda::op2cublas(op);
-                const cublasDiagType_t diag_ = cuda::diag2cublas(diag);
+                const cublasSideMode_t side_ = side2cublas(side);
+                const cublasFillMode_t uplo_ = uplo2cublas(uplo);
+                const cublasOperation_t op_ = op2cublas(op);
+                const cublasDiagType_t diag_ = diag2cublas(diag);
                 const T alpha_ = (T)alpha;
                 cublasStatus_t status;
 
@@ -495,7 +496,7 @@ namespace starpu {
                 const size_t& lwork =
                     STARPU_VARIABLE_GET_ELEMSIZE(buffers[(has_info ? 2 : 1)]);
 
-                const cublasFillMode_t uplo_ = cuda::uplo2cublas(uplo);
+                const cublasFillMode_t uplo_ = uplo2cublas(uplo);
                 cusolverStatus_t status = CUSOLVER_STATUS_SUCCESS;
 
                 if constexpr (is_same_v<T, float>)

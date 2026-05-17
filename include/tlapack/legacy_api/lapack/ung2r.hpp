@@ -43,9 +43,6 @@ namespace legacy {
     template <typename TA, typename TT>
     int ung2r(idx_t m, idx_t n, idx_t k, TA* A, idx_t lda, const TT* tau)
     {
-        using internal::create_matrix;
-        using internal::create_vector;
-
         // check arguments
         tlapack_check_false(m < 0);
         tlapack_check_false(n < 0 || n > m);

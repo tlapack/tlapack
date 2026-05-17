@@ -48,8 +48,6 @@ namespace legacy {
     template <typename T>
     void larnv(idx_t idist, idx_t* iseed, idx_t n, T* x)
     {
-        using internal::create_vector;
-
         auto x_ = create_vector(x, n);
 
         if (idist == 1)

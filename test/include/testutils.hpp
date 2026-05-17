@@ -56,7 +56,7 @@
     #define VANISH
 
 namespace tlapack {
-namespace catch2 {
+namespace internal {
 
     std::string return_scanf(const char*);
     std::string return_scanf(std::string);
@@ -109,7 +109,7 @@ namespace catch2 {
         }
         return t;
     }
-}  // namespace catch2
+}  // namespace internal
 }  // namespace tlapack
 
     #define TEMPLATE_TEST_CASE(TITLE, TAGS, ...)              \
@@ -117,7 +117,7 @@ namespace catch2 {
         int main(const int argc, const char* argv[])
 
     #define GENERATE(...) \
-        tlapack::catch2::return_scanf(GET_FIRST_ARG(__VA_ARGS__))
+        tlapack::internal::return_scanf(GET_FIRST_ARG(__VA_ARGS__))
 
     #define DYNAMIC_SECTION(...) std::cout << __VA_ARGS__ << std::endl;
 

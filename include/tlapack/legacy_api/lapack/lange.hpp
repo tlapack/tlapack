@@ -42,8 +42,6 @@ namespace legacy {
     real_type<TA> lange(
         norm_t normType, idx_t m, idx_t n, const TA* A, idx_t lda)
     {
-        using internal::create_matrix;
-
         // check arguments
         tlapack_check_false(normType != Norm::Fro && normType != Norm::Inf &&
                             normType != Norm::Max && normType != Norm::One);

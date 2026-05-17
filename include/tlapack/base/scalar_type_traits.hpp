@@ -42,7 +42,12 @@ using std::enable_if_t;
 // std::std::common_type_t< int, complex<long> > is not defined (compile error)
 //        scalar_type< int, complex<long> > is complex<long> (right)
 
-// Real type traits
+/** Type traits in the library.
+ *
+ * @note For better readability, prefer using the aliases for the traits, if
+ * available. For example, use @c tlapack::real_type<T> instead of
+ * @c tlapack::traits::real_type_traits<T>::type.
+ */
 namespace traits {
     /** Real type traits for the list of types @c Types.
      *
@@ -64,6 +69,14 @@ namespace traits {
      *
      * For two or more types, use @c std::common_type_t to deduce the common
      * type using recursive calls.
+     *
+     * @note This trait can be specialized for a given type (or list of types)
+     * to override the default behavior.
+     *
+     * @note this trait can be specialized for matrices and vectors. This is
+     * used in routines that need to create matrices (and/or vectors) with real
+     * entries from a given matrix (and/or vector) type whose entries can be
+     * complex.
      *
      * @tparam Types A list of types
      */
@@ -116,7 +129,6 @@ using real_type = typename traits::real_type_traits<Types..., int>::type;
 template <typename T>
 constexpr bool is_real = traits::real_type_traits<T, int>::is_real;
 
-// Complex type traits
 namespace traits {
     /** Complex type traits for the list of types @c Types.
      *
@@ -138,6 +150,14 @@ namespace traits {
      *
      * For two or more types, the deduced type is the complex type of
      * @c tlapack::real_type_traits<Types...>::type.
+     *
+     * @note This trait can be specialized for a given type (or list of types)
+     * to override the default behavior.
+     *
+     * @note this trait can be specialized for matrices and vectors. This is
+     * used in routines that need to create matrices (and/or vectors) with
+     * complex entries from a given matrix (and/or vector) type whose entries
+     * can be real.
      *
      * @tparam Types A list of types
      */

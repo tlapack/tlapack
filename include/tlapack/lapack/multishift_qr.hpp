@@ -19,31 +19,6 @@
 
 namespace tlapack {
 
-template <class T,
-          TLAPACK_SMATRIX matrix_t,
-          TLAPACK_SVECTOR vector_t,
-          enable_if_t<is_complex<type_t<vector_t>>, int> = 0>
-constexpr WorkInfo multishift_qr_worksize_sweep(bool want_t,
-                                                bool want_z,
-                                                size_type<matrix_t> ilo,
-                                                size_type<matrix_t> ihi,
-                                                const matrix_t& A,
-                                                const vector_t& w,
-                                                const matrix_t& Z,
-                                                const FrancisOpts& opts = {})
-{
-    using idx_t = size_type<matrix_t>;
-    using range = pair<idx_t, idx_t>;
-
-    const idx_t n = ncols(A);
-    const idx_t nh = ihi - ilo;
-    const idx_t nsr = opts.nshift_recommender(n, nh);
-    auto&& shifts = slice(w, range{0, nsr});
-
-    return multishift_QR_sweep_worksize<T>(want_t, want_z, ilo, ihi, A, shifts,
-                                           Z);
-}
-
 /** Worspace query of multishift_qr()
  *
  * @param[in] want_t bool.
@@ -79,8 +54,11 @@ WorkInfo multishift_qr_worksize(bool want_t,
                                 const FrancisOpts& opts)
 {
     using idx_t = size_type<matrix_t>;
+    using range = pair<idx_t, idx_t>;
 
     const idx_t n = ncols(A);
+    const idx_t nh = ihi - ilo;
+    const idx_t nsr = opts.nshift_recommender(n, nh);
 
     // quick return
     WorkInfo workinfo;
@@ -93,8 +71,8 @@ WorkInfo multishift_qr_worksize(bool want_t,
             want_t, want_z, ilo, ihi, nw_max, A, w, Z, 0, 0, opts);
     }
 
-    workinfo.minMax(multishift_qr_worksize_sweep<T>(want_t, want_z, ilo, ihi, A,
-                                                    w, Z, opts));
+    workinfo.minMax(multishift_QR_sweep_worksize<T>(
+        want_t, want_z, ilo, ihi, A, slice(w, range{0, nsr}), Z));
 
     return workinfo;
 }

@@ -14,6 +14,12 @@
 #include <cstdint>
 
 namespace tlapack {
+/** Integration with StarPU
+ *
+ * Provides a set of tools for integration with the task management library
+ * StarPU. See https://starpu.gitlabpages.inria.fr/ for more details about
+ * StarPU.
+ */
 namespace starpu {
 
     using idx_t = uint32_t;
