@@ -73,8 +73,8 @@ TEMPLATE_TEST_CASE("geqr2 computes the QR factorization of a matrix",
         // Compute ||Q'Q - I||_F
         std::vector<T> work_;
         auto work = new_matrix(work_, n, n);
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = 0; i < n; ++i)
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < n; ++i)
                 work(i, j) = static_cast<float>(0xABADBABE);
 
         // work receives the identity n*n
