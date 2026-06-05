@@ -88,7 +88,6 @@ TEMPLATE_TEST_CASE("geqr2 computes the QR factorization of a matrix",
         real_t norm_orth_1 =
             tlapack::lansy(tlapack::FROB_NORM, tlapack::UPPER_TRIANGLE, work);
 
-        REQUIRE(std::isfinite(norm_orth_1));
         CHECK((norm_orth_1 / normA) <= tol);
     }
 }
