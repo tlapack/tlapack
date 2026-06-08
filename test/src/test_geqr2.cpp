@@ -58,11 +58,11 @@ TEMPLATE_TEST_CASE("geqr2 computes the QR factorization of a matrix",
 
         // Compute the norm of A
         auto normA = lange(FROB_NORM, A);
-
+        real_t norm_orth_1;
         // Check that the factorization was successful
         if (m <= 0 || n <= 0 || m < n) {
-            normA = 0;
-        }
+            norm_orth_1 = 0;
+        } else {
             // Compute the QR factorization of A
             geqr2(A, tau);
 
@@ -84,8 +84,9 @@ TEMPLATE_TEST_CASE("geqr2 computes the QR factorization of a matrix",
                  static_cast<T>(-1.0), work);
 
             // Compute ||Q'Q - I||_F
-            real_t norm_orth_1 = lansy(FROB_NORM, UPPER_TRIANGLE, work);
-
+            norm_orth_1 = lansy(FROB_NORM, UPPER_TRIANGLE, work);
+        }
             CHECK(norm_orth_1 <= tol);
     }
+
 }
