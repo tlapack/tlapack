@@ -43,10 +43,11 @@ TEMPLATE_TEST_CASE("geqrf computes the QR factorization of a matrix",
     // MatrixMarket reader
     MatrixMarket mm;
 
-    idx_t m, n;
+    idx_t m, n, nb;
 
     m = GENERATE(2);
     n = GENERATE(5);
+    nb = GENERATE(1);
 
     DYNAMIC_SECTION("m = " << m << " n = " << n)
     {
