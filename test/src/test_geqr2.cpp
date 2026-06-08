@@ -61,31 +61,33 @@ TEMPLATE_TEST_CASE("geqr2 computes the QR factorization of a matrix",
 
         // Check that the factorization was successful
         if (m <= 0 || n <= 0 || m < n) {
-            return;
+            SUCCEED("skipping");
         }
+        else {
+            // Compute the QR factorization of A
+            geqr2(A, tau);
 
-        // Compute the QR factorization of A
-        geqr2(A, tau);
+            // Generates Q = H_1 H_2 ... H_n
+            ung2r(A, tau);
 
-        // Generates Q = H_1 H_2 ... H_n
-        ung2r(A, tau);
+            // Compute ||Q'Q - I||_F
+            std::vector<T> work_;
+            auto work = new_matrix(work_, n, n);
+            for (idx_t j = 0; j < n; ++j)
+                for (idx_t i = 0; i < n; ++i)
+                    work(i, j) = static_cast<T>(0xABADBABE);
 
-        // Compute ||Q'Q - I||_F
-        std::vector<T> work_;
-        auto work = new_matrix(work_, n, n);
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < n; ++i)
-                work(i, j) = static_cast<T>(0xABADBABE);
+            // work receives the identity n*n
+            laset(UPPER_TRIANGLE, static_cast<T>(0.0), static_cast<T>(1.0),
+                  work);
+            // work receives Q'Q - I
+            gemm(Op::ConjTrans, Op::NoTrans, static_cast<T>(1.0), A, A,
+                 static_cast<T>(-1.0), work);
 
-        // work receives the identity n*n
-        laset(UPPER_TRIANGLE, static_cast<T>(0.0), static_cast<T>(1.0), work);
-        // work receives Q'Q - I
-        gemm(Op::ConjTrans, Op::NoTrans, static_cast<T>(1.0), A, A,
-             static_cast<T>(-1.0), work);
+            // Compute ||Q'Q - I||_F
+            real_t norm_orth_1 = lansy(FROB_NORM, UPPER_TRIANGLE, work);
 
-        // Compute ||Q'Q - I||_F
-        real_t norm_orth_1 = lansy(FROB_NORM, UPPER_TRIANGLE, work);
-
-        CHECK(norm_orth_1 <= tol);
+            CHECK(norm_orth_1 <= tol);
+        }
     }
 }
