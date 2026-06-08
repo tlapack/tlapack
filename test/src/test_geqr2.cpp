@@ -61,7 +61,7 @@ TEMPLATE_TEST_CASE("geqr2 computes the QR factorization of a matrix",
 
         // Check that the factorization was successful
         if (m <= 0 || n <= 0 || m < n) {
-            SKIP("m <= 0 || n <= 0 || m < n");
+            return;
         }
 
         // Compute the QR factorization of A
