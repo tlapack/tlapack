@@ -43,11 +43,12 @@ TEMPLATE_TEST_CASE("geqrf computes the QR factorization of a matrix",
     // MatrixMarket reader
     MatrixMarket mm;
 
-    idx_t m, n, nb;
+    idx_t m, n;
+    GeqrfOpts opts;
 
-    m = GENERATE(2);
-    n = GENERATE(5);
-    nb = GENERATE(1);
+    m = GENERATE(4, 15, 26, 83, 117, 240);
+    n = GENERATE(4, 9, 11, 29, 53, 131);
+    opts.nb = GENERATE(1, 2, 3, 5, 11, 32);
 
     DYNAMIC_SECTION("m = " << m << " n = " << n)
     {
@@ -65,10 +66,10 @@ TEMPLATE_TEST_CASE("geqrf computes the QR factorization of a matrix",
         auto normA = lange(FROB_NORM, A);
 
         // Compute the QR factorization of A
-        int info = geqrf(A, tau);
+        int info = geqrf(A, tau, opts);
 
         // Check that the factorization was successful
-        if (m <= 0 || n <= 0 || m < n || nb <= 0) {
+        if (m <= 0 || n <= 0 || m < n || opts.nb <= 0) {
             SKIP("m <= 0 || n <= 0 || m < n");
         }
 
@@ -91,7 +92,6 @@ TEMPLATE_TEST_CASE("geqrf computes the QR factorization of a matrix",
         // Compute ||Q'Q - I||_F
         real_t norm_orth_1 = lansy(FROB_NORM, UPPER_TRIANGLE, work);
 
-        REQUIRE(std::isfinite(norm_orth_1));
         CHECK((norm_orth_1 / normA) <= tol);
     }
 }
