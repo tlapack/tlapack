@@ -12,6 +12,8 @@
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
 // Test utilities and definitions (must come before <T>LAPACK headers)
+#include <catch2/catch_all.hpp>
+
 #include "testutils.hpp"
 
 // Auxiliary routines
