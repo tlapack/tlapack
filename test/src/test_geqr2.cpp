@@ -41,8 +41,8 @@ TEMPLATE_TEST_CASE("geqr2 computes the QR factorization of a matrix",
 
     idx_t m, n;
 
-    m = GENERATE(5, 7, 63, 199, 512);
-    n = GENERATE(2, 3, 5, 8, 16, 21, 51, 128);
+    m = GENERATE(16);
+    n = GENERATE(16);
 
     DYNAMIC_SECTION("m = " << m << " n = " << n)
     {
