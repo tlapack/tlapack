@@ -79,22 +79,22 @@ void geqrt3(matrix_a& A, matrix_h& Tmatrix)
         // no additional flops, just copy
         tlapack::lacpy(tlapack::Uplo::General, A12, T12);
 
-        // step 3: A11^H * T12 = T12
+        // step 3: A11ᴴ * T12 = T12
 
         tlapack::trmm(tlapack::Side::Left, tlapack::Uplo::Lower,
                       tlapack::Op::ConjTrans, tlapack::Diag::Unit,
                       static_cast<T>(1.0), A11, T12);
 
-        // step 4: T12 + (A21^H * A22) = T12
+        // step 4: T12 + (A21ᴴ * A22) = T12
 
         tlapack::gemm(tlapack::Op::ConjTrans, tlapack::Op::NoTrans,
                       static_cast<T>(1.0), A21, A22, static_cast<T>(1.0), T12);
 
-        // T12 + (A31^H * A32) = T12
+        // T12 + (A31ᴴ * A32) = T12
         tlapack::gemm(tlapack::Op::ConjTrans, tlapack::Op::NoTrans,
                       static_cast<T>(1.0), A31, A32, static_cast<T>(1.0), T12);
 
-        // step 5: T11^H * T12 = T12
+        // step 5: T11ᴴ * T12 = T12
         tlapack::trmm(tlapack::Side::Left, tlapack::Uplo::Upper,
                       tlapack::Op::ConjTrans, tlapack::Diag::NonUnit,
                       static_cast<T>(1.0), T11, T12);
@@ -121,7 +121,7 @@ void geqrt3(matrix_a& A, matrix_h& Tmatrix)
         // step 9: Compute the QR factorization of T22
         tlapack::geqrt3<T>(A22_32, T22);
 
-        // step 10: manually compute T12 = A21^H
+        // step 10: manually compute T12 = A21ᴴ
         for (idx_t j = 0; j < n2; ++j) {
             for (idx_t i = 0; i < m1; ++i) {
                 if constexpr (tlapack::is_complex<T>)
@@ -131,12 +131,12 @@ void geqrt3(matrix_a& A, matrix_h& Tmatrix)
             }
         }
 
-        // step 11: T12 = T12 * T22^H
+        // step 11: T12 = T12 * T22ᴴ
         tlapack::trmm(tlapack::Side::Right, tlapack::Uplo::Lower,
                       tlapack::Op ::NoTrans, tlapack::Diag::Unit,
                       static_cast<T>(1.0), A22, T12);
 
-        // step 12: T12 = T12 + A31^H * A32
+        // step 12: T12 = T12 + A31ᴴ * A32
         tlapack::gemm(tlapack::Op::ConjTrans, tlapack::Op::NoTrans,
                       static_cast<T>(1.0), A31, A32, static_cast<T>(1.0), T12);
 
