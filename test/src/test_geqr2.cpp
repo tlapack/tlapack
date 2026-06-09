@@ -61,7 +61,7 @@ TEMPLATE_TEST_CASE("geqr2 computes the QR factorization of a matrix",
         real_t norm_orth_1;
         // Check that the factorization was successful
         if (m <= 0 || n <= 0 || m < n) {
-            norm_orth_1 = 0;
+            norm_orth_1 = real_t(0);
         } else {
             // Compute the QR factorization of A
             geqr2(A, tau);
