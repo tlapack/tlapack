@@ -27,7 +27,7 @@ add_custom_command(
   OUTPUT run-all-examples-cmd APPEND
   COMMAND
     echo "- example_geqrtr ----------------" &&
-    "${CMAKE_CURRENT_BINARY_DIR}/rgeqrtr/example_rgeqrtr${CMAKE_EXECUTABLE_SUFFIX}"
+    "${CMAKE_CURRENT_BINARY_DIR}/geqrtr/example_geqrtr${CMAKE_EXECUTABLE_SUFFIX}"
     && echo ""
 )
 
