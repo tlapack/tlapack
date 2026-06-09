@@ -1,4 +1,4 @@
-/// @file example_geqrt3.cpp
+/// @file geqrt3.hpp
 /// @author Henricus Bouwmeester, University of Colorado Denver, USA
 /// @author Benicio Ayala, Metropolitan State University of Denver, USA
 /// @author James Barton, Metropolitan State University of Denver, USA
