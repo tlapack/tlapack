@@ -127,7 +127,7 @@ void geqrt3(matrix_a& A, matrix_h& Tmatrix)
         }
 
         // step 11: T12 = T12 * T22ᴴ
-        trmm(Side::Right, Uplo::Lower, Op ::NoTrans, Diag::Unit,
+        trmm(Side::Right, Uplo::Lower, Op::NoTrans, Diag::Unit,
              static_cast<T>(1.0), A22, T12);
 
         // step 12: T12 = T12 + A31ᴴ * A32
