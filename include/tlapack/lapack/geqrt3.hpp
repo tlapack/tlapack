@@ -11,8 +11,8 @@
 /// <T>LAPACK is free software: you can redistribute it and/or modify it under
 /// the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
 
-#ifndef TLAPACK_GEQRT3
-#define TLAPACK_GEQRT3
+#ifndef TLAPACK_GEQRT3_HH
+#define TLAPACK_GEQRT3_HH
 
 #include "tlapack/blas/gemm.hpp"
 #include "tlapack/blas/trmm.hpp"
@@ -146,4 +146,4 @@ void geqrt3(matrix_a& A, matrix_h& Tmatrix)
 }
 }  // namespace tlapack
 
-#endif  // TLAPACK_GEQRT3
+#endif  // TLAPACK_GEQRT3_HH
