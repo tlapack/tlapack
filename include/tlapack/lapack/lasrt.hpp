@@ -14,7 +14,7 @@
  * in decreasing order (if ID = 'D' ).
  *
  * @param[in] id
- *     ID is CHARACTER*1
+ *     ID is CHARACTER
  *     = 'I': sort D in increasing order;
  *     = 'D': sort D in decreasing order.
  *
