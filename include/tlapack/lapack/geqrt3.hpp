@@ -139,5 +139,4 @@ void geqrt3(matrix_a& A, matrix_h& Tmatrix)
     }
 }
 }  // namespace tlapack
-
 #endif  // TLAPACK_GEQRT3_HH
