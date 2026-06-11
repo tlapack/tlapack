@@ -26,6 +26,7 @@
 #include <tlapack/lapack/lacpy.hpp>
 #include <tlapack/lapack/lange.hpp>
 #include <tlapack/lapack/lansy.hpp>
+#include <tlapack/lapack/larfb.hpp>
 #include <tlapack/lapack/larfg.hpp>
 #include <tlapack/lapack/larft.hpp>
 #include <tlapack/lapack/laset.hpp>
@@ -68,15 +69,13 @@ void run(size_t m, size_t n)
     // Turn it off if m or n are large
     bool verbose = false;
 
-    // Arrays
-    std::vector<T> tau_work(n);
-    // create flops counter
-
     // Matrices
     std::vector<T> A_;
     auto A = new_matrix(A_, m, n);
     std::vector<T> R_;
     auto R = new_matrix(R_, n, n);
+    std::vector<T> V_;
+    auto V = new_matrix(V_, m, n);
     std::vector<T> Q_;
     auto Q = new_matrix(Q_, m, n);
     std::vector<T> T_;
@@ -91,7 +90,6 @@ void run(size_t m, size_t n)
         for (idx_t i = 0; i < n; ++i) {
             Tmatrix(i, j) = T(static_cast<float>(0XFEE1DEAD));
             R(i, j) = T(static_cast<float>(0xFEE1DEAD));
-            tau_work[j] = T(static_cast<float>(0xFFBADD11));
         }
     }
     // Generate a random matrix in A
@@ -111,7 +109,7 @@ void run(size_t m, size_t n)
     // Record start time
     auto startQR = std::chrono::high_resolution_clock::now();
     {
-        tlapack::geqrt3<T>(Q, Tmatrix);
+        tlapack::geqrt3(Q, Tmatrix);
     }
     // Record end time
     auto endQR = std::chrono::high_resolution_clock::now();
@@ -125,21 +123,28 @@ void run(size_t m, size_t n)
     // Compute the Frobenius norm of A
     auto normA = tlapack::lange(tlapack::FROB_NORM, A);
 
-    // Fill in tau_work with the diagonal of Tmatrix
-    for (idx_t i = 0; i < n; ++i) {
-        tau_work[i] = Tmatrix(i, i);
-    }
+    T norm_orth, norm_repres;
 
-    T norm_orth_1, norm_repres_1;
-
-    // 2) Compute ||Q'Q - I||_F
+    // 2) Compute ||Qᴴ Q - I||ꜰ
 
     {
         // Copy Upper Triangle of A into R
         tlapack::lacpy(tlapack::Uplo::Upper, Q, R);
 
-        // Turn lower part of A into Q
-        tlapack::ung2r(Q, tau_work);
+        // Copy the Householder vectors into V
+        tlapack::lacpy(tlapack::GENERAL, Q, V);
+
+        // Make Q the indentity matrix
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < m; ++i)
+                Q(i, j) = static_cast<T>(0.0);
+
+        for (idx_t j = 0; j < std::min(m, n); ++j)
+            Q(j, j) = static_cast<T>(1.0);
+
+        tlapack::larfb(tlapack::Side::Left, tlapack::Op::NoTrans,
+                       tlapack::Direction::Forward, tlapack::StoreV::Columnwise,
+                       V, Tmatrix, Q);
 
         std::vector<T> work_;
         auto work = new_matrix(work_, n, n);
@@ -151,23 +156,23 @@ void run(size_t m, size_t n)
         // work receives the identity n*n
         tlapack::laset(tlapack::GENERAL, static_cast<T>(0.0),
                        static_cast<T>(1.0), work);
-        // work receives Q'Q - I
+        // work receives Qᴴ Q - I
         tlapack::gemm(tlapack::Op::ConjTrans, tlapack::Op::NoTrans,
                       static_cast<T>(1.0), Q, Q, static_cast<T>(-1.0), work);
 
-        // Compute ||Q'Q - I||_F
-        norm_orth_1 = tlapack::lange(tlapack::FROB_NORM, work);
+        // Compute ||Qᴴ Q - I||ꜰ
+        norm_orth = tlapack::lange(tlapack::FROB_NORM, work);
 
         if (verbose) {
-            std::cout << std::endl << "Q'Q-I = ";
+            std::cout << std::endl << "QᴴQ-I = ";
             printMatrix(work);
         }
     }
 
-    // 3) Compute ||QR - A||_F / ||A||_F
-    // A=q
+    // 3) Compute ||QR - A||ᶠ / ||A||ᶠ
     {
         std::vector<T> work_;
+
         auto work = new_matrix(work_, m, n);
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < m; ++i)
@@ -183,24 +188,39 @@ void run(size_t m, size_t n)
             for (idx_t i = 0; i < m; ++i)
                 work(i, j) -= A(i, j);
 
-        norm_repres_1 = tlapack::lange(tlapack::FROB_NORM, work) / normA;
+        norm_repres = tlapack::lange(tlapack::FROB_NORM, work) / normA;
     }
 
     // *) Output
 
     std::cout << std::endl;
     double seconds = elapsedQR.count() * 1.0e-9;
-    // Add the flops from geqrt3
-    double flopsQR = (3.0 * m * n * n) - ((5.0 / 6.0) * n * n * n) +
-                     ((1.0 / 2.0) * n * n) + ((1.0 / 3.0) * n);
 
-    std::cout << "time = " << elapsedQR.count() * 1.0e-6 << " ms"
+    //(3*m*n² - 5/6*n³) + (1/2*n²) + (1/3*n))
+    double geqrt3_flops =
+        (3.0 * ((double)m) * ((double)n) * ((double)n)) -
+        ((5.0 / 6.0) * ((double)n) * ((double)n) * ((double)n)) +
+        ((1.0 / 2.0) * ((double)n) * ((double)n)) + ((1.0 / 3.0) * ((double)n));
 
-              << ",   GFlop/sec = " << (flopsQR / seconds) * 1.0e-9
+    std::cout << "time = " << elapsedQR.count() * 1.0e-6 << " ms" << std::endl
+              << "geqrt3 Flop/sec = " << (geqrt3_flops / seconds) * 1.0e-9
               << std::endl;
 
-    std::cout << "||QR - A||_F/||A||_F  = " << std::real(norm_repres_1)
-              << ",        ||Q'Q - I||_F  = " << std::real(norm_orth_1);
+    //( 2 * m * n² - 2 / 3 * n³ ))
+    auto geqr2_flops = ((2.0 * ((double)m) * ((double)n) * ((double)n)) -
+                        (2.0 / 3.0 * ((double)n) * ((double)n) * ((double)n)));
+    std::cout << "GEQR2 flops/sec = " << (geqr2_flops / seconds) * 1.0e-9
+              << std::endl;
+
+    // ( 3 * m * n² - 5 / 6 * n³ ) / ( 2 * m * n² - 2 / 3 * n³ ))
+    auto geqr_ratio = ((3.0 * ((double)m) * ((double)n) * ((double)n)) -
+                       (5.0 / 6.0 * ((double)n) * ((double)n) * ((double)n))) /
+                      ((2.0 * ((double)m) * ((double)n) * ((double)n)) -
+                       (2.0 / 3.0 * ((double)n) * ((double)n) * ((double)n)));
+
+    std::cout << "GEQRT3/GEQR2 flop ratio = " << (geqr_ratio) << std::endl;
+    std::cout << "||QR - A||ꜰ/||A||ꜰ  = " << std::real(norm_repres)
+              << ",        ||QᴴQ - I||ꜰ  = " << std::real(norm_orth);
     std::cout << std::endl;
 }
 //================================================================================
@@ -215,8 +235,8 @@ int main(int argc, char** argv)
 
     srand(3);  // Init random seed
 
-    m = 64;
-    n = 64;
+    m = 73;
+    n = 55;
 
     std::cout.precision(5);
     std::cout << std::scientific << std::showpos;

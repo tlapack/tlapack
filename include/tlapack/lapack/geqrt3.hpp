@@ -19,14 +19,14 @@
 #include "tlapack/lapack/larfg.hpp"
 
 namespace tlapack {
-template <class T, TLAPACK_MATRIX matrix_a, TLAPACK_MATRIX matrix_h>
+template <TLAPACK_MATRIX matrix_a, TLAPACK_MATRIX matrix_h>
 
 void geqrt3(matrix_a& A, matrix_h& Tmatrix)
 {
     using std::size_t;
-    using matrix_t = LegacyMatrix<T>;
-    using idx_t = size_type<matrix_t>;
+    using idx_t = size_type<matrix_a>;
     using range = pair<idx_t, idx_t>;
+    using T = type_t<matrix_a>;
 
     // constants
     const idx_t m = nrows(A);
@@ -71,50 +71,46 @@ void geqrt3(matrix_a& A, matrix_h& Tmatrix)
         auto T22 = slice(Tmatrix, range(n1, n), range(n1, n));
 
         // Cut down to one leading column
-        geqrt3<T>(A1, T11);
+        geqrt3(A1, T11);
 
         // step 2: Copy A12 into T12
         // no additional flops, just copy
         lacpy(Uplo::General, A12, T12);
 
-        // step 3: A11ᴴ * T12 = T12
+        // step 3: T12 = A11ᴴ * T12
 
-        trmm(Side::Left, Uplo::Lower, Op::ConjTrans, Diag::Unit,
-             static_cast<T>(1.0), A11, T12);
+        trmm(Side::Left, Uplo::Lower, Op::ConjTrans, Diag::Unit, T(1.0), A11,
+             T12);
 
-        // step 4: T12 + (A21ᴴ * A22) = T12
+        // step 4: T12 = T12 + (A21ᴴ * A22)
 
-        gemm(Op::ConjTrans, Op::NoTrans, static_cast<T>(1.0), A21, A22,
-             static_cast<T>(1.0), T12);
+        gemm(Op::ConjTrans, Op::NoTrans, T(1.0), A21, A22, T(1.0), T12);
 
-        // T12 + (A31ᴴ * A32) = T12
-        gemm(Op::ConjTrans, Op::NoTrans, static_cast<T>(1.0), A31, A32,
-             static_cast<T>(1.0), T12);
+        // T12 = T12 + (A31ᴴ * A32)
+        gemm(Op::ConjTrans, Op::NoTrans, T(1.0), A31, A32, T(1.0), T12);
 
-        // step 5: T11ᴴ * T12 = T12
-        trmm(Side::Left, Uplo::Upper, Op::ConjTrans, Diag::NonUnit,
-             static_cast<T>(1.0), T11, T12);
+        // step 5: T12 = T11ᴴ * T12
+        trmm(Side::Left, Uplo::Upper, Op::ConjTrans, Diag::NonUnit, T(1.0), T11,
+             T12);
 
-        // step 6: A22 - (A21 * T12) = A22
-        gemm(Op::NoTrans, Op::NoTrans, static_cast<T>(-1.0), A21, T12,
-             static_cast<T>(1.0), A22);
+        // step 6:  A22 = A22 - (A21 * T12)
+        gemm(Op::NoTrans, Op::NoTrans, T(-1.0), A21, T12, T(1.0), A22);
 
-        // A32 - (A31 * T12) = A32
-        gemm(Op::NoTrans, Op::NoTrans, static_cast<T>(-1.0), A31, T12,
-             static_cast<T>(1.0), A32);
+        // A32 = A32 - (A31 * T12)
+        gemm(Op::NoTrans, Op::NoTrans, T(-1.0), A31, T12, T(1.0), A32);
 
-        // step 7: A11 * T12 = T12
-        trmm(Side::Left, Uplo::Lower, Op::NoTrans, Diag::Unit,
-             static_cast<T>(1.0), A11, T12);
+        // step 7:T12 = A11 * T12
+        trmm(Side::Left, Uplo::Lower, Op::NoTrans, Diag::Unit, T(1.0), A11,
+             T12);
 
-        // step 8: A12 - T12 = A12
+        // step 8: A12 = A12 - T12
         for (idx_t j = 0; j < n2; ++j) {
             for (idx_t i = 0; i < m1; ++i) {
                 A12(i, j) -= T12(i, j);
             }
         }
         // step 9: Compute the QR factorization of T22
-        geqrt3<T>(A22_32, T22);
+        geqrt3(A22_32, T22);
 
         // step 10: manually compute T12 = A21ᴴ
         for (idx_t j = 0; j < n2; ++j) {
@@ -127,20 +123,19 @@ void geqrt3(matrix_a& A, matrix_h& Tmatrix)
         }
 
         // step 11: T12 = T12 * T22ᴴ
-        trmm(Side::Right, Uplo::Lower, Op::NoTrans, Diag::Unit,
-             static_cast<T>(1.0), A22, T12);
+        trmm(Side::Right, Uplo::Lower, Op::NoTrans, Diag::Unit, T(1.0), A22,
+             T12);
 
         // step 12: T12 = T12 + A31ᴴ * A32
-        gemm(Op::ConjTrans, Op::NoTrans, static_cast<T>(1.0), A31, A32,
-             static_cast<T>(1.0), T12);
+        gemm(Op::ConjTrans, Op::NoTrans, T(1.0), A31, A32, T(1.0), T12);
 
         // step 13: T12 = T12 * T11
-        trmm(Side::Left, Uplo::Upper, Op::NoTrans, Diag::NonUnit,
-             static_cast<T>(-1.0), T11, T12);
+        trmm(Side::Left, Uplo::Upper, Op::NoTrans, Diag::NonUnit, T(-1.0), T11,
+             T12);
 
         // step 14: T12 = T12 * T22
-        trmm(Side::Right, Uplo::Upper, Op::NoTrans, Diag::NonUnit,
-             static_cast<T>(1.0), T22, T12);
+        trmm(Side::Right, Uplo::Upper, Op::NoTrans, Diag::NonUnit, T(1.0), T22,
+             T12);
     }
 }
 }  // namespace tlapack
