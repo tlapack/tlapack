@@ -19,3 +19,4 @@ example_geqrt3: example_geqrt3.o
 clean:
 	rm -f *.o
 	rm -f example_geqrt3
+	
