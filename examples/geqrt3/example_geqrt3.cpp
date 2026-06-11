@@ -118,8 +118,6 @@ void run(size_t m, size_t n)
     auto elapsedQR =
         std::chrono::duration_cast<std::chrono::nanoseconds>(endQR - startQR);
 
-    // Compute FLOPS
-
     // Compute the Frobenius norm of A
     auto normA = tlapack::lange(tlapack::FROB_NORM, A);
 
