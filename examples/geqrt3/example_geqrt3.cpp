@@ -167,7 +167,7 @@ void run(size_t m, size_t n)
         }
     }
 
-    // 3) Compute ||QR - A||ᶠ / ||A||ᶠ
+    // 3) Compute ||QR - A||ꜰ / ||A||ꜰ
     {
         std::vector<T> work_;
 
