@@ -15,14 +15,10 @@
 #include "testutils.hpp"
 
 // Auxiliary routines
-#include "tlapack/base/utils.hpp"
 #include "tlapack/blas/gemm.hpp"
 #include "tlapack/lapack/geqrf.hpp"
-#include "tlapack/lapack/lacpy.hpp"
 #include "tlapack/lapack/lange.hpp"
 #include "tlapack/lapack/lansy.hpp"
-#include "tlapack/lapack/larf.hpp"
-#include "tlapack/lapack/larfg.hpp"
 #include "tlapack/lapack/laset.hpp"
 #include "tlapack/lapack/ung2r.hpp"
 
