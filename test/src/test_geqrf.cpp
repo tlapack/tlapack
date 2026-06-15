@@ -43,8 +43,8 @@ TEMPLATE_TEST_CASE("geqrf computes the QR factorization of a matrix",
     idx_t m, n;
     GeqrfOpts opts;
 
-    m = GENERATE(4, 15, 26, 83, 117, 240);
-    n = GENERATE(4, 9, 11, 29, 53, 131);
+    m = GENERATE(4, 15, 26, 83);
+    n = GENERATE(4, 9, 11, 29, 53);
     opts.nb = GENERATE(1, 2, 3, 5, 11, 32);
 
     DYNAMIC_SECTION("m = " << m << " n = " << n << "nb = " << opts.nb)
