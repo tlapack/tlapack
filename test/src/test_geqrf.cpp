@@ -64,12 +64,12 @@ TEMPLATE_TEST_CASE("geqrf computes the QR factorization of a matrix",
         mm.random(A);
 
         // Copy A to Q
-        tlapack::lacpy(tlapack::GENERAL, A, Q);
+        lacpy(GENERAL, A, Q);
+
+        real_t normA, norm_orth, norm_repres;
 
         // Compute the norm of A
-        auto normA = lange(FROB_NORM, A);
-
-        real_t norm_orth, norm_repres;
+        normA = lange(FROB_NORM, A);
 
         // Pass any non-compatible matrices
         if (m <= 0 || n <= 0 || m < n || opts.nb <= 0) {
@@ -96,15 +96,13 @@ TEMPLATE_TEST_CASE("geqrf computes the QR factorization of a matrix",
                         work(i, j) = T(static_cast<T>(0xABADBABE));
 
                 // work receives the identity n*n
-                tlapack::laset(tlapack::GENERAL, static_cast<T>(0.0),
-                               static_cast<T>(1.0), work);
+                laset(GENERAL, static_cast<T>(0.0), static_cast<T>(1.0), work);
                 // work receives Q'Q - I
-                tlapack::gemm(tlapack::Op::ConjTrans, tlapack::Op::NoTrans,
-                              static_cast<T>(1.0), Q, Q, static_cast<T>(-1.0),
-                              work);
+                gemm(Op::ConjTrans, Op::NoTrans, static_cast<T>(1.0), Q, Q,
+                     static_cast<T>(-1.0), work);
 
                 // Compute ||Q'Q - I||_F
-                norm_orth = tlapack::lange(tlapack::FROB_NORM, work);
+                norm_orth = lange(FROB_NORM, work);
             }
 
             // 3) Compute ||QR - A||_F / ||A||_F
@@ -116,17 +114,16 @@ TEMPLATE_TEST_CASE("geqrf computes the QR factorization of a matrix",
                         work(i, j) = static_cast<T>(0xABADBABE);
 
                 // Copy Q to work
-                tlapack::lacpy(tlapack::GENERAL, Q, work);
+                lacpy(GENERAL, Q, work);
 
-                tlapack::trmm(tlapack::Side::Right, tlapack::Uplo::Upper,
-                              tlapack::Op::NoTrans, tlapack::Diag::NonUnit,
-                              static_cast<T>(1.0), R, work);
+                trmm(Side::Right, Uplo::Upper, Op::NoTrans, Diag::NonUnit,
+                     static_cast<T>(1.0), R, work);
 
                 for (idx_t j = 0; j < n; ++j)
                     for (idx_t i = 0; i < m; ++i)
                         work(i, j) -= A(i, j);
 
-                norm_repres = tlapack::lange(tlapack::FROB_NORM, work) / normA;
+                norm_repres = lange(FROB_NORM, work) / normA;
             }
         }
 
