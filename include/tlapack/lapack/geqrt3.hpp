@@ -18,6 +18,21 @@
 #include "tlapack/lapack/lacpy.hpp"
 #include "tlapack/lapack/larfg.hpp"
 
+/**
+ * Recursive QR factorization using compact WY Householder representation.
+ *
+ * @param[in,out] A
+ *     On entry, the m-by-n matrix to be factorized, where m >= n.
+ *     On exit, A contains \(R\) and the Householder vectors.
+ *
+ * @param[out] Tmatrix
+ *     n-by-n matrix containing the triangular factor of the compact WY
+ *     representation.
+ *
+ * @ingroup workspace_query
+ */
+
+
 namespace tlapack {
 template <TLAPACK_MATRIX matrix_a, TLAPACK_MATRIX matrix_h>
 
