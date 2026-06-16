@@ -19,3 +19,4 @@ example_rgeqrf: example_rgeqrf.o
 clean:
 	rm -f *.o
 	rm -f example_rgeqrf
+	
