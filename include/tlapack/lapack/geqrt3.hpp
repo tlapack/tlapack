@@ -32,7 +32,6 @@
  * @ingroup workspace_query
  */
 
-
 namespace tlapack {
 template <TLAPACK_MATRIX matrix_a, TLAPACK_MATRIX matrix_h>
 

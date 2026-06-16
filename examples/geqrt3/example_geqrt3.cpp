@@ -126,7 +126,7 @@ void run(size_t m, size_t n)
         // Copy the Householder vectors into V
         tlapack::lacpy(tlapack::GENERAL, Q, V);
 
-        //Q becomes the identity matrix
+        // Q becomes the identity matrix
         laset(tlapack::GENERAL, static_cast<T>(0.0), static_cast<T>(1.0), Q);
 
         tlapack::larfb(tlapack::Side::Left, tlapack::Op::NoTrans,
