@@ -100,7 +100,7 @@ TEMPLATE_TEST_CASE(
                 auto work = new_matrix(work_, n, n);
                 for (idx_t j = 0; j < n; ++j)
                     for (idx_t i = 0; i < n; ++i)
-                        work(i, j) = static_cast<float>(0xABADBABE);
+                        work(i, j) = static_cast<T>(0xABADBABE);
 
                 // work receives the identity n*n
                 laset(UPPER_TRIANGLE, static_cast<T>(0.0), static_cast<T>(1.0),
@@ -120,7 +120,7 @@ TEMPLATE_TEST_CASE(
                 auto work = new_matrix(work_, m, n);
                 for (idx_t j = 0; j < n; ++j)
                     for (idx_t i = 0; i < m; ++i)
-                        work(i, j) = static_cast<float>(0xABADBABE);
+                        work(i, j) = static_cast<T>(0xABADBABE);
 
                 // Copy Q to work
                 lacpy(GENERAL, Q, work);
