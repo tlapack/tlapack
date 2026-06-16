@@ -19,18 +19,12 @@
 
 // <T>LAPACK
 #include <tlapack/blas/gemm.hpp>
-#include <tlapack/blas/syrk.hpp>
 #include <tlapack/blas/trmm.hpp>
-#include <tlapack/lapack/geqr2.hpp>
 #include <tlapack/lapack/geqrt3.hpp>
 #include <tlapack/lapack/lacpy.hpp>
 #include <tlapack/lapack/lange.hpp>
-#include <tlapack/lapack/lansy.hpp>
 #include <tlapack/lapack/larfb.hpp>
-#include <tlapack/lapack/larfg.hpp>
-#include <tlapack/lapack/larft.hpp>
 #include <tlapack/lapack/laset.hpp>
-#include <tlapack/lapack/ung2r.hpp>
 
 // C++ headers
 #include <chrono>  // for high_resolution_clock
@@ -132,13 +126,8 @@ void run(size_t m, size_t n)
         // Copy the Householder vectors into V
         tlapack::lacpy(tlapack::GENERAL, Q, V);
 
-        // Make Q the indentity matrix
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < m; ++i)
-                Q(i, j) = static_cast<T>(0.0);
-
-        for (idx_t j = 0; j < std::min(m, n); ++j)
-            Q(j, j) = static_cast<T>(1.0);
+        // Q becomes the identity matrix
+        laset(tlapack::GENERAL, static_cast<T>(0.0), static_cast<T>(1.0), Q);
 
         tlapack::larfb(tlapack::Side::Left, tlapack::Op::NoTrans,
                        tlapack::Direction::Forward, tlapack::StoreV::Columnwise,
@@ -194,11 +183,10 @@ void run(size_t m, size_t n)
     std::cout << std::endl;
     double seconds = elapsedQR.count() * 1.0e-9;
 
-    //(3*m*n² - 5/6*n³) + (1/2*n²) + (1/3*n))
+    //(3*m*n² - 5/6*n³)
     double geqrt3_flops =
         (3.0 * ((double)m) * ((double)n) * ((double)n)) -
-        ((5.0 / 6.0) * ((double)n) * ((double)n) * ((double)n)) +
-        ((1.0 / 2.0) * ((double)n) * ((double)n)) + ((1.0 / 3.0) * ((double)n));
+        ((5.0 / 6.0) * ((double)n) * ((double)n) * ((double)n));
 
     std::cout << "time = " << elapsedQR.count() * 1.0e-6 << " ms" << std::endl
               << "geqrt3 Flop/sec = " << (geqrt3_flops / seconds) * 1.0e-9
