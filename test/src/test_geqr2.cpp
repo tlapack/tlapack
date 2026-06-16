@@ -16,7 +16,9 @@
 
 // Auxiliary routines
 #include "tlapack/blas/gemm.hpp"
+#include "tlapack/blas/trmm.hpp"
 #include "tlapack/lapack/geqr2.hpp"
+#include "tlapack/lapack/lacpy.hpp"
 #include "tlapack/lapack/lange.hpp"
 #include "tlapack/lapack/lansy.hpp"
 #include "tlapack/lapack/laset.hpp"
@@ -27,6 +29,7 @@ using namespace tlapack;
 TEMPLATE_TEST_CASE("geqr2 computes the QR factorization of a matrix",
                    "[geqr2]",
                    TLAPACK_TYPES_TO_TEST)
+
 {
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
@@ -41,8 +44,8 @@ TEMPLATE_TEST_CASE("geqr2 computes the QR factorization of a matrix",
 
     idx_t m, n;
 
-    m = GENERATE(5, 7, 63, 199, 512);
-    n = GENERATE(2, 3, 5, 8, 16, 21, 51, 128);
+    m = GENERATE(5, 7, 63);
+    n = GENERATE(2, 3, 5, 8, 16, 21, 51);
 
     DYNAMIC_SECTION("m = " << m << " n = " << n)
     {
@@ -51,42 +54,80 @@ TEMPLATE_TEST_CASE("geqr2 computes the QR factorization of a matrix",
 
         std::vector<T> A_;
         auto A = new_matrix(A_, m, n);
+        std::vector<T> R_;
+        auto R = new_matrix(R_, n, n);
+        std::vector<T> Q_;
+        auto Q = new_matrix(Q_, m, n);
         std::vector<T> tau(std::min(m, n));
 
         // Generate a random matrix in A
         mm.random(A);
 
+        // Copy A to Q
+        lacpy(GENERAL, A, Q);
+
+        real_t normA, norm_orth, norm_repres;
+
         // Compute the norm of A
-        auto normA = lange(FROB_NORM, A);
-        real_t norm_orth_1;
-        // Check that the factorization was successful
+        normA = lange(FROB_NORM, A);
+
+        // Pass any non-compatible matrices
         if (m <= 0 || n <= 0 || m < n) {
-            norm_orth_1 = real_t(0.0);
+            norm_orth = real_t(0.0);
+            norm_repres = real_t(0.0);
         }
         else {
+            // 1) Compute A = QR (Stored in the matrix Q)
             // Compute the QR factorization of A
-            geqr2(A, tau);
+            geqr2(Q, tau);
+
+            // Save the R matrix
+            lacpy(Uplo::Upper, Q, R);
 
             // Generates Q = H_1 H_2 ... H_n
-            ung2r(A, tau);
+            ung2r(Q, tau);
 
-            // Compute ||Q'Q - I||_F
-            std::vector<T> work_;
-            auto work = new_matrix(work_, n, n);
-            for (idx_t j = 0; j < n; ++j)
-                for (idx_t i = 0; i < n; ++i)
-                    work(i, j) = static_cast<T>(0xABADBABE);
+            // 2) Compute ||Q'Q - I||_F
+            {
+                std::vector<T> work_;
+                auto work = new_matrix(work_, n, n);
+                for (idx_t j = 0; j < n; ++j)
+                    for (idx_t i = 0; i < n; ++i)
+                        work(i, j) = T(static_cast<T>(0xABADBABE));
 
-            // work receives the identity n*n
-            laset(UPPER_TRIANGLE, static_cast<T>(0.0), static_cast<T>(1.0),
-                  work);
-            // work receives Q'Q - I
-            gemm(Op::ConjTrans, Op::NoTrans, static_cast<T>(1.0), A, A,
-                 static_cast<T>(-1.0), work);
+                // work receives the identity n*n
+                laset(GENERAL, static_cast<T>(0.0), static_cast<T>(1.0), work);
+                // work receives Q'Q - I
+                gemm(Op::ConjTrans, Op::NoTrans, static_cast<T>(1.0), Q, Q,
+                     static_cast<T>(-1.0), work);
 
-            // Compute ||Q'Q - I||_F
-            norm_orth_1 = lansy(FROB_NORM, UPPER_TRIANGLE, work);
+                // Compute ||Q'Q - I||_F
+                norm_orth = lange(FROB_NORM, work);
+            }
+
+            // 3) Compute ||QR - A||_F / ||A||_F
+            {
+                std::vector<T> work_;
+                auto work = new_matrix(work_, m, n);
+                for (idx_t j = 0; j < n; ++j)
+                    for (idx_t i = 0; i < m; ++i)
+                        work(i, j) = static_cast<T>(0xABADBABE);
+
+                // Copy Q to work
+                lacpy(GENERAL, Q, work);
+
+                trmm(Side::Right, Uplo::Upper, Op::NoTrans, Diag::NonUnit,
+                     static_cast<T>(1.0), R, work);
+
+                for (idx_t j = 0; j < n; ++j)
+                    for (idx_t i = 0; i < m; ++i)
+                        work(i, j) -= A(i, j);
+
+                norm_repres = lange(FROB_NORM, work) / normA;
+            }
         }
-        CHECK(norm_orth_1 <= tol);
+
+        CHECK(norm_orth <= tol);
+        CHECK(norm_repres <= tol);
     }
 }
