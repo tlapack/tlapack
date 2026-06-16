@@ -85,7 +85,7 @@ void geqrt3(matrix_a& A, matrix_h& Tmatrix)
         auto T12 = slice(Tmatrix, range(0, n1), range(n1, n));
         auto T22 = slice(Tmatrix, range(n1, n), range(n1, n));
 
-        // Cut down to one leading column
+        // step 1: Compute the QR factorization of A1
         geqrt3(A1, T11);
 
         // step 2: Copy A12 into T12
@@ -124,7 +124,7 @@ void geqrt3(matrix_a& A, matrix_h& Tmatrix)
                 A12(i, j) -= T12(i, j);
             }
         }
-        // step 9: Compute the QR factorization of T22
+        // step 9: Compute the QR factorization of A22_32
         geqrt3(A22_32, T22);
 
         // step 10: manually compute T12 = A21ᴴ
