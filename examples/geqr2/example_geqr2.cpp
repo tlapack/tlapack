@@ -48,6 +48,7 @@ void run(size_t m, size_t n)
 {
     using std::size_t;
     using matrix_t = tlapack::LegacyMatrix<real_t>;
+    using idx_t = tlapack::size_type<matrix_t>;
 
     // Functors for creating new matrices
     tlapack::Create<matrix_t> new_matrix;
@@ -67,20 +68,20 @@ void run(size_t m, size_t n)
     auto Q = new_matrix(Q_, m, n);
 
     // Initialize arrays with junk
-    for (size_t j = 0; j < n; ++j) {
-        for (size_t i = 0; i < m; ++i) {
+    for (idx_t j = 0; j < n; ++j) {
+        for (idx_t i = 0; i < m; ++i) {
             A(i, j) = static_cast<float>(0xDEADBEEF);
             Q(i, j) = static_cast<float>(0xCAFED00D);
         }
-        for (size_t i = 0; i < n; ++i) {
+        for (idx_t i = 0; i < n; ++i) {
             R(i, j) = static_cast<float>(0xFEE1DEAD);
         }
         tau[j] = static_cast<float>(0xFFBADD11);
     }
 
     // Generate a random matrix in A
-    for (size_t j = 0; j < n; ++j)
-        for (size_t i = 0; i < m; ++i)
+    for (idx_t j = 0; j < n; ++j)
+        for (idx_t i = 0; i < m; ++i)
             A(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 
     // Frobenius norm of A
@@ -137,8 +138,8 @@ void run(size_t m, size_t n)
     {
         std::vector<real_t> work_;
         auto work = new_matrix(work_, n, n);
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = 0; i < n; ++i)
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < n; ++i)
                 work(i, j) = static_cast<float>(0xABADBABE);
 
         // work receives the identity n*n
@@ -162,8 +163,8 @@ void run(size_t m, size_t n)
     {
         std::vector<real_t> work_;
         auto work = new_matrix(work_, m, n);
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = 0; i < m; ++i)
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < m; ++i)
                 work(i, j) = static_cast<float>(0xABADBABE);
 
         // Copy Q to work
@@ -173,8 +174,8 @@ void run(size_t m, size_t n)
                       tlapack::Op::NoTrans, tlapack::Diag::NonUnit, 1.0, R,
                       work);
 
-        for (size_t j = 0; j < n; ++j)
-            for (size_t i = 0; i < m; ++i)
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < m; ++i)
                 work(i, j) -= A(i, j);
 
         norm_repres_1 = tlapack::lange(tlapack::FROB_NORM, work) / normA;
