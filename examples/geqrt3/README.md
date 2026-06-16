@@ -4,7 +4,7 @@ In this example, we compute the QR factorization of a matrix filled with random 
 
 - A is a m-by-n matrix filled with random numbers.
 
-The code uses the routine [tlapack::geqrt3](../../include/lapack/geqr2.hpp) to perform the complete factorization in place, and [tlapack::ung2r](../../include/lapack/ung2r.hpp) to generate the m-by-n matrix Q. We store R in a n-by-n upper triangular matrix.
+The code uses the routine [tlapack::geqrt3](../../include/lapack/geqrt3.hpp) to perform the complete factorization in place, and [tlapack::ung2r](../../include/lapack/ung2r.hpp) to generate the m-by-n matrix Q. We store R in a n-by-n upper triangular matrix.
 
 To examine the accuracy of the method, we measure
 <img src="https://latex.codecogs.com/gif.latex?\|Q^tQ&space;-&space;I\|_F" />
@@ -27,7 +27,7 @@ cmake --build build # build step
 
 You will find the executable inside the `build` directory.
 
-2. Using `make` on the same directory of [example_geqt3.cpp](example_geqrt3.cpp). In this case, you may need to edit `make.inc` to set the environment variables needed by [Makefile](Makefile). After a successful build, the executable will be in the current directory.
+2. Using `make` on the same directory of [example_geqrt3.cpp](example_geqrt3.cpp). In this case, you may need to edit `make.inc` to set the environment variables needed by [Makefile](Makefile). After a successful build, the executable will be in the current directory.
 
 ## Run
 
