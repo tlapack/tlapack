@@ -66,10 +66,10 @@ TEMPLATE_TEST_CASE(
         real_t beta2_e = rand_helper<real_t>(mm.gen);
 
         if (singular0) {
-            beta1_e = 0;
+            beta1_e = real_t(0);
         }
         if (singular1) {
-            beta2_e = 0;
+            beta2_e = real_t(0);
         }
 
         complex_t alpha1_e, alpha2_e;
@@ -158,7 +158,7 @@ TEMPLATE_TEST_CASE(
             auto b2 = row(B, 1);
             rot(b1, b2, c, s);
 
-            B(1, 0) = 0;
+            B(1, 0) = T(0);
         }
 
         real_t beta1, beta2;
