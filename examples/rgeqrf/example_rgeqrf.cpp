@@ -238,7 +238,7 @@ int main(int argc, char** argv)
     n = (argc < 3) ? 5 : atoi(argv[2]);
 
     m = 170;
-    n = 169;
+    n = 3;
 
     srand(3);  // Init random seed
 
