@@ -55,9 +55,10 @@ void lahqz_eig22(const A_t& A,
     //
     // Scale A
     //
-    real_t anorm = std::max(
-        std::max(abs1(A(0, 0)) + abs1(A(1, 0)), abs1(A(0, 1)) + abs1(A(1, 1))),
-        safmin);
+    real_t anorm =
+        std::max<real_t>(std::max<real_t>(abs1(A(0, 0)) + abs1(A(1, 0)),
+                                          abs1(A(0, 1)) + abs1(A(1, 1))),
+                         safmin);
     real_t ascale = one / anorm;
     TA a00 = ascale * A(0, 0);
     TA a01 = ascale * A(0, 1);
@@ -72,8 +73,9 @@ void lahqz_eig22(const A_t& A,
     TA b00 = B(0, 0);
     TA b01 = B(0, 1);
     TA b11 = B(1, 1);
-    real_t bmin = rtmin * std::max(std::max(abs1(b00), abs1(b01)),
-                                   std::max(abs1(b11), rtmin));
+    real_t bmin =
+        rtmin * std::max<real_t>(std::max<real_t>(abs1(b00), abs1(b01)),
+                                 std::max<real_t>(abs1(b11), rtmin));
     if (abs1(b00) < bmin) {
         b00 = zero;
         // B(0,0) is zero, we can apply rotations to the left
@@ -154,8 +156,9 @@ void lahqz_eig22(const A_t& A,
     //
     // Scale B
     //
-    real_t bnorm = std::max(std::max(abs1(b00), abs1(b01) + abs1(b11)), safmin);
-    real_t bsize = std::max(abs1(b00), abs1(b11));
+    real_t bnorm = std::max<real_t>(
+        std::max<real_t>(abs1(b00), abs1(b01) + abs1(b11)), safmin);
+    real_t bsize = std::max<real_t>(abs1(b00), abs1(b11));
     real_t bscale = one / bsize;
     b00 = bscale * b00;
     b01 = bscale * b01;
@@ -233,7 +236,7 @@ void lahqz_eig22(const A_t& A,
             // Compute smaller eigenvalue
             //
             TA wsmall = shift + diff;
-            if (half * abs1(wbig) > max(abs1(wsmall), safmin)) {
+            if (half * abs1(wbig) > max<real_t>(abs1(wsmall), safmin)) {
                 T wdet = (a00 * a11 - a01 * a10) * (binv00 * binv11);
                 wsmall = wdet / wbig;
             }
@@ -242,12 +245,12 @@ void lahqz_eig22(const A_t& A,
             // For alpha1
             //
             if (pp > abi11) {
-                alpha1 = min(wbig, wsmall);
-                alpha2 = max(wbig, wsmall);
+                alpha1 = min<real_t>(wbig, wsmall);
+                alpha2 = max<real_t>(wbig, wsmall);
             }
             else {
-                alpha1 = max(wbig, wsmall);
-                alpha2 = min(wbig, wsmall);
+                alpha1 = max<real_t>(wbig, wsmall);
+                alpha2 = min<real_t>(wbig, wsmall);
             }
         }
         else {
@@ -267,20 +270,20 @@ void lahqz_eig22(const A_t& A,
     //    C3, with C2,
     //       implement the condition that s A - w B must never overflow.
     //    C4 implements the condition  s    should not underflow.
-    //    C5 implements the condition  max(s,|w|) should be at least 2.
-    real_t c1 = bsize * (safmin * max(one, ascale));
-    real_t c2 = safmin * max(one, bnorm);
+    //    C5 implements the condition  max<real_t>(s,|w|) should be at least 2.
+    real_t c1 = bsize * (safmin * max<real_t>(one, ascale));
+    real_t c2 = safmin * max<real_t>(one, bnorm);
     real_t c3 = bsize * safmin;
     real_t c4;
     if (ascale <= one and bsize <= one) {
-        c4 = min(one, (ascale / safmin) * bsize);
+        c4 = min<real_t>(one, (ascale / safmin) * bsize);
     }
     else {
         c4 = one;
     }
     real_t c5;
     if (ascale <= one or bsize <= one) {
-        c5 = min(one, ascale * bsize);
+        c5 = min<real_t>(one, ascale * bsize);
     }
     else {
         c5 = one;
@@ -289,16 +292,20 @@ void lahqz_eig22(const A_t& A,
     // Scale first eigenvalue
     //
     real_t wabs = abs1(alpha1);
-    real_t fuzzy1 = one + 1.0e-5;
-    real_t wsize = max(max(safmin, c1), max(fuzzy1 * (wabs * c2 + c3),
-                                            min(c4, half * max(wabs, c5))));
+    real_t fuzzy1 = one + real_t(1.0e-5);
+    real_t wsize =
+        max<real_t>(max<real_t>(safmin, c1),
+                    max<real_t>(fuzzy1 * (wabs * c2 + c3),
+                                min<real_t>(c4, half * max<real_t>(wabs, c5))));
     if (wsize != one) {
         real_t wscale = one / wsize;
         if (wsize > one) {
-            beta1 = (max(ascale, bsize) * wscale) * min(ascale, bsize);
+            beta1 = (max<real_t>(ascale, bsize) * wscale) *
+                    min<real_t>(ascale, bsize);
         }
         else {
-            beta1 = (min(ascale, bsize) * wscale) * max(ascale, bsize);
+            beta1 = (min<real_t>(ascale, bsize) * wscale) *
+                    max<real_t>(ascale, bsize);
         }
         alpha1 = wscale * alpha1;
     }
@@ -308,15 +315,19 @@ void lahqz_eig22(const A_t& A,
     }
 
     wabs = abs1(alpha2);
-    wsize = max(max(safmin, c1),
-                max(fuzzy1 * (wabs * c2 + c3), min(c4, half * max(wabs, c5))));
+    wsize =
+        max<real_t>(max<real_t>(safmin, c1),
+                    max<real_t>(fuzzy1 * (wabs * c2 + c3),
+                                min<real_t>(c4, half * max<real_t>(wabs, c5))));
     if (wsize != one) {
         real_t wscale = one / wsize;
         if (wsize > one) {
-            beta2 = (max(ascale, bsize) * wscale) * min(ascale, bsize);
+            beta2 = (max<real_t>(ascale, bsize) * wscale) *
+                    min<real_t>(ascale, bsize);
         }
         else {
-            beta2 = (min(ascale, bsize) * wscale) * max(ascale, bsize);
+            beta2 = (min<real_t>(ascale, bsize) * wscale) *
+                    max<real_t>(ascale, bsize);
         }
         alpha2 = wscale * alpha2;
     }

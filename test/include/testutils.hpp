@@ -387,21 +387,21 @@ std::pair<T, T> check_generalized_eigenvalues(complex_type<T> alpha1,
     // This will be used to find the best matches
 
     // Error where we compare alpha1 with alpha1_ref and alpha2 with alpha2_ref
-    real_t err11 = 2 - 2 * abs(alpha1_n * conj(alpha1_ref_n) +
-                               beta1_n * conj(beta1_ref_n));
-    real_t err12 = 2 - 2 * abs(alpha2_n * conj(alpha2_ref_n) +
-                               beta2_n * conj(beta2_ref_n));
+    real_t err11 = real_t(2) - real_t(2) * abs(alpha1_n * conj(alpha1_ref_n) +
+                                               beta1_n * conj(beta1_ref_n));
+    real_t err12 = real_t(2) - real_t(2) * abs(alpha2_n * conj(alpha2_ref_n) +
+                                               beta2_n * conj(beta2_ref_n));
 
     // Error where we compare alpha1 with alpha2_ref and alpha2 with alpha1_ref
-    real_t err21 = 2 - 2 * abs(alpha1_n * conj(alpha2_ref_n) +
-                               beta1_n * conj(beta2_ref_n));
-    real_t err22 = 2 - 2 * abs(alpha2_n * conj(alpha1_ref_n) +
-                               beta2_n * conj(beta1_ref_n));
+    real_t err21 = real_t(2) - real_t(2) * abs(alpha1_n * conj(alpha2_ref_n) +
+                                               beta1_n * conj(beta2_ref_n));
+    real_t err22 = real_t(2) - real_t(2) * abs(alpha2_n * conj(alpha1_ref_n) +
+                                               beta2_n * conj(beta1_ref_n));
 
-    err11 = max<real_t>(0.0, err11);
-    err12 = max<real_t>(0.0, err12);
-    err21 = max<real_t>(0.0, err21);
-    err22 = max<real_t>(0.0, err22);
+    err11 = max<real_t>(real_t(0.0), err11);
+    err12 = max<real_t>(real_t(0.0), err12);
+    err21 = max<real_t>(real_t(0.0), err21);
+    err22 = max<real_t>(real_t(0.0), err22);
 
     if (err11 + err12 < err21 + err22) {
         return std::make_pair(err11, err12);
