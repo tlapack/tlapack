@@ -345,6 +345,72 @@ real_type<type_t<matrix_t>> check_generalized_similarity_transform(matrix_t& A,
     return check_similarity_transform(A, Q, Z, B, res, work);
 }
 
+/**
+ * Calculates the error between two pairs of generalized eigenvalues
+ */
+template <TLAPACK_SCALAR T>
+std::pair<T, T> check_generalized_eigenvalues(complex_type<T> alpha1,
+                                              complex_type<T> alpha2,
+                                              T beta1,
+                                              T beta2,
+                                              complex_type<T> alpha1_ref,
+                                              complex_type<T> alpha2_ref,
+                                              T beta1_ref,
+                                              T beta2_ref)
+{
+    using complex_t = complex_type<T>;
+    using real_t = real_type<T>;
+
+    //
+    // First normalize the eigenvalue pairs
+    //
+    real_t s1 = sqrt(abs(alpha1) * abs(alpha1) + abs(beta1) * abs(beta1));
+    real_t s2 = sqrt(abs(alpha2) * abs(alpha2) + abs(beta2) * abs(beta2));
+    real_t s1_ref = sqrt(abs(alpha1_ref) * abs(alpha1_ref) +
+                         abs(beta1_ref) * abs(beta1_ref));
+    real_t s2_ref = sqrt(abs(alpha2_ref) * abs(alpha2_ref) +
+                         abs(beta2_ref) * abs(beta2_ref));
+
+    complex_t alpha1_n = alpha1 / s1;
+    real_t beta1_n = beta1 / s1;
+    complex_t alpha2_n = alpha2 / s2;
+    real_t beta2_n = beta2 / s2;
+    complex_t alpha1_ref_n = alpha1_ref / s1_ref;
+    real_t beta1_ref_n = beta1_ref / s1_ref;
+    complex_t alpha2_ref_n = alpha2_ref / s2_ref;
+    real_t beta2_ref_n = beta2_ref / s2_ref;
+
+    // Now compute d((a1,b1),(a1_ref,b1_ref)) = min_c ||(a1,b1) -
+    // c*(a1_ref,b1_ref)||_2 = min_{|c| = 1} ||(a1_n,b1_n) -
+    // c*(a1_ref_n,b1_ref_n)||_2
+    // = sqrt{2 - 2*|< (a1_n,b1_n), (a1_ref_n,b1_ref_n) >|}
+    // This will be used to find the best matches
+
+    // Error where we compare alpha1 with alpha1_ref and alpha2 with alpha2_ref
+    real_t err11 = 2 - 2 * abs(alpha1_n * conj(alpha1_ref_n) +
+                               beta1_n * conj(beta1_ref_n));
+    real_t err12 = 2 - 2 * abs(alpha2_n * conj(alpha2_ref_n) +
+                               beta2_n * conj(beta2_ref_n));
+
+    // Error where we compare alpha1 with alpha2_ref and alpha2 with alpha1_ref
+    real_t err21 = 2 - 2 * abs(alpha1_n * conj(alpha2_ref_n) +
+                               beta1_n * conj(beta2_ref_n));
+    real_t err22 = 2 - 2 * abs(alpha2_n * conj(alpha1_ref_n) +
+                               beta2_n * conj(beta1_ref_n));
+
+    err11 = max<real_t>(0.0, err11);
+    err12 = max<real_t>(0.0, err12);
+    err21 = max<real_t>(0.0, err21);
+    err22 = max<real_t>(0.0, err22);
+
+    if (err11 + err12 < err21 + err22) {
+        return std::make_pair(err11, err12);
+    }
+    else {
+        return std::make_pair(err21, err22);
+    }
+}
+
 //
 // GDB doesn't handle templates well, so we explicitly define some versions of
 // the functions for common template arguments

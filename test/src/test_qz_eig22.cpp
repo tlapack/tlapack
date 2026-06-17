@@ -170,41 +170,10 @@ TEMPLATE_TEST_CASE(
         // We need to take into account that the eigenvalues may not be in the
         // same order, so we check both possibilities after normalizing
 
-        real_t s1 = sqrt(abs(alpha1) * abs(alpha1) + abs(beta1) * abs(beta1));
-        real_t s2 = sqrt(abs(alpha2) * abs(alpha2) + abs(beta2) * abs(beta2));
-        real_t s1_e =
-            sqrt(abs(alpha1_e) * abs(alpha1_e) + abs(beta1_e) * abs(beta1_e));
-        real_t s2_e =
-            sqrt(abs(alpha2_e) * abs(alpha2_e) + abs(beta2_e) * abs(beta2_e));
+        auto [err1, err2] = check_generalized_eigenvalues(
+            alpha1, alpha2, beta1, beta2, alpha1_e, alpha2_e, beta1_e, beta2_e);
 
-        complex_t alpha1_n = alpha1 / s1;
-        real_t beta1_n = beta1 / s1;
-        complex_t alpha2_n = alpha2 / s2;
-        real_t beta2_n = beta2 / s2;
-        complex_t alpha1_e_n = alpha1_e / s1_e;
-        real_t beta1_e_n = beta1_e / s1_e;
-        complex_t alpha2_e_n = alpha2_e / s2_e;
-        real_t beta2_e_n = beta2_e / s2_e;
-
-        // Error where we compare alpha1 with alpha1_e and alpha2 with alpha2_e
-        real_t err11 = 2 - 2 * abs(alpha1_n * conj(alpha1_e_n) +
-                                   beta1_n * conj(beta1_e_n));
-        real_t err12 = 2 - 2 * abs(alpha2_n * conj(alpha2_e_n) +
-                                   beta2_n * conj(beta2_e_n));
-
-        // Error where we compare alpha1 with alpha2_e and alpha2 with alpha1_e
-        real_t err21 = 2 - 2 * abs(alpha1_n * conj(alpha2_e_n) +
-                                   beta1_n * conj(beta2_e_n));
-        real_t err22 = 2 - 2 * abs(alpha2_n * conj(alpha1_e_n) +
-                                   beta2_n * conj(beta1_e_n));
-
-        if (err11 < err21) {
-            CHECK(err11 < 10 * eps);
-            CHECK(err12 < 10 * eps);
-        }
-        else {
-            CHECK(err21 < 10 * eps);
-            CHECK(err22 < 10 * eps);
-        }
+        CHECK(err1 < 10 * eps);
+        CHECK(err2 < 10 * eps);
     }
 }
