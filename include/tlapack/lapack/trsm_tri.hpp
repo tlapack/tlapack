@@ -56,6 +56,11 @@ namespace tlapack {
  * A is an n-by-n, unit or non-unit (diagA), upper or lower triangular matrix.
  * op(A) is same shape as B.
  *
+ * Note that it could be interesting that this routine has a diagB parameter.
+ * But it is a tat complicated.  diagB is unit only really makes sense if diagA
+ * is unit too. So we decided that the best way to move forward would be to add
+ * a trsm_tri_unit.hpp that requires the two matrices A and B to be unit.
+ *
  * @param[in] sideA
  *     Whether $op(A)$ is on the left or right of X:
  *     - Side::Left:  $op(A) X = B$.
