@@ -67,9 +67,6 @@ void run(size_t m, size_t n)
     // Turn it off if m or n are large
     bool verbose = false;
 
-    // Block size
-    idx_t nb = n;
-
     // Arrays
     std::vector<T> tau(n);
 
@@ -236,9 +233,6 @@ int main(int argc, char** argv)
     // Default arguments
     m = (argc < 2) ? 7 : atoi(argv[1]);
     n = (argc < 3) ? 5 : atoi(argv[2]);
-
-    m = 170;
-    n = 3;
 
     srand(3);  // Init random seed
 
