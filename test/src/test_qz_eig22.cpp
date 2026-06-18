@@ -31,7 +31,7 @@ TEMPLATE_TEST_CASE(
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
     using real_t = real_type<T>;
-    using complex_t = complex_type<real_t>;
+    using complex_t = complex_type<T>;
 
     // Functor
     Create<matrix_t> new_matrix;
