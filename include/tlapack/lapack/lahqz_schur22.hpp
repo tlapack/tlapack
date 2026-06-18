@@ -80,7 +80,7 @@ void lahqz_schur22(A_t& A,
     real_t anorm = max<real_t>(max<real_t>(abs1(A(0, 0)) + abs1(A(1, 0)),
                                            abs1(A(0, 1)) + abs1(A(1, 1))),
                                safmin);
-    real_t ascale = 1 / anorm;
+    real_t ascale = real_t(1) / anorm;
     A(0, 0) *= ascale;
     A(0, 1) *= ascale;
     A(1, 0) *= ascale;
@@ -90,7 +90,7 @@ void lahqz_schur22(A_t& A,
     //
     real_t bnorm = max<real_t>(
         max<real_t>(abs1(B(0, 0)), abs1(B(0, 1)) + abs1(B(1, 1))), safmin);
-    real_t bscale = 1 / bnorm;
+    real_t bscale = real_t(1) / bnorm;
     B(0, 0) *= bscale;
     B(0, 1) *= bscale;
     B(1, 1) *= bscale;
