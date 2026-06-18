@@ -51,7 +51,7 @@ namespace tlapack {
  *     $op(A) = A^H$.
  * op is controlled by transA.
  *
- * B is an n-by-n, upper or lower triangular matrix.
+ * B is an n-by-n, upper or lower triangular matrix (uploB).
  *
  * A is an n-by-n, unit or non-unit (diagA), upper or lower triangular matrix.
  * op(A) is same shape as B.
