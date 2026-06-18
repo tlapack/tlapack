@@ -139,10 +139,6 @@ void trsm_tri(Side sideA,
             return;
         }
         else {
-            //     if (transA == tlapack::Op::ConjTrans)
-            //     B(0, 0) /= conj(A(0, 0));
-            // else
-            //     B(0, 0) /= A(0, 0);
             return;
         }
     }
