@@ -13,7 +13,6 @@
 #define __TLAPACK_LAHQZ_EIG22_HH__
 
 #include "tlapack/base/utils.hpp"
-#include "tlapack/lapack/lahqr_eig22.hpp"
 
 namespace tlapack {
 
