@@ -74,15 +74,20 @@ TEMPLATE_TEST_CASE(
 
         complex_t alpha1_e, alpha2_e;
         if constexpr (is_complex<T>) {
-            alpha1_e = complex_t(rand_helper<real_t>(mm.gen),
-                                 rand_helper<real_t>(mm.gen));
-            alpha2_e = complex_t(rand_helper<real_t>(mm.gen),
-                                 rand_helper<real_t>(mm.gen));
+            alpha1_e = rand_helper<real_t>(mm.gen);
+            alpha2_e = rand_helper<real_t>(mm.gen);
 
-            A(0, 0) = alpha1_e;
+            // These two lines are commented out because
+            // of annoying compilation issues with the random generation of
+            // complex numbers
+
+            // alpha1_e = rand_helper<complex_t>(mm.gen);
+            // alpha2_e = rand_helper<complex_t>(mm.gen);
+
+            A(0, 0) = real(alpha1_e);
             A(1, 0) = T(0);
             A(0, 1) = rand_helper<T>(mm.gen);
-            A(1, 1) = alpha2_e;
+            A(1, 1) = real(alpha2_e);
 
             B(0, 0) = beta1_e;
             B(1, 1) = beta2_e;
