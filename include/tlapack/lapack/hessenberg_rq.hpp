@@ -21,7 +21,7 @@ namespace tlapack {
  * that matrix back to upper triangular form using rotations from the right.
  *
  * i.e. rot_sequence(LEFT_SIDE, FORWARD, cl, sl, T1) = rot_sequence(RIGHT_SIDE,
- * FORWARD, cr, sr, T2)
+ * BACKWARD, cr, sr, T2)
  *
  * This is an important component of gghd3
  *
