@@ -19,7 +19,7 @@
 namespace tlapack {
 
 /**
- * Solve the triangular matrix-vector equation
+ * Solve the triangular matrix-matrix equation
  * \[
  *     op(A) X = \alpha B,
  * \]
@@ -27,12 +27,39 @@ namespace tlapack {
  * \[
  *     X op(A) = \alpha B,
  * \]
- * where $op(A)$ is one of
+ * where all three matrices, A, B, and X are triangular matrices.
+ *
+ * We require that op(A), B, and X are of the same shape, so either all three
+ * are lower triangular or all three are upper triangular. Note that two of
+ * them being triangular of the same shape implies the third one is too.
+ *
+ * Since all matrices are triangular, all matrices are square of the same size.
+ *
+ * As in TRSM, the matrices B and X are in/out. So in input, the array B
+ * contains B, and in output, the array B contains X.
+ *
+ * This is a specialized TRSM kernel that exploits the fact that B is
+ * triangular of the same shape as A.
+ *
+ * One could call TRSM on n-by-n arrays B in full form where we fill with zeros
+ * but that would be n³ FLOPS instead of n³/6 FLOPS and we would write in the
+ * zero part of the array B that might other be used to store something else.
+ *
+ * $op(A)$ is one of
  *     $op(A) = A$,
  *     $op(A) = A^T$, or
- *     $op(A) = A^H$,
- * X and B are n-by-n matrices, and A is an n-by-n, unit or non-unit,
- * upper or lower triangular matrix.
+ *     $op(A) = A^H$.
+ * op is controlled by transA.
+ *
+ * B is an n-by-n, upper or lower triangular matrix (uploB).
+ *
+ * A is an n-by-n, unit or non-unit (diagA), upper or lower triangular matrix.
+ * op(A) is same shape as B.
+ *
+ * Note that it could be interesting that this routine has a diagB parameter.
+ * But it is a tat complicated.  diagB is unit only really makes sense if diagA
+ * is unit too. So we decided that the best way to move forward would be to add
+ * a trsm_tri_unit.hpp that requires the two matrices A and B to be unit.
  *
  * @param[in] sideA
  *     Whether $op(A)$ is on the left or right of X:
@@ -117,10 +144,6 @@ void trsm_tri(Side sideA,
             return;
         }
         else {
-            //     if (transA == tlapack::Op::ConjTrans)
-            //     B(0, 0) /= conj(A(0, 0));
-            // else
-            //     B(0, 0) /= A(0, 0);
             return;
         }
     }
