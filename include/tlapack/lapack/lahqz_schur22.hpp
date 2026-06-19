@@ -30,10 +30,8 @@ namespace tlapack {
  * - If the matrix is complex, or if the matrix has real eigenvalues,
  *   then S is upper triangular.
  * - The diagonal entries of T are real and non-negative.
- *
- * Note that if the matrix is real and has complex eigenvalues, then LAPACK
- * would choose to normalize the pencil by making T a diagonal matrix with
- * positive real entries. We don't do this (I just don't see why this is useful)
+ * - If the matrix is real and has complex eigenvalues, then S is
+ *   not upper triangular, but T is diagonal with positive entries.
  *
  * @param[in,out] A 2x2 matrix
  *                On entry, the matrix A.
