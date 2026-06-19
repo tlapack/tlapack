@@ -15,6 +15,7 @@
 #include "tlapack/base/utils.hpp"
 #include "tlapack/blas/gemm.hpp"
 #include "tlapack/lapack/labrd.hpp"
+#include "tlapack/lapack/laset.hpp"
 
 namespace tlapack {
 
