@@ -25,8 +25,6 @@ namespace legacy {
     template <class uplo_t, typename T>
     int potrf(uplo_t uplo, idx_t n, T* A, idx_t lda)
     {
-        using internal::create_matrix;
-
         // check arguments
         tlapack_check_false(uplo != Uplo::Lower && uplo != Uplo::Upper);
 

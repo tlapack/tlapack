@@ -184,7 +184,7 @@ namespace starpu {
                            starpu_data_handle_t info = nullptr)
     {
         using args_t = std::tuple<uplo_t>;
-        constexpr bool use_cusolver = cuda::is_cusolver_v<T>;
+        constexpr bool use_cusolver = is_cusolver_v<T>;
 
         // check sizes
         tlapack_check(A.m == A.n);
@@ -214,9 +214,9 @@ namespace starpu {
 
         if constexpr (use_cusolver) {
             int lwork = 0;
-            if (starpu_cuda_worker_get_count() > 0) {
 #ifdef STARPU_HAVE_LIBCUSOLVER
-                const cublasFillMode_t uplo_ = cuda::uplo2cublas(uplo);
+            if (starpu_cuda_worker_get_count() > 0) {
+                const cublasFillMode_t uplo_ = uplo2cublas(uplo);
                 const int n = starpu_matrix_get_nx(A.handle);
 
                 if constexpr (is_same_v<T, float>) {
@@ -246,8 +246,8 @@ namespace starpu {
                 else
                     static_assert(sizeof(T) == 0,
                                   "Type not supported in cuSolver");
-#endif
             }
+#endif
             starpu_variable_data_register(&(task->handles[(has_info ? 2 : 1)]),
                                           -1, 0, lwork);
         }
