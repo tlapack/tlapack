@@ -17,7 +17,7 @@
 #include "tlapack/blas/rotg.hpp"
 #include "tlapack/lapack/lapy2.hpp"
 #include "tlapack/lapack/laset.hpp"
-
+#include "tlapack/lapack/svd22.hpp"
 namespace tlapack {
 
 /** Computes the generalized Schur factorization of a 2x2 pencil (A,B) with B
@@ -261,11 +261,47 @@ void lahqz_schur22(A_t& A,
             Q(1, 1) = c;
         }
         else {
-            // LAPACK takes the SVD of B here, but we choose
-            // to only rely on making the diagonal of B real and non-negative
-            // SVD can easily be added if necessary
-            laset(GENERAL, TA(0), TA(1), Q);
-            laset(GENERAL, TA(0), TA(1), Z);
+            if constexpr (is_real<TA>) {
+                laset(GENERAL, TA(0), TA(1), Q);
+                laset(GENERAL, TA(0), TA(1), Z);
+
+                // The pencil is real and has complex conjugate eigenvalues.
+                // It cannot be reduced further without using complex
+                // arithmetic. As normalization, we make B a diagonal matrix
+                // using a 2x2 SVD.
+                real_t ssmin, ssmax, cl, sl, cr, sr;
+                svd22<real_t>(B(0, 0), B(0, 1), B(1, 1), ssmin, ssmax, cl, sl,
+                              cr, sr);
+                B(0, 0) = ssmax;
+                B(1, 1) = ssmin;
+                B(0, 1) = (real_t)0;
+                // Apply left rotation to A and form Q
+                TA temp;
+                temp = cl * A(0, 0) + sl * A(1, 0);
+                A(1, 0) = cl * A(1, 0) - sl * A(0, 0);
+                A(0, 0) = temp;
+                temp = cl * A(0, 1) + sl * A(1, 1);
+                A(1, 1) = cl * A(1, 1) - sl * A(0, 1);
+                A(0, 1) = temp;
+
+                Q(0, 0) = cl;
+                Q(1, 0) = sl;
+                Q(0, 1) = -sl;
+                Q(1, 1) = cl;
+
+                // Apply right rotation to A and form Z
+                temp = cr * A(0, 0) + sr * A(0, 1);
+                A(0, 1) = cr * A(0, 1) - sr * A(0, 0);
+                A(0, 0) = temp;
+                temp = cr * A(1, 0) + sr * A(1, 1);
+                A(1, 1) = cr * A(1, 1) - sr * A(1, 0);
+                A(1, 0) = temp;
+
+                Z(0, 0) = cr;
+                Z(0, 1) = -sr;
+                Z(1, 0) = sr;
+                Z(1, 1) = cr;
+            }
         }
     }
 
