@@ -178,28 +178,19 @@ TEMPLATE_TEST_CASE("QZ algorithm",
                 i = i + 1;
             }
             else {
-                TA beta1, beta2;
-                complex_t alpha1, alpha2;
-                auto H22 = slice(H, range(i, i + 2), range(i, i + 2));
-                auto T22 = slice(T, range(i, i + 2), range(i, i + 2));
-                lahqz_eig22(H22, T22, alpha1, alpha2, beta1, beta2);
-                if (abs1(alpha1 - alpha[i]) > abs1(alpha2 - alpha[i])) {
-                    auto swp1 = alpha1;
-                    alpha1 = alpha2;
-                    alpha2 = swp1;
+                if constexpr (is_real<TA>) {
+                    TA beta1, beta2;
+                    complex_t alpha1, alpha2;
+                    auto H22 = slice(H, range(i, i + 2), range(i, i + 2));
+                    auto T22 = slice(T, range(i, i + 2), range(i, i + 2));
+                    lahqz_eig22(H22, T22, alpha1, alpha2, beta1, beta2);
+                    auto [err1, err2] = check_generalized_eigenvalues(
+                        alpha1, alpha2, beta1, beta2, alpha[i], alpha[i + 1],
+                        beta[i], beta[i + 1]);
 
-                    auto swp2 = beta1;
-                    beta1 = beta2;
-                    beta2 = swp2;
+                    CHECK(err1 < tol);
+                    CHECK(err2 < tol);
                 }
-                CHECK(abs1(alpha[i] - alpha1) <=
-                      tol * max(real_t(1), abs1(alpha1)));
-                CHECK(abs1(beta[i] - beta1) <=
-                      tol * max(real_t(1), abs1(beta1)));
-                CHECK(abs1(alpha[i + 1] - alpha2) <=
-                      tol * max(real_t(1), abs1(alpha2)));
-                CHECK(abs1(beta[i + 1] - beta2) <=
-                      tol * max(real_t(1), abs1(beta2)));
                 i = i + 2;
             }
         }
