@@ -119,7 +119,25 @@ int geqr2_work(matrix_t& A, vector_t& tau, work_t& work)
  * @param[in,out] A m-by-n matrix.
  *      On exit, the elements on and above the diagonal of the array
  *      contain the min(m,n)-by-n upper trapezoidal matrix R
- *      (R is upper triangular if m >= n); the elements below the diagonal,
+ *      (R is upper triangula *
+ * The matrix Q is re
+ *          presented as a product of elementary reflectors
+ * \[
+ *          Q = H_1 H_2 ... H_k,
+ * \]
+ * where k = min(m,n). Each H_i has the form
+ * \[
+ *          H_i = I - tau * v * v',
+ * \]
+ * where tau is a scalar, and v is a vector with
+ * \[
+ *          v[0] = v[1] = ... = v[i-1] = 0; v[i] = 1,
+ * \]
+ * with v[i+1] through v[m-1] stored on exit below the diagonal
+ * in the ith column of A, and tau in tau[i].
+ *
+ * @return  0 if success
+r if m >= n); the elements below the diagonal,
  *      with the array tau, represent the unitary matrix Q as a
  *      product of elementary reflectors.
  *
