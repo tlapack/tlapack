@@ -31,6 +31,17 @@ add_custom_command(
     && echo ""
 )
 
+# add the example geqp2
+add_subdirectory( geqp2 )
+add_custom_command(
+  OUTPUT run-all-examples-cmd APPEND
+  COMMAND
+    echo "- example_geqp2 ----------------" &&
+    "${CMAKE_CURRENT_BINARY_DIR}/geqp2/example_geqp2${CMAKE_EXECUTABLE_SUFFIX}"
+    && echo ""
+)
+
+
 # add the example tikhonov_regularization
 add_subdirectory( tikhonov_regularization )
 add_custom_command(
