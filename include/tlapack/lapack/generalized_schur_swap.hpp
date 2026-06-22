@@ -347,18 +347,23 @@ int generalized_schur_swap(bool want_q,
         //
         std::vector<T> H_;
         auto H = new_matrix(H_, 2, 3);
-        std::vector<T> v(3);
+        T taur, taulA, taulB;
+        std::vector<T> vr(3);
+        std::vector<T> vlA(3);
+        std::vector<T> vlB(3);
 
-        complex_type<T> alpha1, alpha2;
-        T beta1, beta2;
+        std::vector<T> AA_;
+        auto AA = new_matrix(AA_, 3, 3);
+        std::vector<T> BB_;
+        auto BB = new_matrix(BB_, 3, 3);
+        lacpy(GENERAL, slice(A, range(j0, j3), range(j0, j3)), AA);
+        lacpy(GENERAL, slice(B, range(j0, j3), range(j0, j3)), BB);
 
-        auto A1 = slice(A, range(j0, j2), range(j0, j2));
-        auto B1 = slice(B, range(j0, j2), range(j0, j2));
-        lahqz_eig22(A1, B1, alpha1, alpha2, beta1, beta2);
         auto a22 = A(j2, j2);
         auto b22 = B(j2, j2);
 
-        bool use_b = abs(b22 * alpha1) > abs(beta1 * a22);
+        T norma = lange(FROB_NORM, AA);
+        T normb = lange(FROB_NORM, BB);
 
         H(0, 0) = b22 * A(j0, j0) - a22 * B(j0, j0);
         H(0, 1) = b22 * A(j0, j1) - a22 * B(j0, j1);
@@ -367,60 +372,134 @@ int generalized_schur_swap(bool want_q,
         H(1, 1) = b22 * A(j1, j1) - a22 * B(j1, j1);
         H(1, 2) = b22 * A(j1, j2) - a22 * B(j1, j2);
 
-        T tau;
-        inv_house3(H, v, tau);
+        inv_house3(H, vr, taur);
 
-        // Apply update from the right
-        for (idx_t j = 0; j < j3; ++j) {
-            T sum = A(j, j0) + v[1] * A(j, j1) + v[2] * A(j, j2);
-            A(j, j0) = A(j, j0) - sum * tau;
-            A(j, j1) = A(j, j1) - sum * tau * v[1];
-            A(j, j2) = A(j, j2) - sum * tau * v[2];
+        // Apply update from the right to the local matrices
+        for (idx_t j = 0; j < 3; ++j) {
+            T sum = AA(j, 0) + vr[1] * AA(j, 1) + vr[2] * AA(j, 2);
+            AA(j, 0) = AA(j, 0) - sum * taur;
+            AA(j, 1) = AA(j, 1) - sum * taur * vr[1];
+            AA(j, 2) = AA(j, 2) - sum * taur * vr[2];
         }
-        for (idx_t j = 0; j < j3; ++j) {
-            T sum = B(j, j0) + v[1] * B(j, j1) + v[2] * B(j, j2);
-            B(j, j0) = B(j, j0) - sum * tau;
-            B(j, j1) = B(j, j1) - sum * tau * v[1];
-            B(j, j2) = B(j, j2) - sum * tau * v[2];
-        }
-        for (idx_t j = 0; j < n; ++j) {
-            T sum = Z(j, j0) + v[1] * Z(j, j1) + v[2] * Z(j, j2);
-            Z(j, j0) = Z(j, j0) - sum * tau;
-            Z(j, j1) = Z(j, j1) - sum * tau * v[1];
-            Z(j, j2) = Z(j, j2) - sum * tau * v[2];
+        for (idx_t j = 0; j < 3; ++j) {
+            T sum = BB(j, 0) + vr[1] * BB(j, 1) + vr[2] * BB(j, 2);
+            BB(j, 0) = BB(j, 0) - sum * taur;
+            BB(j, 1) = BB(j, 1) - sum * taur * vr[1];
+            BB(j, 2) = BB(j, 2) - sum * taur * vr[2];
         }
 
-        if (use_b) {
-            v[0] = B(j0, j0);
-            v[1] = B(j1, j0);
-            v[2] = B(j2, j0);
-        }
-        else {
-            v[0] = A(j0, j0);
-            v[1] = A(j1, j0);
-            v[2] = A(j2, j0);
-        }
-        larfg(FORWARD, COLUMNWISE_STORAGE, v, tau);
+        // Determine two sets of left transformations
+        // one that zeroes out the first column of A and one that zeroes out the
+        // first column of B
+        // We will later choose the one that gives the smaller error
+        vlA[0] = AA(0, 0);
+        vlA[1] = AA(1, 0);
+        vlA[2] = AA(2, 0);
+        larfg(FORWARD, COLUMNWISE_STORAGE, vlA, taulA);
+
+        vlB[0] = BB(0, 0);
+        vlB[1] = BB(1, 0);
+        vlB[2] = BB(2, 0);
+        larfg(FORWARD, COLUMNWISE_STORAGE, vlB, taulB);
 
         // Apply update from the left
-        for (idx_t j = j0; j < n; ++j) {
-            T sum = A(j0, j) + v[1] * A(j1, j) + v[2] * A(j2, j);
-            A(j0, j) = A(j0, j) - sum * tau;
-            A(j1, j) = A(j1, j) - sum * tau * v[1];
-            A(j2, j) = A(j2, j) - sum * tau * v[2];
+        for (idx_t j = 0; j < 3; ++j) {
+            T sum = AA(0, j) + vlB[1] * AA(1, j) + vlB[2] * AA(2, j);
+            AA(0, j) = AA(0, j) - sum * taulB;
+            AA(1, j) = AA(1, j) - sum * taulB * vlB[1];
+            AA(2, j) = AA(2, j) - sum * taulB * vlB[2];
         }
-        for (idx_t j = j0; j < n; ++j) {
-            T sum = B(j0, j) + v[1] * B(j1, j) + v[2] * B(j2, j);
-            B(j0, j) = B(j0, j) - sum * tau;
-            B(j1, j) = B(j1, j) - sum * tau * v[1];
-            B(j2, j) = B(j2, j) - sum * tau * v[2];
+        for (idx_t j = 0; j < 3; ++j) {
+            T sum = BB(0, j) + vlA[1] * BB(1, j) + vlA[2] * BB(2, j);
+            BB(0, j) = BB(0, j) - sum * taulA;
+            BB(1, j) = BB(1, j) - sum * taulA * vlA[1];
+            BB(2, j) = BB(2, j) - sum * taulA * vlA[2];
         }
-        if (want_q) {
+
+        //
+        // Determine if the swap was successful
+        //
+        T errA = lapy2(AA(1, 0), AA(2, 0));
+        T errB = lapy2(BB(1, 0), BB(2, 0));
+        const T eps = ulp<T>();
+        const T small_num = safe_min<T>();
+
+        if (errA > max((T)20 * norma * eps, small_num) and
+            errB > max((T)20 * normb * eps, small_num)) {
+            // The swap failed, return with error
+            // Note, though we don't have a proof that this will always be the
+            // case, there are currently no known cases where this swap can
+            // fail.
+            return 1;
+        }
+
+        //
+        // Swap is accepted, apply the updates to the original matrices
+        //
+        for (idx_t j = 0; j < j3; ++j) {
+            T sum = A(j, j0) + vr[1] * A(j, j1) + vr[2] * A(j, j2);
+            A(j, j0) = A(j, j0) - sum * taur;
+            A(j, j1) = A(j, j1) - sum * taur * vr[1];
+            A(j, j2) = A(j, j2) - sum * taur * vr[2];
+        }
+        for (idx_t j = 0; j < j3; ++j) {
+            T sum = B(j, j0) + vr[1] * B(j, j1) + vr[2] * B(j, j2);
+            B(j, j0) = B(j, j0) - sum * taur;
+            B(j, j1) = B(j, j1) - sum * taur * vr[1];
+            B(j, j2) = B(j, j2) - sum * taur * vr[2];
+        }
+        if (want_z) {
             for (idx_t j = 0; j < n; ++j) {
-                T sum = Q(j, j0) + v[1] * Q(j, j1) + v[2] * Q(j, j2);
-                Q(j, j0) = Q(j, j0) - sum * tau;
-                Q(j, j1) = Q(j, j1) - sum * tau * v[1];
-                Q(j, j2) = Q(j, j2) - sum * tau * v[2];
+                T sum = Z(j, j0) + vr[1] * Z(j, j1) + vr[2] * Z(j, j2);
+                Z(j, j0) = Z(j, j0) - sum * taur;
+                Z(j, j1) = Z(j, j1) - sum * taur * vr[1];
+                Z(j, j2) = Z(j, j2) - sum * taur * vr[2];
+            }
+        }
+        if (errB * norma < errA * normb) {
+            // The error is smallest when using vlA
+            for (idx_t j = j0; j < n; ++j) {
+                T sum = A(j0, j) + vlA[1] * A(j1, j) + vlA[2] * A(j2, j);
+                A(j0, j) = A(j0, j) - sum * taulA;
+                A(j1, j) = A(j1, j) - sum * taulA * vlA[1];
+                A(j2, j) = A(j2, j) - sum * taulA * vlA[2];
+            }
+            for (idx_t j = j0; j < n; ++j) {
+                T sum = B(j0, j) + vlA[1] * B(j1, j) + vlA[2] * B(j2, j);
+                B(j0, j) = B(j0, j) - sum * taulA;
+                B(j1, j) = B(j1, j) - sum * taulA * vlA[1];
+                B(j2, j) = B(j2, j) - sum * taulA * vlA[2];
+            }
+            if (want_q) {
+                for (idx_t j = 0; j < n; ++j) {
+                    T sum = Q(j, j0) + vlA[1] * Q(j, j1) + vlA[2] * Q(j, j2);
+                    Q(j, j0) = Q(j, j0) - sum * taulA;
+                    Q(j, j1) = Q(j, j1) - sum * taulA * vlA[1];
+                    Q(j, j2) = Q(j, j2) - sum * taulA * vlA[2];
+                }
+            }
+        }
+        else {
+            // The error is smallest when using vlB
+            for (idx_t j = j0; j < n; ++j) {
+                T sum = A(j0, j) + vlB[1] * A(j1, j) + vlB[2] * A(j2, j);
+                A(j0, j) = A(j0, j) - sum * taulB;
+                A(j1, j) = A(j1, j) - sum * taulB * vlB[1];
+                A(j2, j) = A(j2, j) - sum * taulB * vlB[2];
+            }
+            for (idx_t j = j0; j < n; ++j) {
+                T sum = B(j0, j) + vlB[1] * B(j1, j) + vlB[2] * B(j2, j);
+                B(j0, j) = B(j0, j) - sum * taulB;
+                B(j1, j) = B(j1, j) - sum * taulB * vlB[1];
+                B(j2, j) = B(j2, j) - sum * taulB * vlB[2];
+            }
+            if (want_q) {
+                for (idx_t j = 0; j < n; ++j) {
+                    T sum = Q(j, j0) + vlB[1] * Q(j, j1) + vlB[2] * Q(j, j2);
+                    Q(j, j0) = Q(j, j0) - sum * taulB;
+                    Q(j, j1) = Q(j, j1) - sum * taulB * vlB[1];
+                    Q(j, j2) = Q(j, j2) - sum * taulB * vlB[2];
+                }
             }
         }
 
