@@ -13,6 +13,7 @@
 #define TLAPACK_GENERALIZED_SCHUR_SWAP_HH
 
 #include "tlapack/base/utils.hpp"
+#include "tlapack/blas/gemm.hpp"
 #include "tlapack/blas/rot.hpp"
 #include "tlapack/blas/rotg.hpp"
 #include "tlapack/blas/swap.hpp"
@@ -569,7 +570,9 @@ int generalized_schur_swap(bool want_q,
         x[7] = B(j1, j3);
         // LU of M
         int ierr = getrf(M, piv);
-        if (ierr != 0) return 1;
+        if (ierr != 0) {
+            return 1;
+        }
         // Apply pivot to rhs
         for (idx_t i = 0; i < 8; ++i) {
             if (i != piv[i]) std::swap(x[i], x[piv[i]]);
@@ -722,12 +725,12 @@ int generalized_schur_swap(bool want_q,
         idx_t iter = 0;
         T tolA = max((T)20 * norma * eps, small_num);
         T tolB = max((T)20 * normb * eps, small_num);
-        while (iter < 30) {
-            std::cout << "enorma: " << enorma << " tolA: " << tolA
-                      << " enormb: " << enormb << " tolB: " << tolB
-                      << std::endl;
+        const idx_t max_iter = 6;
+        while (iter < max_iter) {
             if (enorma <= tolA and enormb <= tolB) break;
-            if (iter == 29) return 1;
+            if (iter == max_iter - 1) {
+                return 1;
+            }
             // The swap is not (yet) accepted, apply iterative refinement to
             // try to improve the swap.
 
@@ -831,14 +834,14 @@ int generalized_schur_swap(bool want_q,
             //       [ x[4]  x[6]  ]   [ *  * ]
             //       [ x[5]  x[7]  ]   [ *  * ]
 
-            // Rotation to make Y^T upper triangular
+            std::swap(x[5], x[6]);
             T cyl1, syl1;
             rotg(x[4], x[5], cyl1, syl1);
             x[5] = (T)0;
             rottemp = cyl1 * x[6] + syl1 * x[7];
             x[7] = -syl1 * x[6] + cyl1 * x[7];
             x[6] = rottemp;
-            // SVD of (upper triangular) Y
+            // SVD of (upper triangular) X
             T cyl2, syl2, cyr, syr, ssy1, ssy2;
             svd22(x[4], x[6], x[7], ssy2, ssy1, cyl2, syl2, cyr, syr);
             // Fuse left rotations
@@ -846,9 +849,9 @@ int generalized_schur_swap(bool want_q,
             cyl = cyl1 * cyl2 - syl1 * syl2;
             syl = cyl2 * syl1 + syl2 * cyl1;
             // Rotations based on the singular values
+            ssy1 = -ssy1;
+            ssy2 = -ssy2;
             temp = (T)1;
-            ssx1 = -ssx1;
-            ssx2 = -ssx2;
             T cy1, sy1, cy2, sy2;
             rotg(temp, ssy1, cy1, sy1);
             temp = (T)1;
@@ -862,8 +865,8 @@ int generalized_schur_swap(bool want_q,
                 auto a3 = row(AA, 3);
                 rot(a0, a1, cyr, syr);
                 rot(a2, a3, cyl, syl);
-                rot(a0, a2, cy1, -sy1);
-                rot(a1, a3, cy2, -sy2);
+                rot(a0, a2, cy1, sy1);
+                rot(a1, a3, cy2, sy2);
 
                 auto b0 = row(BB, 0);
                 auto b1 = row(BB, 1);
@@ -871,8 +874,8 @@ int generalized_schur_swap(bool want_q,
                 auto b3 = row(BB, 3);
                 rot(b0, b1, cyr, syr);
                 rot(b2, b3, cyl, syl);
-                rot(b0, b2, cy1, -sy1);
-                rot(b1, b3, cy2, -sy2);
+                rot(b0, b2, cy1, sy1);
+                rot(b1, b3, cy2, sy2);
 
                 auto q0 = col(QQ, 0);
                 auto q1 = col(QQ, 1);
@@ -881,8 +884,8 @@ int generalized_schur_swap(bool want_q,
 
                 rot(q0, q1, cyr, syr);
                 rot(q2, q3, cyl, syl);
-                rot(q0, q2, cy1, -sy1);
-                rot(q1, q3, cy2, -sy2);
+                rot(q0, q2, cy1, sy1);
+                rot(q1, q3, cy2, sy2);
             }
             // Apply rotations from the right to local matrices
             {
@@ -919,7 +922,60 @@ int generalized_schur_swap(bool want_q,
             iter++;
         }
 
-        // TODO: apply accumulated rotations to the original matrices
+        // TODO: this is a large workspace, add it to the interface
+        std::vector<T> workl_;
+        auto workl = new_matrix(workl_, 4, n);
+        std::vector<T> workr_;
+        auto workr = new_matrix(workr_, n, 4);
+
+        // Apply QQ
+        {
+            auto A_slice = slice(A, range(j0, j3 + 1), range(j0, n));
+            auto work_slice = slice(workl, range(0, 4), range(j0, n));
+            gemm(TRANSPOSE, NO_TRANS, (T)1, QQ, A_slice, StrongZero(T(0)),
+                 work_slice);
+            lacpy(GENERAL, work_slice, A_slice);
+        }
+        {
+            auto B_slice = slice(B, range(j0, j3 + 1), range(j0, n));
+            auto work_slice = slice(workl, range(0, 4), range(j0, n));
+            gemm(TRANSPOSE, NO_TRANS, (T)1, QQ, B_slice, StrongZero(T(0)),
+                 work_slice);
+            lacpy(GENERAL, work_slice, B_slice);
+        }
+        {
+            auto Q_slice = slice(Q, range(0, n), range(j0, j3 + 1));
+            auto work_slice = slice(workr, range(0, n), range(0, 4));
+            gemm(NO_TRANS, NO_TRANS, (T)1, Q_slice, QQ, StrongZero(T(0)),
+                 work_slice);
+            lacpy(GENERAL, work_slice, Q_slice);
+        }
+        // Apply ZZ
+        {
+            auto A_slice =
+                slice(A, range(0, min(n, j3 + 1)), range(j0, j3 + 1));
+            auto work_slice =
+                slice(workr, range(0, min(n, j3 + 1)), range(0, 4));
+            gemm(NO_TRANS, NO_TRANS, (T)1, A_slice, ZZ, StrongZero(T(0)),
+                 work_slice);
+            lacpy(GENERAL, work_slice, A_slice);
+        }
+        {
+            auto B_slice =
+                slice(B, range(0, min(n, j3 + 1)), range(j0, j3 + 1));
+            auto work_slice =
+                slice(workr, range(0, min(n, j3 + 1)), range(0, 4));
+            gemm(NO_TRANS, NO_TRANS, (T)1, B_slice, ZZ, StrongZero(T(0)),
+                 work_slice);
+            lacpy(GENERAL, work_slice, B_slice);
+        }
+        {
+            auto Z_slice = slice(Z, range(0, n), range(j0, j3 + 1));
+            auto work_slice = slice(workr, range(0, n), range(0, 4));
+            gemm(NO_TRANS, NO_TRANS, (T)1, Z_slice, ZZ, StrongZero(T(0)),
+                 work_slice);
+            lacpy(GENERAL, work_slice, Z_slice);
+        }
 
         // Set relevant parts to zero
         A(j2, j0) = (T)0;
