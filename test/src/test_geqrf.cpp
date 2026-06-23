@@ -15,6 +15,7 @@
 #include "testutils.hpp"
 
 // Auxiliary routines
+#include "tlapack/blas/axpy.hpp"
 #include "tlapack/blas/gemm.hpp"
 #include "tlapack/lapack/geqrf.hpp"
 #include "tlapack/lapack/lacpy.hpp"
@@ -119,9 +120,12 @@ TEMPLATE_TEST_CASE("geqrf computes the QR factorization of a matrix",
                 trmm(Side::Right, Uplo::Upper, Op::NoTrans, Diag::NonUnit,
                      static_cast<T>(1.0), R, work);
 
-                for (idx_t j = 0; j < n; ++j)
-                    for (idx_t i = 0; i < m; ++i)
-                        work(i, j) -= A(i, j);
+                for (idx_t j = 0; j < n; ++j) {
+                    auto work_vector = col(work, j);
+                    auto A_vector = col(A, j);
+
+                    axpy(static_cast<T>(-1.0), A_vector, work_vector);
+                }
 
                 norm_repres = lange(FROB_NORM, work) / normA;
             }
