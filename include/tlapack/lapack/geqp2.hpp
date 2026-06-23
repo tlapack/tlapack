@@ -81,7 +81,12 @@ int geqp2(matrix_t& A,
     const idx_t m = nrows(A);
     const idx_t n = ncols(A);
     const real_t eps = ulp<real_t>();
-    const real_t safety_threshold = tlapack::sqrt(eps);
+    const real_t safety_threshold = sqrt(eps);
+
+    // Create matrix views of the vectors p, vn1, and vn2
+    LegacyMatrix<idx_t> P(1, n, &p[0], 1);
+    LegacyMatrix<real_t> VN1(1, n, &vn1[0], 1);
+    LegacyMatrix<real_t> VN2(1, n, &vn2[0], 1);
 
     // Initialize column norms for the active block
     for (idx_t j = 0; j < n; ++j) {
@@ -90,6 +95,7 @@ int geqp2(matrix_t& A,
         vn2[j] = vn1[j];
     }
 
+    //
     // Main Computational Loop
     for (idx_t k = 0; k < std::min(m, n); ++k) {
         // Identify pivot column from non-resolved active columns
@@ -101,15 +107,28 @@ int geqp2(matrix_t& A,
                 pivot = j;
             }
         }
+
         // Perform swap if necessary
         if (pivot != k) {
             for (idx_t i = 0; i < m; ++i) {
-                std::swap(A(i, k), A(i, pivot));
+                auto current_col = col(A, k);
+                auto next_col = col(A, pivot);
+
+                swap(current_col, next_col);
             }
-            std::swap(p[k], p[pivot]);
-            std::swap(vn1[k], vn1[pivot]);
-            std::swap(vn2[k], vn2[pivot]);
+
+            auto k_col1 = col(VN1, k);
+            auto k_col2 = col(VN2, k);
+            auto p1_col = col(P, k);
+            auto pivot_col1 = col(VN1, pivot);
+            auto pivot_col2 = col(VN2, pivot);
+            auto p2_col = col(P, pivot);
+
+            swap(k_col1, pivot_col1);
+            swap(k_col2, pivot_col2);
+            swap(p1_col, p2_col);
         }
+
         // Generate Householder reflector for the k-th column
         auto col_k = slice(A, range{k, m}, k);
         larfg(FORWARD, COLUMNWISE_STORAGE, col_k, tau[k]);

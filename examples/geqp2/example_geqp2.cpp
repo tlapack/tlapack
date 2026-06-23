@@ -18,18 +18,19 @@
 #include <tlapack/plugins/legacyArray.hpp>
 
 // <T>LAPACK
+#include <chrono>  // for high_resolution_clock
+#include <random>
 #include <tlapack/blas/gemm.hpp>
+#include <tlapack/blas/swap.hpp>
 #include <tlapack/lapack/geqr2.hpp>
 #include <tlapack/lapack/lacpy.hpp>
 #include <tlapack/lapack/lange.hpp>
 #include <tlapack/lapack/laset.hpp>
 #include <tlapack/lapack/ung2r.hpp>
 #include <tlapack/lapack/unmqr.hpp>
-#include <tlapack/blas/swap.hpp>
 
-#include "geqp2.hpp"
-#include <chrono>  // for high_resolution_clock
-#include <random>
+#include "tlapack/lapack/geqp2.hpp"
+#include "tlapack/lapack/larfb.hpp"
 
 enum class PermuteTarget { Rows, Columns };
 
@@ -281,8 +282,8 @@ void run(size_t m, size_t n, size_t r, size_t k)
     // 5) Compute Rank-Revealing QR (Drmac) on A_22
     geqp2(A_22, tau_tail, perm, vn1, vn2);
 
-
-    // 6) Permutes Upper Right Block R_12 per the rank revealing algorithm of Drmac
+    // 6) Permutes Upper Right Block R_12 per the rank revealing algorithm of
+    // Drmac
     permute_matrix(R_12, PermuteTarget::Columns, perm);
 
     // 7) Evaluate Numerical Rank
@@ -300,7 +301,6 @@ void run(size_t m, size_t n, size_t r, size_t k)
     std::cout << std::endl << "rank of A = " << rank;
 
     // 8) Compute Backward Error Validation
-
 
     //  Define A_orig_2 := A_orig[0:m,k:n]
     auto A_orig_2 = slice(A_orig, range(0, m), range(k, n));
@@ -328,32 +328,32 @@ int main(int argc, char** argv)
 
     printf("run< float  >( %d, %d, %d, %d )", m, n, r, k);
     run<float>(m, n, r, k);
-    std::cout<< std::endl;
+    std::cout << std::endl;
     printf("-----------------------\n");
-    
+
     printf("run< double >( %d, %d, %d, %d )", m, n, r, k);
     run<double>(m, n, r, k);
-    std::cout<< std::endl;
+    std::cout << std::endl;
     printf("-----------------------\n");
 
     printf("run< long double >( %d, %d, %d, %d )", m, n, r, k);
     run<long double>(m, n, r, k);
-    std::cout<< std::endl;
+    std::cout << std::endl;
     printf("-----------------------\n");
 
     printf("run< complex<float> >( %d, %d, %d, %d )", m, n, r, k);
     run<std::complex<float> >(m, n, r, k);
-    std::cout<< std::endl;
+    std::cout << std::endl;
     std::cout << "-----------------------" << std::endl;
-    
+
     printf("run< complex<double> >( %d, %d, %d, %d )", m, n, r, k);
     run<std::complex<double> >(m, n, r, k);
-    std::cout<< std::endl;
+    std::cout << std::endl;
     std::cout << "-----------------------" << std::endl;
 
     printf("run< complex<long double> >( %d, %d, %d, %d )", m, n, r, k);
-    run<std::complex< long double> >(m, n, r, k);
-    std::cout<< std::endl;
+    run<std::complex<long double> >(m, n, r, k);
+    std::cout << std::endl;
     std::cout << "-----------------------" << std::endl;
     return 0;
 }
