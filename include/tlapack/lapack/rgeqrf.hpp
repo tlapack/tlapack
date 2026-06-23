@@ -19,6 +19,7 @@
 #ifndef TLAPACK_RGEQRF_HH
 #define TLAPACK_RGEQRF_HH
 
+#include "tlapack/blas/axpy.hpp"
 #include "tlapack/blas/gemm.hpp"
 #include "tlapack/blas/trmm.hpp"
 #include "tlapack/lapack/geqrt3.hpp"
@@ -96,10 +97,11 @@ void rgeqrf(matrix_a& A, matrix_h& Tmatrix)
          A11, T12);
 
     // A12 <- A12 - T12
-    for (idx_t i = 0; i < n1; ++i) {
-        for (idx_t j = 0; j < n2; ++j) {
-            A12(i, j) -= T12(i, j);
-        }
+    for (idx_t j = 0; j < n2; ++j) {
+        auto A_vector = col(A12, j);
+        auto T_vector = col(T12, j);
+
+        axpy(static_cast<T>(-1.0), T_vector, A_vector);
     }
 
     // Recurse on the bottom right quadrant
