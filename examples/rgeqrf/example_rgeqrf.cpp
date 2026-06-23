@@ -20,6 +20,7 @@
 #include <tlapack/plugins/legacyArray.hpp>
 
 // <T>LAPACK
+#include <tlapack/blas/axpy.hpp>
 #include <tlapack/blas/gemm.hpp>
 #include <tlapack/blas/trmm.hpp>
 #include <tlapack/lapack/lacpy.hpp>
@@ -132,9 +133,9 @@ void run(size_t m, size_t n)
     auto elapsedQR =
         std::chrono::duration_cast<std::chrono::nanoseconds>(endQR - startQR);
 
-    // Compute FLOPS **WIP** Needs to be calculated
-    double flops = (3.0 * m * n * n) - (5.0 / 6.0 * n * n * n) +
-                   (1.0 / 2.0 * n * n) + (1.0 / 3.0 * n);
+    // Compute FLOP count
+    // Full FLOP formula: 7/3mn² + 2/3m - 25/42n³ + 1/2n² - 1/3n + 3/7
+    double flops = (7.0 / 3.0 * m * n * n) - (25.0 / 42.0 * n * n * n);
 
     double flopsQR = flops / (elapsedQR.count() * 1.0e-9);
 
@@ -204,9 +205,12 @@ void run(size_t m, size_t n)
                       tlapack::Op::NoTrans, tlapack::Diag::NonUnit,
                       static_cast<T>(1.0), R, work);
 
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < m; ++i)
-                work(i, j) -= A(i, j);
+        for (idx_t j = 0; j < n; ++j) {
+            auto work_vector = col(work, j);
+            auto A_vector = col(A, j);
+
+            tlapack::axpy(static_cast<T>(-1.0), A_vector, work_vector);
+        }
 
         norm_repres = tlapack::lange(tlapack::FROB_NORM, work) / normA;
     }
@@ -218,7 +222,6 @@ void run(size_t m, size_t n)
               << ",   GFlop/sec = " << flopsQR * 1.0e-9
               << ", Flops = " << flops;
     std::cout << std::endl;
-    std::cout << "NOTE: FLOPS ARE CURRENTLY WRONG" << std::endl;
 
     std::cout << "||QR - A||_F/||A||_F  = " << std::real(norm_repres)
               << ",        ||Q'Q - I||_F  = " << std::real(norm_orth);
