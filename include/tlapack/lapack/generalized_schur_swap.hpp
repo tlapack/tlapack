@@ -92,20 +92,24 @@ int generalized_schur_swap(bool want_q,
     // If so, treat them separately
     if (n1 == 2)
         if (A(j1, j0) == zero) {
-            // only 2x2 swaps can fail, so we don't need to check for error
-            generalized_schur_swap(want_q, want_z, A, B, Q, Z, j1, (idx_t)1,
-                                   n2);
-            generalized_schur_swap(want_q, want_z, A, B, Q, Z, j0, (idx_t)1,
-                                   n2);
+            int info;
+            info = generalized_schur_swap(want_q, want_z, A, B, Q, Z, j1,
+                                          (idx_t)1, n2);
+            if (info != 0) return info;
+            info = generalized_schur_swap(want_q, want_z, A, B, Q, Z, j0,
+                                          (idx_t)1, n2);
+            if (info != 0) return info;
             return 0;
         }
     if (n2 == 2)
         if (A(j0 + n1 + 1, j0 + n1) == zero) {
-            // only 2x2 swaps can fail, so we don't need to check for error
-            generalized_schur_swap(want_q, want_z, A, B, Q, Z, j0, n1,
-                                   (idx_t)1);
-            generalized_schur_swap(want_q, want_z, A, B, Q, Z, j1, n1,
-                                   (idx_t)1);
+            int info;
+            info = generalized_schur_swap(want_q, want_z, A, B, Q, Z, j0, n1,
+                                          (idx_t)1);
+            if (info != 0) return info;
+            info = generalized_schur_swap(want_q, want_z, A, B, Q, Z, j1, n1,
+                                          (idx_t)1);
+            if (info != 0) return info;
             return 0;
         }
 
