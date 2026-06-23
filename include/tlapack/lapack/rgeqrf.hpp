@@ -14,7 +14,8 @@
 // rgeqrf utilizes geqrt3 to complete a QR factorization with a repeatedly
 // halving block size as it moves to the right
 //
-// rgeqrf does not compute the full T matrix
+// rgeqrf does not compute the full T matrix by default
+// changing the isw attribute to false will compute the full T matrix
 
 #ifndef TLAPACK_RGEQRF_HH
 #define TLAPACK_RGEQRF_HH
@@ -27,6 +28,11 @@
 #include "tlapack/lapack/rgeqrf.hpp"
 
 namespace tlapack {
+
+struct RgeqrfOpts {
+    bool isw = true;  // Switch for computing full T matrix
+};
+
 template <TLAPACK_MATRIX matrix_a, TLAPACK_MATRIX matrix_h>
 
 /** Computes a QR factorization of a matrix A.
@@ -42,7 +48,7 @@ template <TLAPACK_MATRIX matrix_a, TLAPACK_MATRIX matrix_h>
  *      On exit, contains the triangular factor of the compact WY
  *      reprensentation with the values of tau along the diagonal.
  */
-void rgeqrf(matrix_a& A, matrix_h& Tmatrix)
+void rgeqrf(matrix_a& A, matrix_h& Tmatrix, const RgeqrfOpts& opts = {})
 {
     using std::size_t;
     using idx_t = size_type<matrix_a>;
@@ -105,7 +111,37 @@ void rgeqrf(matrix_a& A, matrix_h& Tmatrix)
     }
 
     // Recurse on the bottom right quadrant
-    rgeqrf(A22, T22);
+    rgeqrf(A22, T22, opts);
+
+    if (!opts.isw) {
+        //    // T12 = A21ᴴ
+        //    for (idx_t j = 0; j < n2; ++j) {
+        //        for (idx_t i = 0; i < m1; ++i) {
+        //            if constexpr (is_complex<T>)
+        //                T12(i, j) = std::conj(A21(j, i));
+        //            else
+        //                T12(i, j) = A21(j, i);
+        //        }
+        //    }
+
+        //    // T12 = T12 * A22
+        //    trmm(Side::Right, Uplo::Lower, Op::NoTrans, Diag::Unit, T(1.0),
+        //    A22,
+        //         T12);
+
+        //    // T12 = T12 + A31ᴴ * A32
+        //    gemm(Op::ConjTrans, Op::NoTrans, T(1.0), A31, A32, T(1.0), T12);
+
+        //    // T12 = T12 * T11
+        //    trmm(Side::Left, Uplo::Upper, Op::NoTrans, Diag::NonUnit, T(-1.0),
+        //    T11,
+        //         T12);
+
+        //    // T12 = T12 * T22
+        //    trmm(Side::Right, Uplo::Upper, Op::NoTrans, Diag::NonUnit, T(1.0),
+        //    T22,
+        //         T12);
+    }
 }
 }  // namespace tlapack
 

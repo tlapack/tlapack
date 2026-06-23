@@ -124,7 +124,7 @@ void run(size_t m, size_t n)
     auto startQR = std::chrono::high_resolution_clock::now();
     {
         // QR Factorization
-        tlapack::rgeqrf(Q, Tmatrix);
+        tlapack::rgeqrf(Q, Tmatrix, tlapack::RgeqrfOpts{.isw = false});
     }
     // Record end time
     auto endQR = std::chrono::high_resolution_clock::now();
