@@ -18,6 +18,7 @@
 #include <tlapack/plugins/legacyArray.hpp>
 
 // <T>LAPACK
+#include <tlapack/blas/axpy.hpp>
 #include <tlapack/blas/gemm.hpp>
 #include <tlapack/blas/trmm.hpp>
 #include <tlapack/lapack/geqrt3.hpp>
@@ -171,9 +172,12 @@ void run(size_t m, size_t n)
                       tlapack::Op::NoTrans, tlapack::Diag::NonUnit,
                       static_cast<T>(1.0), R, work);
 
-        for (idx_t j = 0; j < n; ++j)
-            for (idx_t i = 0; i < m; ++i)
-                work(i, j) -= A(i, j);
+        for (idx_t j = 0; j < n; ++j) {
+            auto work_vector = col(work, j);
+            auto A_vector = col(A, j);
+
+            tlapack::axpy(static_cast<T>(-1.0), A_vector, work_vector);
+        }
 
         norm_repres = tlapack::lange(tlapack::FROB_NORM, work) / normA;
     }
