@@ -17,10 +17,10 @@
 // Auxiliary routines
 #include "tlapack/blas/axpy.hpp"
 #include "tlapack/blas/gemm.hpp"
+#include "tlapack/lapack/geqrt3.hpp"
 #include "tlapack/lapack/lange.hpp"
 #include "tlapack/lapack/lansy.hpp"
 #include "tlapack/lapack/laset.hpp"
-#include "tlapack/lapack/rgeqrf.hpp"
 #include "tlapack/lapack/ung2r.hpp"
 
 using namespace tlapack;
@@ -81,7 +81,7 @@ TEMPLATE_TEST_CASE(
             // 1) Compute A = QR (Stored in the matrix Q)
 
             // QR Factorization
-            rgeqrf(Q, Tmatrix);
+            geqrt3(Q, Tmatrix, Geqrt3Opts{.isw = true});
 
             // Save the R matrix
             lacpy(UPPER_TRIANGLE, Q, R);

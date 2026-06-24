@@ -23,11 +23,11 @@
 #include <tlapack/blas/axpy.hpp>
 #include <tlapack/blas/gemm.hpp>
 #include <tlapack/blas/trmm.hpp>
+#include <tlapack/lapack/geqrt3.hpp>
 #include <tlapack/lapack/lacpy.hpp>
 #include <tlapack/lapack/lange.hpp>
 #include <tlapack/lapack/lansy.hpp>
 #include <tlapack/lapack/laset.hpp>
-#include <tlapack/lapack/rgeqrf.hpp>
 #include <tlapack/lapack/ung2r.hpp>
 
 // C++ headers
@@ -124,7 +124,7 @@ void run(size_t m, size_t n)
     auto startQR = std::chrono::high_resolution_clock::now();
     {
         // QR Factorization
-        tlapack::rgeqrf(Q, Tmatrix, tlapack::RgeqrfOpts{.isw = false});
+        tlapack::geqrt3(Q, Tmatrix, tlapack::Geqrt3Opts{.isw = true});
     }
     // Record end time
     auto endQR = std::chrono::high_resolution_clock::now();
