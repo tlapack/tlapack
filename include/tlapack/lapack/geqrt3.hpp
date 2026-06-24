@@ -39,6 +39,8 @@ struct Geqrt3Opts {
  *     n-by-n matrix containing the triangular factor of the compact WY
  *     representation.
  *
+ * @param[in] opts Options.
+ *
  * @ingroup workspace_query
  */
 template <TLAPACK_MATRIX matrix_a, TLAPACK_MATRIX matrix_h>
