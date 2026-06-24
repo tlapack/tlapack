@@ -84,7 +84,21 @@ TEMPLATE_TEST_CASE(
         real_t beta1, beta2;
         complex_t alpha1, alpha2;
 
-        lahqz_schur22(S, T, Q, Z, alpha1, alpha2, beta1, beta2);
+        real_t cl, cr;
+        TA sl, sr, scal0, scal1;
+
+        lahqz_schur22(S, T, alpha1, alpha2, beta1, beta2, cl, sl, cr, sr, scal0,
+                      scal1);
+
+        Q(0, 0) = cl;
+        Q(0, 1) = -sl;
+        Q(1, 0) = conj(sl);
+        Q(1, 1) = cl;
+
+        Z(0, 0) = cr * scal0;
+        Z(0, 1) = -conj(sr) * scal1;
+        Z(1, 0) = sr * scal0;
+        Z(1, 1) = cr * scal1;
 
         // Check that the eigenvalues match with the diagonal elements
         CHECK(abs1(alpha1 - S(0, 0)) <= eps * max(real_t(1), abs1(S(0, 0))));
@@ -213,7 +227,21 @@ TEMPLATE_TEST_CASE(
         real_t beta1, beta2;
         complex_t alpha1, alpha2;
 
-        lahqz_schur22(S, T, Q, Z, alpha1, alpha2, beta1, beta2);
+        real_t cl, cr;
+        TA sl, sr, scal0, scal1;
+
+        lahqz_schur22(S, T, alpha1, alpha2, beta1, beta2, cl, sl, cr, sr, scal0,
+                      scal1);
+
+        Q(0, 0) = cl;
+        Q(0, 1) = -sl;
+        Q(1, 0) = conj(sl);
+        Q(1, 1) = cl;
+
+        Z(0, 0) = cr * scal0;
+        Z(0, 1) = -conj(sr) * scal1;
+        Z(1, 0) = sr * scal0;
+        Z(1, 1) = cr * scal1;
 
         // Check that the eigenvalues match with the diagonal elements
         CHECK(abs1(alpha1 - S(0, 0)) <= eps * max(real_t(1), abs1(S(0, 0))));
@@ -356,7 +384,21 @@ TEMPLATE_TEST_CASE(
         real_t beta1, beta2;
         complex_t alpha1, alpha2;
 
-        lahqz_schur22(S, T, Q, Z, alpha1, alpha2, beta1, beta2);
+        real_t cl, cr;
+        TA sl, sr, scal0, scal1;
+
+        lahqz_schur22(S, T, alpha1, alpha2, beta1, beta2, cl, sl, cr, sr, scal0,
+                      scal1);
+
+        Q(0, 0) = cl;
+        Q(0, 1) = -sl;
+        Q(1, 0) = conj(sl);
+        Q(1, 1) = cl;
+
+        Z(0, 0) = cr * scal0;
+        Z(0, 1) = -conj(sr) * scal1;
+        Z(1, 0) = sr * scal0;
+        Z(1, 1) = cr * scal1;
 
         // Check that the diagonal of B is real and non-negative
         CHECK(real(T(0, 0)) >= real_t(0));
