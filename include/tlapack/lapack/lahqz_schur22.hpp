@@ -223,24 +223,45 @@ void lahqz_schur22(A_t& A,
             //
             // Now make both A and B upper triangular by applying a left
             // rotation
+            // It is hard to predict whether zeroing A(1,0) or B(1,0) will be
+            // more stable, so we try both and pick the one that gives the
+            // smallest error. Note: the normwise criterion used in LAPACK does
+            // not always work!
             //
-
             real_t Anrm = max<real_t>(abs1(A(0, 0)) + abs1(A(0, 1)),
                                       abs1(A(1, 0)) + abs1(A(1, 1)));
             real_t Bnrm = max<real_t>(abs1(B(0, 0)) + abs1(B(0, 1)),
                                       abs1(B(1, 0)) + abs1(B(1, 1)));
-            if (Anrm >= Bnrm) {
-                rotg(A(0, 0), A(1, 0), cl, sl);
-                A(1, 0) = TA(0);
-                B(0, 0) = cl * B(0, 0) + sl * B(1, 0);
-                B(1, 0) = TA(0);
+
+            real_t clA, clB;
+            TA slA, slB;
+
+            // Generate rotation based on A and calculate
+            // the resulting B(1,0)
+            TA tempA0 = A(0, 0);
+            TA tempA1 = A(1, 0);
+            rotg(tempA0, tempA1, clA, slA);
+            TA eB10 = -conj(slA) * B(0, 0) + clA * B(1, 0);
+
+            TA tempB0 = B(0, 0);
+            TA tempB1 = B(1, 0);
+            rotg(tempB0, tempB1, clB, slB);
+            TA eA10 = -conj(slB) * A(0, 0) + clB * A(1, 0);
+
+            if (abs1(eA10) * Bnrm <= abs1(eB10) * Anrm) {
+                cl = clB;
+                sl = slB;
+                B(0, 0) = tempB0;
+                A(0, 0) = cl * A(0, 0) + sl * A(1, 0);
             }
             else {
-                rotg(B(0, 0), B(1, 0), cl, sl);
-                B(1, 0) = TA(0);
-                A(0, 0) = cl * A(0, 0) + sl * A(1, 0);
-                A(1, 0) = TA(0);
+                cl = clA;
+                sl = slA;
+                A(0, 0) = tempA0;
+                B(0, 0) = cl * B(0, 0) + sl * B(1, 0);
             }
+            A(1, 0) = TA(0);
+            B(1, 0) = TA(0);
 
             // Apply the rotation to A, B, and form Q
             temp = cl * A(0, 1) + sl * A(1, 1);
