@@ -1,4 +1,4 @@
-/// @file example_geqrt3.cpp
+/// @file example_geqp2.cpp
 /// @author Henricus Bouwmeester, University of Colorado Denver, USA
 /// @author Benicio Ayala, Metropolitan State University of Denver, USA
 /// @author James Barton, Metropolitan State University of Denver, USA
@@ -18,19 +18,20 @@
 #include <tlapack/plugins/legacyArray.hpp>
 
 // <T>LAPACK
-#include <chrono>  // for high_resolution_clock
-#include <random>
 #include <tlapack/blas/gemm.hpp>
 #include <tlapack/blas/swap.hpp>
+#include <tlapack/lapack/geqp2.hpp>
 #include <tlapack/lapack/geqr2.hpp>
 #include <tlapack/lapack/lacpy.hpp>
 #include <tlapack/lapack/lange.hpp>
+#include <tlapack/lapack/larfb.hpp>
 #include <tlapack/lapack/laset.hpp>
 #include <tlapack/lapack/ung2r.hpp>
 #include <tlapack/lapack/unmqr.hpp>
 
-#include "tlapack/lapack/geqp2.hpp"
-#include "tlapack/lapack/larfb.hpp"
+// C++ Headers
+#include <chrono>  // for high_resolution_clock
+#include <random>
 
 enum class PermuteTarget { Rows, Columns };
 
@@ -55,7 +56,6 @@ void permute_matrix(matrix_t& A,
 
     bool is_row = (target == PermuteTarget::Rows);
     idx_t primary_dim = is_row ? m : n;
-    idx_t secondary_dim = is_row ? n : m;
 
     std::vector<bool> visited(primary_dim, false);
     for (idx_t i = 0; i < primary_dim; ++i) {
@@ -151,7 +151,9 @@ inline void check(matrixA_t& A, matrixV_t& V, const vectorT_t& tau)
     // Compute the orthogonality error ||I - Q^H Q||_F.
     std::vector<T> work_;
     auto work = new_matrix(work_, n, n);
-    tlapack::laset(tlapack::GENERAL, T(0.0), T(1.0), work);
+
+    tlapack::laset(tlapack::UPPER_TRIANGLE, T(0.0), T(1.0), work);
+
     tlapack::gemm(tlapack::Op::ConjTrans, tlapack::Op::NoTrans, T(-1.0), Q, Q,
                   T(1.0), work);
     real_t orthogonality_error = tlapack::lange(tlapack::FROB_NORM, work);
@@ -257,6 +259,35 @@ void run(size_t m, size_t n, size_t r, size_t k)
     tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::NoTrans, T(1.0), S, C,
                   T(0.0), A);
 
+    /*
+    // Fill A with random values
+    for (idx_t j = 0; j < n; ++j)
+        for (idx_t i = 0; i < m; ++i)
+            if constexpr (tlapack::is_complex<T>)
+                A(i, j) = T(
+                    static_cast<float>(rand()) / static_cast<float>(RAND_MAX),
+                    static_cast<float>(rand()) / static_cast<float>(RAND_MAX));
+            else
+                A(i, j) = T(static_cast<float>(rand()) /
+                            static_cast<float>(RAND_MAX));
+    // Perturb the first n-r+1 columns based on the first column so that the
+    first n-r+1
+    // columns are linearly dependent
+    for (idx_t j = 0; j < n - r + 1; ++j) {
+        for (idx_t i = 0; i < m; ++i) {
+            T x = 0.0;
+            if constexpr (tlapack::is_complex<T>)
+                x = T(
+                    static_cast<float>(rand()) / static_cast<float>(RAND_MAX),
+                    static_cast<float>(rand()) / static_cast<float>(RAND_MAX));
+            else
+                x = T(static_cast<float>(rand()) /
+                      static_cast<float>(RAND_MAX));
+            A(i, j) = A(i, 1) + x * eps;
+        }
+    }
+    */
+
     // 2) Apply Two-Sided Random Permutations to Matrix A
 
     // Creates randomized order for the vectors col_order and row_order
@@ -268,7 +299,7 @@ void run(size_t m, size_t n, size_t r, size_t k)
     // Permutes the rows of matrix A
     permute_matrix(A, PermuteTarget::Rows, row_order);
 
-    // Copy A to A_orig & elements of tau_head and tau_tail into tau
+    // Copy A to A_orig
     tlapack::lacpy(tlapack::GENERAL, A, A_orig);
 
     // 3) Compute QR Factorization of A_1
@@ -317,9 +348,9 @@ int main(int argc, char** argv)
 
     // Default arguments
     m = (argc < 2) ? 7 : atoi(argv[1]);
-    n = (argc < 3) ? 5 : atoi(argv[2]);
-    r = (argc < 4) ? 3 : atoi(argv[3]);
-    k = (argc < 5) ? 2 : atoi(argv[4]);
+    n = (argc < 3) ? 7 : atoi(argv[2]);
+    r = (argc < 4) ? 5 : atoi(argv[3]);
+    k = (argc < 5) ? 3 : atoi(argv[4]);
 
     srand(3);  // Init random seed
 

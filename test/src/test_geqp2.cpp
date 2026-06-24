@@ -14,8 +14,6 @@
 #include "testutils.hpp"
 
 // Auxiliary routines
-#include <chrono>  // for high_resolution_clock
-#include <random>
 #include <tlapack/blas/gemm.hpp>
 #include <tlapack/blas/swap.hpp>
 #include <tlapack/lapack/geqp2.hpp>
@@ -63,27 +61,15 @@ TEMPLATE_TEST_CASE("geqp2 computes the QR factorization of a matrix",
 
     idx_t m, n, r;
 
-    /*
-    r = GENERATE(1, 2, 3, 5, 15, 20);
-    // Generate n to be strictly greater than r
-    n = GENERATE_COPY(r + 1, r + 2, r + 5, r + 10);
-    // Generate m to be strictly greater than n
-    m = GENERATE_COPY(n + 1, n + 2, n + 15);
-    */
-
-    r = GENERATE(3);
-    n = GENERATE_COPY(r + 2);
-    m = GENERATE_COPY(n + 2);
-
-    std::cout << std::endl
-              << "(m,n,r) = (" << m << ", " << n << ", " << r << ")"
-              << std::endl;
+    r = GENERATE(3, 7, 8, 11, 13, 17);
+    // Generate n to be greater than or equal to r
+    n = GENERATE_COPY(r, r * 3, r + 7, r + 14, r * 5);
+    // Generate m to be greater than or equal to n
+    m = GENERATE_COPY(n, n * 2, n + 5, n * 8, n + 1);
 
     const real_t eps = ulp<real_t>();
     const real_t tol = real_t(100 * n) * eps;
 
-    // Matrices
-    // original matrix A
     // Arrays
     std::vector<idx_t> perm(n);
     std::iota(perm.begin(), perm.end(), 0);
@@ -104,14 +90,13 @@ TEMPLATE_TEST_CASE("geqp2 computes the QR factorization of a matrix",
     auto R = new_matrix(R_, n, n);
     std::vector<T> Q_;
     auto Q = new_matrix(Q_, m, n);
-
     std::vector<T> work_;
     auto work = new_matrix(work_, n, n);
 
     // Initialize the Rank
     idx_t rank = 0;
 
-    // real_t normA = real_t(0.0);
+    real_t normA = real_t(0.0);
     real_t recon_error = real_t(0.0);
     real_t orthogonality_error = real_t(0.0);
 
@@ -120,31 +105,42 @@ TEMPLATE_TEST_CASE("geqp2 computes the QR factorization of a matrix",
         mm.random(S);
         mm.random(C);
 
-        //------------------------------------------------------------------
-
         // 1) Compute A = S * C
 
         // Perform Matrix multiplication A = 1.0*S*C + 0.0*A
         gemm(Op::NoTrans, Op::NoTrans, T(1.0), S, C, T(0.0), A);
 
-        std::cout << std::endl << "A = " << std::endl;
-        printMatrix(A);
-        
-
-        // Copy A to A_orig & elements of tau_head and tau_tail into tau
+        // Copy A to A_orig and compute the norm
         lacpy(GENERAL, A, A_orig);
+        normA = lange(FROB_NORM, A_orig);
 
+        // 2) Compute QR factorization using Drmac's algorithm
         geqp2(A, tau, perm, vn1, vn2);
-        std::cout << std::endl << "A = " << std::endl;
-        printMatrix(A);
 
-        // printMatrix(A);
+        // 3) Permute the original matrix according to what GEQP2 provides
+        std::vector<bool> visited(n, false);
+        for (idx_t i = 0; i < n; ++i) {
+            if (visited[i] || perm[i] == i) {
+                continue;
+            }
 
-        std::cout << std::flush;
+            idx_t current = i;
+            while (!visited[current]) {
+                visited[current] = true;
+                idx_t next_node = perm[current];
 
-        // 7) Evaluate Numerical Rank
-        // Set absolute threshold: tolerance = max(m,n) * epsilon * |R(0,
-        // 0)|
+                if (!visited[next_node]) {
+                    auto current_col = col(A_orig, current);
+                    auto next_col = col(A_orig, next_node);
+
+                    swap(current_col, next_col);
+
+                    current = next_node;
+                }
+            }
+        }
+
+        // 4) Evaluate Numerical Rank
         real_t tol = std::max(m, n) * eps * std::abs(A(0, 0));
         for (idx_t i = 0; i < std::min(m, n); i++) {
             if (std::abs(A(i, i)) > tol) {
@@ -155,31 +151,24 @@ TEMPLATE_TEST_CASE("geqp2 computes the QR factorization of a matrix",
             }
         }
 
+        // 5) Save R
         laset(GENERAL, T(0.0), T(0.0), R);
         lacpy(UPPER_TRIANGLE, A, R);
 
+        // 6) Create Q
         laset(GENERAL, T(0.0), T(0.0), Q);
         lacpy(GENERAL, A, Q);
-
         ung2r(Q, tau);
-        std::cout << std::endl << "Q = " << std::endl;
-        printMatrix(Q);
 
-        // Compute the reconstruction accuracy ||A - Q*R||_F.
-        gemm(Op::NoTrans, Op::NoTrans, T(-1.0), Q, R, T(1.0), A);
-        recon_error = lange(FROB_NORM, A) / lange(FROB_NORM, A_orig);
+        // 7) Compute the reconstruction accuracy ||A - Q*R||_F.
+        gemm(Op::NoTrans, Op::NoTrans, T(-1.0), Q, R, T(1.0), A_orig);
+        recon_error = lange(FROB_NORM, A_orig) / normA;
 
-        // Compute the orthogonality error ||I - Q^H Q||_F.
+        // 8) Compute the orthogonality error ||I - Q^H Q||_F.
         laset(GENERAL, T(0.0), T(1.0), work);
         gemm(Op::ConjTrans, Op::NoTrans, T(-1.0), Q, Q, T(1.0), work);
         orthogonality_error = lange(FROB_NORM, work);
-
-        //---------------------------------------------------
     }
-    std::cout << std::endl
-              << "||A - Q*R||_F / ||A||_F = " << recon_error << std::endl;
-    std::cout << "||I - Q^H Q||_F = "
-              << orthogonality_error / static_cast<real_t>(n) << std::endl;
 
     CHECK(recon_error <= tol);
     CHECK(orthogonality_error <= tol);

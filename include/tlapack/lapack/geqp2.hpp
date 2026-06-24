@@ -1,14 +1,16 @@
 /// @file geqp2.hpp
-/// @author Benicio Ayala, Sandra Swartz, Hunter Hagerman, James Barton, Henc
-/// Bouwmeester, Metropolitan State University of Denver
-/// @note Adapted from @see
-/// https://github.com/Reference-LAPACK/lapack/blob/master/SRC/zgeqlf.f
+/// @author Henricus Bouwmeester, University of Colorado Denver, USA
+/// @author Benicio Ayala, Metropolitan State University of Denver, USA
+/// @author James Barton, Metropolitan State University of Denver, USA
+/// @author Hunter Hagerman, Metropolitan State University of Denver, USA
+/// @author Sandra Swartz, Metropolitan State University of Denver, USA
 //
-// Copyright (c) 2025, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2026, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
+// Test utilities and definitions (must come before <T>LAPACK headers)
 
 #ifndef TLAPACK_GEQP2_HH
 #define TLAPACK_GEQP2_HH
@@ -95,7 +97,6 @@ int geqp2(matrix_t& A,
         vn2[j] = vn1[j];
     }
 
-    //
     // Main Computational Loop
     for (idx_t k = 0; k < std::min(m, n); ++k) {
         // Identify pivot column from non-resolved active columns
@@ -110,12 +111,9 @@ int geqp2(matrix_t& A,
 
         // Perform swap if necessary
         if (pivot != k) {
-            for (idx_t i = 0; i < m; ++i) {
-                auto current_col = col(A, k);
-                auto next_col = col(A, pivot);
-
-                swap(current_col, next_col);
-            }
+            auto current_col = col(A, k);
+            auto next_col = col(A, pivot);
+            swap(current_col, next_col);
 
             auto k_col1 = col(VN1, k);
             auto k_col2 = col(VN2, k);
@@ -139,6 +137,7 @@ int geqp2(matrix_t& A,
             larf(LEFT_SIDE, FORWARD, COLUMNWISE_STORAGE, col_k, conj(tau[k]),
                  A_trailing);
         }
+
         // Update the norms of the remaining columns
         for (idx_t j = k + 1; j < n; ++j) {
             if (vn1[j] > static_cast<real_t>(0.0)) {
