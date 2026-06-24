@@ -21,6 +21,7 @@
 #include "tlapack/lapack/getrf.hpp"
 #include "tlapack/lapack/inv_house3.hpp"
 #include "tlapack/lapack/lahqz_eig22.hpp"
+#include "tlapack/lapack/lahqz_schur22.hpp"
 #include "tlapack/lapack/lange.hpp"
 #include "tlapack/lapack/larfg.hpp"
 #include "tlapack/lapack/svd22.hpp"
@@ -994,6 +995,12 @@ int generalized_schur_swap(bool want_q,
 
     // Standardize the 2x2 Schur blocks (if any)
     if (n2 == 2) {
+        auto A22 = slice(A, range(j0, j2), range(j0, j2));
+        auto B22 = slice(B, range(j0, j2), range(j0, j2));
+
+        complex_type<T> alpha1, alpha2;
+        real_type<T> beta1, beta2;
+
         // Make B upper triangular
         T cl1, sl1;
         rotg(B(j0, j0), B(j1, j0), cl1, sl1);
@@ -1002,27 +1009,22 @@ int generalized_schur_swap(bool want_q,
             auto b1 = slice(B, j0, range(j1, j2));
             auto b2 = slice(B, j1, range(j1, j2));
             rot(b1, b2, cl1, sl1);
+            auto a1 = slice(A, j0, range(j0, j2));
+            auto a2 = slice(A, j1, range(j0, j2));
+            rot(a1, a2, cl1, sl1);
         }
-        // Standard form
-        T ssmin, ssmax, cl2, sl2, cr, sr;
-        svd22(B(j0, j0), B(j0, j1), B(j1, j1), ssmin, ssmax, cl2, sl2, cr, sr);
-        if (ssmax < (T)0) {
-            cr = -cr;
-            sr = -sr;
-            ssmin = -ssmin;
-            ssmax = -ssmax;
-        }
-        B(j0, j0) = ssmax;
-        B(j1, j1) = ssmin;
-        B(j0, j1) = (T)0;
+
+        T cl2, sl2, cr, sr, scal0, scal1;
+        lahqz_schur22(A22, B22, alpha1, alpha2, beta1, beta2, cl2, sl2, cr, sr,
+                      scal0, scal1);
         // Fuse left rotations
         T cl, sl;
         cl = cl1 * cl2 - sl1 * sl2;
         sl = cl2 * sl1 + sl2 * cl1;
         // Apply left rotation
         {
-            auto a1 = slice(A, j0, range(j0, n));
-            auto a2 = slice(A, j1, range(j0, n));
+            auto a1 = slice(A, j0, range(j2, n));
+            auto a2 = slice(A, j1, range(j2, n));
             rot(a1, a2, cl, sl);
             auto b1 = slice(B, j0, range(j2, n));
             auto b2 = slice(B, j1, range(j2, n));
@@ -1031,10 +1033,10 @@ int generalized_schur_swap(bool want_q,
             auto q1 = col(Q, j1);
             rot(q0, q1, cl, sl);
         }
-        // Apply right rotation
+        // Apply right rotation and scaling
         {
-            auto a1 = slice(A, range(0, j2), j0);
-            auto a2 = slice(A, range(0, j2), j1);
+            auto a1 = slice(A, range(0, j0), j0);
+            auto a2 = slice(A, range(0, j0), j1);
             rot(a1, a2, cr, sr);
             auto b1 = slice(B, range(0, j0), j0);
             auto b2 = slice(B, range(0, j0), j1);
@@ -1042,6 +1044,18 @@ int generalized_schur_swap(bool want_q,
             auto z0 = col(Z, j0);
             auto z1 = col(Z, j1);
             rot(z0, z1, cr, sr);
+
+            if (scal0 != (T)1) {
+                scal(scal0, a1);
+                scal(scal0, b1);
+                scal(scal0, z0);
+            }
+
+            if (scal1 != (T)1) {
+                scal(scal1, a2);
+                scal(scal1, b2);
+                scal(scal1, z1);
+            }
         }
     }
     if (n1 == 2) {
@@ -1053,28 +1067,26 @@ int generalized_schur_swap(bool want_q,
             auto b1 = slice(B, j0 + n2, range(j1 + n2, j2 + n2));
             auto b2 = slice(B, j1 + n2, range(j1 + n2, j2 + n2));
             rot(b1, b2, cl1, sl1);
+            auto a1 = slice(A, j0 + n2, range(j0 + n2, j2 + n2));
+            auto a2 = slice(A, j1 + n2, range(j0 + n2, j2 + n2));
+            rot(a1, a2, cl1, sl1);
         }
-        // Standard form
-        T ssmin, ssmax, cl2, sl2, cr, sr;
-        svd22(B(j0 + n2, j0 + n2), B(j0 + n2, j1 + n2), B(j1 + n2, j1 + n2),
-              ssmin, ssmax, cl2, sl2, cr, sr);
-        if (ssmax < (T)0) {
-            cr = -cr;
-            sr = -sr;
-            ssmin = -ssmin;
-            ssmax = -ssmax;
-        }
-        B(j0 + n2, j0 + n2) = ssmax;
-        B(j1 + n2, j1 + n2) = ssmin;
-        B(j0 + n2, j1 + n2) = (T)0;
+
+        complex_type<T> alpha1, alpha2;
+        real_type<T> beta1, beta2;
+        auto A22 = slice(A, range(j0 + n2, j2 + n2), range(j0 + n2, j2 + n2));
+        auto B22 = slice(B, range(j0 + n2, j2 + n2), range(j0 + n2, j2 + n2));
+        T cl2, sl2, cr, sr, scal0, scal1;
+        lahqz_schur22(A22, B22, alpha1, alpha2, beta1, beta2, cl2, sl2, cr, sr,
+                      scal0, scal1);
         // Fuse left rotations
         T cl, sl;
         cl = cl1 * cl2 - sl1 * sl2;
         sl = cl2 * sl1 + sl2 * cl1;
         // Apply left rotation
         {
-            auto a1 = slice(A, j0 + n2, range(j0 + n2, n));
-            auto a2 = slice(A, j1 + n2, range(j0 + n2, n));
+            auto a1 = slice(A, j0 + n2, range(j2 + n2, n));
+            auto a2 = slice(A, j1 + n2, range(j2 + n2, n));
             rot(a1, a2, cl, sl);
             auto b1 = slice(B, j0 + n2, range(j2 + n2, n));
             auto b2 = slice(B, j1 + n2, range(j2 + n2, n));
@@ -1085,8 +1097,8 @@ int generalized_schur_swap(bool want_q,
         }
         // Apply right rotation
         {
-            auto a1 = slice(A, range(0, j2 + n2), j0 + n2);
-            auto a2 = slice(A, range(0, j2 + n2), j1 + n2);
+            auto a1 = slice(A, range(0, j0 + n2), j0 + n2);
+            auto a2 = slice(A, range(0, j0 + n2), j1 + n2);
             rot(a1, a2, cr, sr);
             auto b1 = slice(B, range(0, j0 + n2), j0 + n2);
             auto b2 = slice(B, range(0, j0 + n2), j1 + n2);
@@ -1094,6 +1106,18 @@ int generalized_schur_swap(bool want_q,
             auto z0 = col(Z, j0 + n2);
             auto z1 = col(Z, j1 + n2);
             rot(z0, z1, cr, sr);
+
+            if (scal0 != (T)1) {
+                scal(scal0, a1);
+                scal(scal0, b1);
+                scal(scal0, z0);
+            }
+
+            if (scal1 != (T)1) {
+                scal(scal1, a2);
+                scal(scal1, b2);
+                scal(scal1, z1);
+            }
         }
     }
 

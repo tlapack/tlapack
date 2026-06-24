@@ -26,7 +26,7 @@ namespace tlapack {
  * (A, B) = (Q*S*Z', Q*T*Z'), where T is upper triangular, S is
  * quasi-triangular, and Q and Z are unitary.
  *
- * Q' is given by [cl, sl; -conj(sl), cl] and Z is given by [cr, -conj(sr); sr,
+ * Q is given by [cl, -sl; conj(sl), cl] and Z is given by [cr, -conj(sr); sr,
  * cr][scal0 0; 0 scal1].
  *
  *
@@ -131,8 +131,6 @@ void lahqz_schur22(A_t& A,
         temp = cl * B(0, 1) + sl * B(1, 1);
         B(1, 1) = cl * B(1, 1) - conj(sl) * B(0, 1);
         B(0, 1) = temp;
-
-        sl = conj(sl);
 
         cr = real_t(1);
         sr = TA(0);
@@ -251,8 +249,6 @@ void lahqz_schur22(A_t& A,
             temp = cl * B(0, 1) + sl * B(1, 1);
             B(1, 1) = cl * B(1, 1) - conj(sl) * B(0, 1);
             B(0, 1) = temp;
-
-            sl = conj(sl);
         }
         else {
             if constexpr (is_real<TA>) {

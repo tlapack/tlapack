@@ -91,8 +91,8 @@ TEMPLATE_TEST_CASE(
                       scal1);
 
         Q(0, 0) = cl;
-        Q(0, 1) = -conj(sl);
-        Q(1, 0) = sl;
+        Q(0, 1) = -sl;
+        Q(1, 0) = conj(sl);
         Q(1, 1) = cl;
 
         Z(0, 0) = cr * scal0;
@@ -234,8 +234,8 @@ TEMPLATE_TEST_CASE(
                       scal1);
 
         Q(0, 0) = cl;
-        Q(0, 1) = -conj(sl);
-        Q(1, 0) = sl;
+        Q(0, 1) = -sl;
+        Q(1, 0) = conj(sl);
         Q(1, 1) = cl;
 
         Z(0, 0) = cr * scal0;
@@ -391,8 +391,8 @@ TEMPLATE_TEST_CASE(
                       scal1);
 
         Q(0, 0) = cl;
-        Q(0, 1) = -conj(sl);
-        Q(1, 0) = sl;
+        Q(0, 1) = -sl;
+        Q(1, 0) = conj(sl);
         Q(1, 1) = cl;
 
         Z(0, 0) = cr * scal0;
