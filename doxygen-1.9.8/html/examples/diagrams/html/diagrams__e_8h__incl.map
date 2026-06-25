@@ -1,9 +1,0 @@
-<map id="diagrams_e.h" name="diagrams_e.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="72,5,183,31"/>
-<area shape="rect" id="Node000002" href="$diagrams__d_8h.html" title=" " alt="" coords="72,79,183,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="130,31,130,65,125,65,125,31"/>
-<area shape="rect" id="Node000003" href="$diagrams__a_8h.html" title=" " alt="" coords="5,152,116,177"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="118,106,83,144,79,140,114,103"/>
-<area shape="rect" id="Node000004" href="$diagrams__b_8h.html" title=" " alt="" coords="140,152,251,177"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="140,102,177,140,173,144,137,106"/>
-</map>
