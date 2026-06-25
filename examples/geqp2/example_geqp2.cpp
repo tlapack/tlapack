@@ -259,34 +259,6 @@ void run(size_t m, size_t n, size_t r, size_t k)
     tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::NoTrans, T(1.0), S, C,
                   T(0.0), A);
 
-    /*
-    // Fill A with random values
-    for (idx_t j = 0; j < n; ++j)
-        for (idx_t i = 0; i < m; ++i)
-            if constexpr (tlapack::is_complex<T>)
-                A(i, j) = T(
-                    static_cast<float>(rand()) / static_cast<float>(RAND_MAX),
-                    static_cast<float>(rand()) / static_cast<float>(RAND_MAX));
-            else
-                A(i, j) = T(static_cast<float>(rand()) /
-                            static_cast<float>(RAND_MAX));
-    // Perturb the first n-r+1 columns based on the first column so that the
-    first n-r+1
-    // columns are linearly dependent
-    for (idx_t j = 0; j < n - r + 1; ++j) {
-        for (idx_t i = 0; i < m; ++i) {
-            T x = 0.0;
-            if constexpr (tlapack::is_complex<T>)
-                x = T(
-                    static_cast<float>(rand()) / static_cast<float>(RAND_MAX),
-                    static_cast<float>(rand()) / static_cast<float>(RAND_MAX));
-            else
-                x = T(static_cast<float>(rand()) /
-                      static_cast<float>(RAND_MAX));
-            A(i, j) = A(i, 1) + x * eps;
-        }
-    }
-    */
 
     // 2) Apply Two-Sided Random Permutations to Matrix A
 
