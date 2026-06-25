@@ -85,7 +85,7 @@ namespace tlapack {
  * @param[in] tau Vector of length k containing the scalar factors
  *      of the elementary reflectors H.
  *
- * @param[out] T Matrix of size k-by-k containing the triangular factors
+ * @param[out] Tmatrix Matrix of size k-by-k containing the triangular factors
  *      of the block reflector.
  *     - Direction::Forward:  T is upper triangular.
  *     - Direction::Backward: T is lower triangular.
