@@ -15,17 +15,23 @@
 
 #include "tlapack/blas/gemm.hpp"
 #include "tlapack/blas/trmm.hpp"
+#include "tlapack/lapack/geqrf.hpp"
 #include "tlapack/lapack/lacpy.hpp"
 #include "tlapack/lapack/larfg.hpp"
+#include "tlapack/lapack/larft.hpp"
 
 namespace tlapack {
 /**
  * By toggling isw to true, the geqrt3 routine will stop its loop before
  * computing the the upper right block of the T matrix, saving on the potential
  * FLOP count.
+ *
+ * Changing the value of nx will limit how few columns the recursion goes to
+ * before returning.
  */
 struct Geqrt3Opts {
     bool isw = false;
+    size_t nx = 1;
 };
 
 /**
@@ -72,6 +78,13 @@ void geqrt3(matrix_a& A, matrix_h& Tmatrix, const Geqrt3Opts& opts = {})
         // Populate matrix T with an elementary reflector
         larfg(Direction::Forward, StoreV::Columnwise, a_vector, Tmatrix(0, 0));
     }
+    else if (n <= opts.nx) {
+        auto tau = diag(Tmatrix);
+
+        geqrf(A, tau);
+
+        larft(Direction::Forward, StoreV::Columnwise, A, tau, Tmatrix);
+    }
     else {
         // Define slice sizes
         idx_t n1 = n / 2;
@@ -94,7 +107,7 @@ void geqrt3(matrix_a& A, matrix_h& Tmatrix, const Geqrt3Opts& opts = {})
         auto T22 = slice(Tmatrix, range(n1, n), range(n1, n));
 
         // step 1: Compute the QR factorization of A1
-        geqrt3(A1, T11, Geqrt3Opts{.isw = false});
+        geqrt3(A1, T11, Geqrt3Opts{.isw = false, .nx = opts.nx});
 
         // step 2: Copy A12 into T12
         // no additional flops, just copy

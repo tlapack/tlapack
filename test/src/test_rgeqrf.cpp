@@ -41,12 +41,13 @@ TEMPLATE_TEST_CASE(
     // MatrixMarket reader
     MatrixMarket mm;
 
-    idx_t m, n;
+    idx_t m, n, nx;
 
-    m = GENERATE(5, 7, 63);
-    n = GENERATE(2, 3, 5, 8, 16, 21, 51);
+    m = GENERATE(5, 7, 63, 111);
+    n = GENERATE(2, 3, 5, 8, 16, 21, 51, 75);
+    nx = GENERATE(8, 16, 32);
 
-    DYNAMIC_SECTION("m = " << m << " n = " << n)
+    DYNAMIC_SECTION("m = " << m << " n = " << n << " nx = " << nx)
     {
         const real_t eps = ulp<real_t>();
         const real_t tol = real_t(100 * n) * eps;
@@ -72,6 +73,7 @@ TEMPLATE_TEST_CASE(
         // Check that the factorization was successful
         if (m <= 0 || n <= 0 || m < n) {
             norm_orth = real_t(0.0);
+            norm_repres = real_t(0.0);
         }
         else {
             // Copy A to Q
@@ -80,7 +82,7 @@ TEMPLATE_TEST_CASE(
             // 1) Compute A = QR (Stored in the matrix Q)
 
             // QR Factorization
-            geqrt3(Q, Tmatrix, Geqrt3Opts{.isw = true});
+            geqrt3(Q, Tmatrix, Geqrt3Opts{.isw = true, .nx = nx});
 
             // Save the R matrix
             lacpy(UPPER_TRIANGLE, Q, R);
