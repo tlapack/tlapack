@@ -13,6 +13,7 @@
 #ifndef TLAPACK_GEQRT3_HH
 #define TLAPACK_GEQRT3_HH
 
+#include "tlapack/blas/axpy.hpp"
 #include "tlapack/blas/gemm.hpp"
 #include "tlapack/blas/trmm.hpp"
 #include "tlapack/lapack/lacpy.hpp"
@@ -119,9 +120,10 @@ void geqrt3(matrix_a& A, matrix_h& Tmatrix)
 
         // step 8: A12 = A12 - T12
         for (idx_t j = 0; j < n2; ++j) {
-            for (idx_t i = 0; i < m1; ++i) {
-                A12(i, j) -= T12(i, j);
-            }
+            auto A_vector = col(A12, j);
+            auto T_vector = col(T12, j);
+
+            axpy(T(-1.0), T_vector, A_vector);
         }
         // step 9: Compute the QR factorization of A22_32
         geqrt3(A22_32, T22);
