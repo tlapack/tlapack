@@ -15,7 +15,6 @@
 #include "testutils.hpp"
 
 // Auxiliary routines
-#include "tlapack/blas/axpy.hpp"
 #include "tlapack/blas/gemm.hpp"
 #include "tlapack/lapack/geqrt3.hpp"
 #include "tlapack/lapack/lange.hpp"
@@ -129,12 +128,9 @@ TEMPLATE_TEST_CASE(
                 trmm(Side::Right, Uplo::Upper, Op::NoTrans, Diag::NonUnit,
                      static_cast<T>(1.0), R, work);
 
-                for (idx_t j = 0; j < n; ++j) {
-                    auto work_vector = col(work, j);
-                    auto A_vector = col(A, j);
-
-                    axpy(static_cast<T>(-1.0), A_vector, work_vector);
-                }
+                for (idx_t j = 0; j < n; ++j)
+                    for (idx_t i = 0; i < m; ++i)
+                        work(i, j) -= A(i, j);
 
                 norm_repres = lange(FROB_NORM, work) / normA;
             }
