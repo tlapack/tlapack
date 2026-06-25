@@ -308,4 +308,4 @@ int larft_recursive(direction_t direction,
 
 }  // namespace tlapack
 
-#endif  // TLAPACK_LARFT_HH
+#endif  // TLAPACK_LARFT_RECURSIVE_HH
