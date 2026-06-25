@@ -1,4 +1,4 @@
-/// @file test_geqr2.cpp
+/// @file test_rgeqrf.cpp
 /// @author Henricus Bouwmeester, University of Colorado Denver, USA
 /// @author Benicio Ayala, Metropolitan State University of Denver, USA
 /// @author James Barton, Metropolitan State University of Denver, USA
@@ -17,9 +17,7 @@
 // Auxiliary routines
 #include "tlapack/blas/axpy.hpp"
 #include "tlapack/blas/gemm.hpp"
-#include "tlapack/blas/trmm.hpp"
-#include "tlapack/lapack/geqr2.hpp"
-#include "tlapack/lapack/lacpy.hpp"
+#include "tlapack/lapack/geqrt3.hpp"
 #include "tlapack/lapack/lange.hpp"
 #include "tlapack/lapack/lansy.hpp"
 #include "tlapack/lapack/laset.hpp"
@@ -27,10 +25,11 @@
 
 using namespace tlapack;
 
-TEMPLATE_TEST_CASE("geqr2 computes the QR factorization of a matrix",
-                   "[geqr2]",
-                   TLAPACK_TYPES_TO_TEST)
-
+TEMPLATE_TEST_CASE(
+    "rgeqrf utilizes geqrt3 to complete a QR factorization with a repeatedly"
+    "halving block size as it moves to the right",
+    "[rgeqrf]",
+    TLAPACK_TYPES_TO_TEST)
 {
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
@@ -55,58 +54,68 @@ TEMPLATE_TEST_CASE("geqr2 computes the QR factorization of a matrix",
 
         std::vector<T> A_;
         auto A = new_matrix(A_, m, n);
-        std::vector<T> R_;
-        auto R = new_matrix(R_, n, n);
         std::vector<T> Q_;
         auto Q = new_matrix(Q_, m, n);
+        std::vector<T> R_;
+        auto R = new_matrix(R_, n, n);
+        std::vector<T> Tmatrix_;
+        auto Tmatrix = new_matrix(Tmatrix_, n, n);
         std::vector<T> tau(std::min(m, n));
 
         // Generate a random matrix in A
         mm.random(A);
-
-        // Copy A to Q
-        lacpy(GENERAL, A, Q);
 
         real_t normA, norm_orth, norm_repres;
 
         // Compute the norm of A
         normA = lange(FROB_NORM, A);
 
-        // Pass any non-compatible matrices
+        // Check that the factorization was successful
         if (m <= 0 || n <= 0 || m < n) {
             norm_orth = real_t(0.0);
-            norm_repres = real_t(0.0);
         }
         else {
+            // Copy A to Q
+            lacpy(GENERAL, A, Q);
+
             // 1) Compute A = QR (Stored in the matrix Q)
-            // Compute the QR factorization of A
-            geqr2(Q, tau);
+
+            // QR Factorization
+            geqrt3(Q, Tmatrix, Geqrt3Opts{.isw = true});
 
             // Save the R matrix
-            lacpy(Uplo::Upper, Q, R);
+            lacpy(UPPER_TRIANGLE, Q, R);
 
-            // Generates Q = H_1 H_2 ... H_n
+            // Fill tau with the diagonal of the T matrix
+            for (idx_t i = 0; i < n; ++i) {
+                tau[i] = Tmatrix(i, i);
+            }
+
+            // Generates Q = H_1 H_2... H_n
             ung2r(Q, tau);
 
             // 2) Compute ||Q'Q - I||_F
+
             {
                 std::vector<T> work_;
                 auto work = new_matrix(work_, n, n);
                 for (idx_t j = 0; j < n; ++j)
                     for (idx_t i = 0; i < n; ++i)
-                        work(i, j) = T(static_cast<T>(0xABADBABE));
+                        work(i, j) = static_cast<T>(0xABADBABE);
 
                 // work receives the identity n*n
-                laset(GENERAL, static_cast<T>(0.0), static_cast<T>(1.0), work);
+                laset(UPPER_TRIANGLE, static_cast<T>(0.0), static_cast<T>(1.0),
+                      work);
                 // work receives Q'Q - I
                 gemm(Op::ConjTrans, Op::NoTrans, static_cast<T>(1.0), Q, Q,
                      static_cast<T>(-1.0), work);
 
                 // Compute ||Q'Q - I||_F
-                norm_orth = lange(FROB_NORM, work);
+                norm_orth = lansy(FROB_NORM, UPPER_TRIANGLE, work);
             }
 
             // 3) Compute ||QR - A||_F / ||A||_F
+
             {
                 std::vector<T> work_;
                 auto work = new_matrix(work_, m, n);
@@ -130,7 +139,6 @@ TEMPLATE_TEST_CASE("geqr2 computes the QR factorization of a matrix",
                 norm_repres = lange(FROB_NORM, work) / normA;
             }
         }
-
         CHECK(norm_orth <= tol);
         CHECK(norm_repres <= tol);
     }

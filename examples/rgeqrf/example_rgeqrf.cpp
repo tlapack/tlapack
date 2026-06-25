@@ -1,20 +1,29 @@
-/// @file example_geqr2.cpp
-/// @author Weslley S Pereira, University of Colorado Denver, USA
+/// @file example_rgeqrf.cpp
+/// @author Henricus Bouwmeester, University of Colorado Denver, USA
+/// @author Benicio Ayala, Metropolitan State University of Denver, USA
+/// @author James Barton, Metropolitan State University of Denver, USA
+/// @author Hunter Hagerman, Metropolitan State University of Denver, USA
+/// @author Sandra Swartz, Metropolitan State University of Denver, USA
 //
 // Copyright (c) 2025, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
+//
+// rgeqrf utilizes geqrt3 to complete a QR factorization with a repeatedly
+// halving block size as it moves to the right
+//
+// rgeqrf does not compute the full T matrix
 
 // Plugins for <T>LAPACK (must come before <T>LAPACK headers)
 #include <tlapack/plugins/legacyArray.hpp>
 
 // <T>LAPACK
 #include <tlapack/blas/axpy.hpp>
-#include <tlapack/blas/syrk.hpp>
+#include <tlapack/blas/gemm.hpp>
 #include <tlapack/blas/trmm.hpp>
-#include <tlapack/lapack/geqr2.hpp>
+#include <tlapack/lapack/geqrt3.hpp>
 #include <tlapack/lapack/lacpy.hpp>
 #include <tlapack/lapack/lange.hpp>
 #include <tlapack/lapack/lansy.hpp>
@@ -44,12 +53,14 @@ void printMatrix(const matrix_t& A)
 }
 
 //------------------------------------------------------------------------------
-template <typename real_t>
+template <typename T>
 void run(size_t m, size_t n)
 {
     using std::size_t;
-    using matrix_t = tlapack::LegacyMatrix<real_t>;
+    using matrix_t = tlapack::LegacyMatrix<T>;
+    using real_t = tlapack::real_type<T>;
     using idx_t = tlapack::size_type<matrix_t>;
+    using range = tlapack::pair<idx_t, idx_t>;
 
     // Functors for creating new matrices
     tlapack::Create<matrix_t> new_matrix;
@@ -58,40 +69,50 @@ void run(size_t m, size_t n)
     bool verbose = false;
 
     // Arrays
-    std::vector<real_t> tau(n);
+    std::vector<T> tau(n);
 
     // Matrices
-    std::vector<real_t> A_;
+    std::vector<T> A_;
     auto A = new_matrix(A_, m, n);
-    std::vector<real_t> R_;
+    std::vector<T> R_;
     auto R = new_matrix(R_, n, n);
-    std::vector<real_t> Q_;
+    std::vector<T> Q_;
     auto Q = new_matrix(Q_, m, n);
+    std::vector<T> Tmatrix_;
+    auto Tmatrix = new_matrix(Tmatrix_, n, n);
 
     // Initialize arrays with junk
     for (idx_t j = 0; j < n; ++j) {
         for (idx_t i = 0; i < m; ++i) {
-            A(i, j) = static_cast<float>(0xDEADBEEF);
-            Q(i, j) = static_cast<float>(0xCAFED00D);
+            A(i, j) = T(static_cast<float>(0xDEADBEEF));
+            Q(i, j) = T(static_cast<float>(0xCAFED00D));
         }
         for (idx_t i = 0; i < n; ++i) {
-            R(i, j) = static_cast<float>(0xFEE1DEAD);
+            Tmatrix(i, j) = T(static_cast<float>(0XFEE1DEAD));
+            R(i, j) = T(static_cast<float>(0xFEE1DEAD));
         }
-        tau[j] = static_cast<float>(0xFFBADD11);
+        tau[j] = T(static_cast<float>(0xFFBADD11));
     }
 
     // Generate a random matrix in A
     for (idx_t j = 0; j < n; ++j)
         for (idx_t i = 0; i < m; ++i)
-            A(i, j) = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+            if constexpr (tlapack::is_complex<T>)
+                A(i, j) = T(
+                    static_cast<float>(rand()) / static_cast<float>(RAND_MAX),
+                    static_cast<float>(rand()) / static_cast<float>(RAND_MAX));
+            else
+                A(i, j) = T(static_cast<float>(rand()) /
+                            static_cast<float>(RAND_MAX));
 
     // Frobenius norm of A
-    auto normA = tlapack::lange(tlapack::FROB_NORM, A);
+    real_t normA = tlapack::lange(tlapack::FROB_NORM, A);
 
     // Print A
     if (verbose) {
         std::cout << std::endl << "A = ";
         printMatrix(A);
+        std::cout << std::endl;
     }
 
     // Copy A to Q
@@ -102,14 +123,8 @@ void run(size_t m, size_t n)
     // Record start time
     auto startQR = std::chrono::high_resolution_clock::now();
     {
-        // QR factorization
-        tlapack::geqr2(Q, tau);
-
-        // Save the R matrix
-        tlapack::lacpy(tlapack::UPPER_TRIANGLE, Q, R);
-
-        // Generates Q = H_1 H_2 ... H_n
-        tlapack::ung2r(Q, tau);
+        // QR Factorization
+        tlapack::geqrt3(Q, Tmatrix, tlapack::Geqrt3Opts{.isw = true});
     }
     // Record end time
     auto endQR = std::chrono::high_resolution_clock::now();
@@ -118,11 +133,22 @@ void run(size_t m, size_t n)
     auto elapsedQR =
         std::chrono::duration_cast<std::chrono::nanoseconds>(endQR - startQR);
 
-    // Compute FLOPS
-    double flopsQR =
-        (4.0e+00 * ((double)m) * ((double)n) * ((double)n) -
-         4.0e+00 / 3.0e+00 * ((double)n) * ((double)n) * ((double)n)) /
-        (elapsedQR.count() * 1.0e-9);
+    // Compute FLOP count
+    // Full FLOP formula: 7/3mn² + 2/3m - 25/42n³ + 1/2n² - 1/3n + 3/7
+    double flops = (7.0 / 3.0 * m * n * n) - (25.0 / 42.0 * n * n * n);
+
+    double flopsQR = flops / (elapsedQR.count() * 1.0e-9);
+
+    // Save the R matrix
+    tlapack::lacpy(tlapack::UPPER_TRIANGLE, Q, R);
+
+    // Fill tau with the diagonal of the T matrix
+    for (idx_t i = 0; i < n; ++i) {
+        tau[i] = Tmatrix(i, i);
+    }
+
+    // Generates Q = H_1 H_2... H_n
+    tlapack::ung2r(Q, tau);
 
     // Print Q and R
     if (verbose) {
@@ -130,27 +156,31 @@ void run(size_t m, size_t n)
         printMatrix(Q);
         std::cout << std::endl << "R = ";
         printMatrix(R);
+        std::cout << std::endl << "T = ";
+        printMatrix(Tmatrix);
+        std::cout << std::endl;
     }
-
-    real_t norm_orth_1, norm_repres_1;
 
     // 2) Compute ||Q'Q - I||_F
 
+    real_t norm_orth, norm_repres;
+
     {
-        std::vector<real_t> work_;
+        std::vector<T> work_;
         auto work = new_matrix(work_, n, n);
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < n; ++i)
                 work(i, j) = static_cast<float>(0xABADBABE);
 
         // work receives the identity n*n
-        tlapack::laset(tlapack::UPPER_TRIANGLE, 0.0, 1.0, work);
+        tlapack::laset(tlapack::UPPER_TRIANGLE, static_cast<T>(0.0),
+                       static_cast<T>(1.0), work);
         // work receives Q'Q - I
-        tlapack::syrk(tlapack::Uplo::Upper, tlapack::Op::Trans, 1.0, Q, -1.0,
-                      work);
+        tlapack::gemm(tlapack::Op::ConjTrans, tlapack::Op::NoTrans,
+                      static_cast<T>(1.0), Q, Q, static_cast<T>(-1.0), work);
 
         // Compute ||Q'Q - I||_F
-        norm_orth_1 =
+        norm_orth =
             tlapack::lansy(tlapack::FROB_NORM, tlapack::UPPER_TRIANGLE, work);
 
         if (verbose) {
@@ -162,7 +192,7 @@ void run(size_t m, size_t n)
     // 3) Compute ||QR - A||_F / ||A||_F
 
     {
-        std::vector<real_t> work_;
+        std::vector<T> work_;
         auto work = new_matrix(work_, m, n);
         for (idx_t j = 0; j < n; ++j)
             for (idx_t i = 0; i < m; ++i)
@@ -172,27 +202,29 @@ void run(size_t m, size_t n)
         tlapack::lacpy(tlapack::GENERAL, Q, work);
 
         tlapack::trmm(tlapack::Side::Right, tlapack::Uplo::Upper,
-                      tlapack::Op::NoTrans, tlapack::Diag::NonUnit, 1.0, R,
-                      work);
+                      tlapack::Op::NoTrans, tlapack::Diag::NonUnit,
+                      static_cast<T>(1.0), R, work);
 
         for (idx_t j = 0; j < n; ++j) {
             auto work_vector = col(work, j);
             auto A_vector = col(A, j);
 
-            tlapack::axpy(-1.0, A_vector, work_vector);
+            tlapack::axpy(static_cast<T>(-1.0), A_vector, work_vector);
         }
 
-        norm_repres_1 = tlapack::lange(tlapack::FROB_NORM, work) / normA;
+        norm_repres = tlapack::lange(tlapack::FROB_NORM, work) / normA;
     }
 
     // *) Output
 
     std::cout << std::endl;
     std::cout << "time = " << elapsedQR.count() * 1.0e-6 << " ms"
-              << ",   GFlop/sec = " << flopsQR * 1.0e-9;
+              << ",   GFlop/sec = " << flopsQR * 1.0e-9
+              << ", Flops = " << flops;
     std::cout << std::endl;
-    std::cout << "||QR - A||_F/||A||_F  = " << norm_repres_1
-              << ",        ||Q'Q - I||_F  = " << norm_orth_1;
+
+    std::cout << "||QR - A||_F/||A||_F  = " << std::real(norm_repres)
+              << ",        ||Q'Q - I||_F  = " << std::real(norm_orth);
     std::cout << std::endl;
 }
 
@@ -220,6 +252,18 @@ int main(int argc, char** argv)
 
     printf("run< long double >( %d, %d )", m, n);
     run<long double>(m, n);
+    printf("-----------------------\n");
+
+    printf("run< complex<float> >( %d, %d )", m, n);
+    run<std::complex<float>>(m, n);
+    printf("-----------------------\n");
+
+    printf("run< complex<double> >( %d, %d )", m, n);
+    run<std::complex<double>>(m, n);
+    printf("-----------------------\n");
+
+    printf("run< complex<long double> >( %d, %d )", m, n);
+    run<std::complex<long double>>(m, n);
     printf("-----------------------\n");
 
     return 0;

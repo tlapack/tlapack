@@ -1,4 +1,4 @@
-/// @file test_geqr2.cpp
+/// @file test_geqrf.cpp
 /// @author Henricus Bouwmeester, University of Colorado Denver, USA
 /// @author Benicio Ayala, Metropolitan State University of Denver, USA
 /// @author James Barton, Metropolitan State University of Denver, USA
@@ -17,8 +17,7 @@
 // Auxiliary routines
 #include "tlapack/blas/axpy.hpp"
 #include "tlapack/blas/gemm.hpp"
-#include "tlapack/blas/trmm.hpp"
-#include "tlapack/lapack/geqr2.hpp"
+#include "tlapack/lapack/geqrf.hpp"
 #include "tlapack/lapack/lacpy.hpp"
 #include "tlapack/lapack/lange.hpp"
 #include "tlapack/lapack/lansy.hpp"
@@ -27,10 +26,9 @@
 
 using namespace tlapack;
 
-TEMPLATE_TEST_CASE("geqr2 computes the QR factorization of a matrix",
-                   "[geqr2]",
+TEMPLATE_TEST_CASE("geqrf computes the QR factorization of a matrix",
+                   "[geqrf]",
                    TLAPACK_TYPES_TO_TEST)
-
 {
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
@@ -44,11 +42,13 @@ TEMPLATE_TEST_CASE("geqr2 computes the QR factorization of a matrix",
     MatrixMarket mm;
 
     idx_t m, n;
+    GeqrfOpts opts;
 
-    m = GENERATE(5, 7, 63);
-    n = GENERATE(2, 3, 5, 8, 16, 21, 51);
+    m = GENERATE(4, 15, 26, 83);
+    n = GENERATE(4, 9, 11, 29, 53);
+    opts.nb = GENERATE(1, 2, 3, 5, 11, 32);
 
-    DYNAMIC_SECTION("m = " << m << " n = " << n)
+    DYNAMIC_SECTION("m = " << m << " n = " << n << "nb = " << opts.nb)
     {
         const real_t eps = ulp<real_t>();
         const real_t tol = real_t(100 * n) * eps;
@@ -73,14 +73,14 @@ TEMPLATE_TEST_CASE("geqr2 computes the QR factorization of a matrix",
         normA = lange(FROB_NORM, A);
 
         // Pass any non-compatible matrices
-        if (m <= 0 || n <= 0 || m < n) {
+        if (m <= 0 || n <= 0 || m < n || opts.nb <= 0) {
             norm_orth = real_t(0.0);
             norm_repres = real_t(0.0);
         }
         else {
             // 1) Compute A = QR (Stored in the matrix Q)
             // Compute the QR factorization of A
-            geqr2(Q, tau);
+            geqrf(Q, tau, opts);
 
             // Save the R matrix
             lacpy(Uplo::Upper, Q, R);
