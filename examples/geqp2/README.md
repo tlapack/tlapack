@@ -8,15 +8,11 @@ The code uses the routine tlapack::geqr2 to perform a partial factorization on t
 
 To examine the accuracy of the method, we measure ||A - QR||_F / normA​ and, ||I - Q^H Q||_F where F denotes the Frobenius norm, so that the expected output is A-QR = 0. In the final step of the algorithm, we use tlapack::lange to compute the Frobenius norm of the errors. 
 
-
-
-The code uses the routine [tlapack::geqp2](include/lapack/geqp2.hpp) to perform the complete factorization in place, and [tlapack::ung2r](include/lapack/ung2r.hpp) to generate the m-by-n matrix Q. We store R in a n-by-n upper triangular matrix.
-
 To examine the accuracy of the method, we measure
 <img src="https://latex.codecogs.com/gif.latex?\|Q^tQ&space;-&space;I\|_F" />
 and
 <img src="https://latex.codecogs.com/gif.latex?\|QR&space;-&space;A\|_F/\|A\|_F" />,
- In the final step of the algorithm, we use [tlapack::lange](../../include/lapack/lange.hpp) to compute the Frobenius norm of A.
+ In the final step of the algorithm, we use [tlapack::lange] to compute the Frobenius norm of A.
 
 ## Build
 
