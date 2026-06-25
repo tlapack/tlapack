@@ -73,6 +73,26 @@ add_custom_command(
     && echo ""
 )
 
+# add the example geqrf_preprocessed
+add_subdirectory( geqrf_preprocessed )
+add_custom_command(
+  OUTPUT run-all-examples-cmd APPEND
+  COMMAND
+    echo "- example_geqrf_preprocessed ----------------" &&
+    "${CMAKE_CURRENT_BINARY_DIR}/geqrf_preprocessed/example_geqrf_preprocessed${CMAKE_EXECUTABLE_SUFFIX}"
+    && echo ""
+)
+
+# add the example geqrf_preprocessed_square
+add_subdirectory( geqrf_preprocessed_square )
+add_custom_command(
+  OUTPUT run-all-examples-cmd APPEND
+  COMMAND
+    echo "- example_geqrf_preprocessed_square ----------------" &&
+    "${CMAKE_CURRENT_BINARY_DIR}/geqrf_preprocessed_square/example_geqrf_preprocessed_square${CMAKE_EXECUTABLE_SUFFIX}"
+    && echo ""
+)
+
 # add the example laed4
 add_subdirectory( laed4 )
 add_custom_command(
