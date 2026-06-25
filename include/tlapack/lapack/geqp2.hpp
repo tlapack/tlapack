@@ -60,6 +60,15 @@ namespace tlapack {
  *      On exit, p[i] = j means that the i-th column of the permuted matrix
  *      was originally the j-th column of the input matrix A.
  *
+ * @param[in, out] vn1 Real vector of length n.
+ *      On entry and exit, vn1[j] contains the norm of the vector A(j:m,j) for j = 1, n.
+ *      Used for tracking column norms during the QR factorization with pivoting.
+ *
+ *
+ * @param[in, out] vn2 Real vector of length n.
+ *      On entry and exit, vn2[j] contains the norm of the vector A(j:m,j) for j = 1, n.
+ *      Used as the base norm for updating vn1  during the factorization.
+ *
  * @ingroup computational
  */
 

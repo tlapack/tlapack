@@ -32,6 +32,11 @@
 // C++ Headers
 #include <chrono>  // for high_resolution_clock
 #include <random>
+#include <iostream>
+#include <vector>
+#include <memory>
+#include <random>
+#include <algorithm>
 
 enum class PermuteTarget { Rows, Columns };
 
@@ -46,7 +51,7 @@ enum class PermuteTarget { Rows, Columns };
 template <typename matrix_t, typename idx_vector_t>
 void permute_matrix(matrix_t& A,
                     PermuteTarget target,
-                    idx_vector_t& target_order)
+                    idx_vector_t target_order)
 {
     using idx_t = tlapack::size_type<matrix_t>;
 
@@ -205,13 +210,13 @@ void run(size_t m, size_t n, size_t r, size_t k)
 
     // Slices
     // Define A_1 := A[0:m,0:k] which is the first k columns of A
-    auto A_1 = slice(A, range(0, m), range(0, k));
+    auto A_1 = tlapack::slice(A, range(0, m), range(0, k));
     // Define A_2 := A[0:m,k:n]
-    auto A_2 = slice(A, range(0, m), range(k, n));
+    auto A_2 = tlapack::slice(A, range(0, m), range(k, n));
     // Define A_22 := A[k:m,k:n]
-    auto A_22 = slice(A, range(k, m), range(k, n));
+    auto A_22 = tlapack::slice(A, range(k, m), range(k, n));
     // Define R_12 := A[0:k,k:n]
-    auto R_12 = slice(A, range(0, k), range(k, n));
+    auto R_12 = tlapack::slice(A, range(0, k), range(k, n));
     // Define tau_head := tau[0:k]
     auto tau_head = tlapack::slice(tau, std::pair{0, k});
     // Define tau_tail := tau[k:n]
@@ -256,9 +261,8 @@ void run(size_t m, size_t n, size_t r, size_t k)
     // 1) Compute A = S * C
 
     // Perform Matrix multiplication A = 1.0*S*C + 0.0*A
-    tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::NoTrans, T(1.0), S, C,
-                  T(0.0), A);
-
+    tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::NoTrans, static_cast<T>(1.0), S, C, static_cast<T>
+    (0.0), A);
 
     // 2) Apply Two-Sided Random Permutations to Matrix A
 
@@ -283,7 +287,7 @@ void run(size_t m, size_t n, size_t r, size_t k)
                    A_2);
 
     // 5) Compute Rank-Revealing QR (Drmac) on A_22
-    geqp2(A_22, tau_tail, perm, vn1, vn2);
+    tlapack::geqp2(A_22, tau_tail, perm, vn1, vn2);
 
     // 6) Permutes Upper Right Block R_12 per the rank revealing algorithm of
     // Drmac
@@ -306,7 +310,7 @@ void run(size_t m, size_t n, size_t r, size_t k)
     // 8) Compute Backward Error Validation
 
     //  Define A_orig_2 := A_orig[0:m,k:n]
-    auto A_orig_2 = slice(A_orig, range(0, m), range(k, n));
+    auto A_orig_2 = tlapack::slice(A_orig, range(0, m), range(k, n));
     // Permute the original matrix to produce AP before sendind it to the check
     permute_matrix(A_orig_2, PermuteTarget::Columns, perm);
 
