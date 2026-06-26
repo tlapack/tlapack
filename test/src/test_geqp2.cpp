@@ -52,6 +52,7 @@ TEMPLATE_TEST_CASE("geqp2 computes the QR factorization of a matrix",
     using matrix_t = TestType;
     using T = type_t<matrix_t>;
     using idx_t = size_type<matrix_t>;
+    using tlapack::swap;
     typedef real_type<T> real_t;
 
     // Functor
@@ -132,7 +133,7 @@ TEMPLATE_TEST_CASE("geqp2 computes the QR factorization of a matrix",
                     auto current_col = col(A_orig, current);
                     auto next_col = col(A_orig, next_node);
 
-                    swap(current_col, next_col);
+                    tlapack::swap(current_col, next_col);
 
                     current = next_node;
                 }

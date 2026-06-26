@@ -89,6 +89,7 @@ int geqp2(matrix_t& A,
     using range = pair<idx_t, idx_t>;
     using T = type_t<matrix_t>;
     using real_t = real_type<T>;
+    using tlapack::swap;
 
     // constants
     const idx_t m = nrows(A);
@@ -124,8 +125,7 @@ int geqp2(matrix_t& A,
         if (pivot != k) {
             auto current_col = col(A, k);
             auto next_col = col(A, pivot);
-            swap<decltype(current_col), decltype(next_col)>(current_col,
-                                                            next_col);
+            tlapack::swap(current_col, next_col);
 
             auto k_col1 = col(VN1, k);
             auto k_col2 = col(VN2, k);
@@ -134,9 +134,9 @@ int geqp2(matrix_t& A,
             auto pivot_col2 = col(VN2, pivot);
             auto p2_col = col(P, pivot);
 
-            swap<decltype(k_col1), decltype(pivot_col1)>(k_col1, pivot_col1);
-            swap<decltype(k_col2), decltype(pivot_col2)>(k_col2, pivot_col2);
-            swap<decltype(p1_col), decltype(p2_col)>(p1_col, p2_col);
+            tlapack::swap(k_col1, pivot_col1);
+            tlapack::swap(k_col2, pivot_col2);
+            tlapack::swap(p1_col, p2_col);
         }
 
         // Generate Householder reflector for the k-th column
@@ -168,7 +168,7 @@ int geqp2(matrix_t& A,
                     vn2[j] = vn1[j];  // Reset base
                 }
                 else {
-                    vn1[j] *= std::sqrt(t);
+                    vn1[j] *= static_cast<real_t>(sqrt(static_cast<double>(t)));
                 }
             }
         }
