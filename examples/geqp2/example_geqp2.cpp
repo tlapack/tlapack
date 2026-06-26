@@ -30,13 +30,12 @@
 #include <tlapack/lapack/unmqr.hpp>
 
 // C++ Headers
+#include <algorithm>
 #include <chrono>  // for high_resolution_clock
-#include <random>
 #include <iostream>
-#include <vector>
 #include <memory>
 #include <random>
-#include <algorithm>
+#include <vector>
 
 enum class PermuteTarget { Rows, Columns };
 
@@ -261,8 +260,8 @@ void run(size_t m, size_t n, size_t r, size_t k)
     // 1) Compute A = S * C
 
     // Perform Matrix multiplication A = 1.0*S*C + 0.0*A
-    tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::NoTrans, static_cast<T>(1.0), S, C, static_cast<T>
-    (0.0), A);
+    tlapack::gemm(tlapack::Op::NoTrans, tlapack::Op::NoTrans,
+                  static_cast<T>(1.0), S, C, static_cast<T>(0.0), A);
 
     // 2) Apply Two-Sided Random Permutations to Matrix A
 
