@@ -14,7 +14,6 @@
 #include "testutils.hpp"
 
 // Auxiliary routines
-#include "tlapack/blas/axpy.hpp"
 #include "tlapack/blas/gemm.hpp"
 #include "tlapack/lapack/geqrt3.hpp"
 #include "tlapack/lapack/lacpy.hpp"
@@ -39,9 +38,11 @@ TEMPLATE_TEST_CASE(
 
     MatrixMarket mm;
 
-    idx_t m, n;
-    m = GENERATE(5, 7, 63);
-    n = GENERATE(2, 3, 5, 8, 16, 21, 51);
+    idx_t m, n, nx;
+
+    m = GENERATE(5, 7, 63, 111);
+    n = GENERATE(2, 3, 5, 8, 16, 21, 51, 75);
+    nx = GENERATE(8, 16, 32);
 
     const real_t eps = ulp<real_t>();
     const real_t tol = real_t(100 * n) * eps;
@@ -78,7 +79,7 @@ TEMPLATE_TEST_CASE(
         lacpy(GENERAL, A, Q);
 
         // 1) Compute the QR factorization of A
-        geqrt3(Q, Tmatrix);
+        geqrt3(Q, Tmatrix, Geqrt3Opts{.nx = nx});
 
         // 2) Compute ||Qᴴ Q - I||ꜰ
 
@@ -108,12 +109,9 @@ TEMPLATE_TEST_CASE(
         trmm(Side::Right, Uplo::Upper, Op::NoTrans, Diag::NonUnit,
              static_cast<T>(1.0), R, Q);
 
-        for (idx_t j = 0; j < n; ++j) {
-            auto Q_vector = col(Q, j);
-            auto A_vector = col(A, j);
-
-            axpy(static_cast<T>(-1.0), A_vector, Q_vector);
-        }
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < m; ++i)
+                Q(i, j) -= A(i, j);
 
         norm_repres = lange(FROB_NORM, Q) / normA;
     }

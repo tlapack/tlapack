@@ -18,7 +18,6 @@
 #include <tlapack/plugins/legacyArray.hpp>
 
 // <T>LAPACK
-#include <tlapack/blas/axpy.hpp>
 #include <tlapack/blas/gemm.hpp>
 #include <tlapack/blas/trmm.hpp>
 #include <tlapack/lapack/geqrt3.hpp>
@@ -51,7 +50,7 @@ void printMatrix(const matrix_t& A)
 
 //------------------------------------------------------------------------------
 template <typename T>
-void run(size_t m, size_t n)
+void run(size_t m, size_t n, size_t nx)
 {
     using std::size_t;
     using matrix_t = tlapack::LegacyMatrix<T>;
@@ -104,7 +103,7 @@ void run(size_t m, size_t n)
     // Record start time
     auto startQR = std::chrono::high_resolution_clock::now();
     {
-        tlapack::geqrt3(Q, Tmatrix);
+        tlapack::geqrt3(Q, Tmatrix, tlapack::Geqrt3Opts{.nx = nx});
     }
     // Record end time
     auto endQR = std::chrono::high_resolution_clock::now();
@@ -172,12 +171,9 @@ void run(size_t m, size_t n)
                       tlapack::Op::NoTrans, tlapack::Diag::NonUnit,
                       static_cast<T>(1.0), R, work);
 
-        for (idx_t j = 0; j < n; ++j) {
-            auto work_vector = col(work, j);
-            auto A_vector = col(A, j);
-
-            tlapack::axpy(static_cast<T>(-1.0), A_vector, work_vector);
-        }
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < m; ++i)
+                work(i, j) -= A(i, j);
 
         norm_repres = tlapack::lange(tlapack::FROB_NORM, work) / normA;
     }
@@ -217,42 +213,40 @@ void run(size_t m, size_t n)
 //================================================================================
 int main(int argc, char** argv)
 {
-    int m, n;
+    int m, n, nx;
 
     // Default arguments
-    m = (argc < 2) ? 1 : atoi(argv[1]);
-    n = (argc < 3) ? 1 : atoi(argv[2]);
+    m = (argc < 2) ? 7 : atoi(argv[1]);
+    n = (argc < 3) ? 5 : atoi(argv[2]);
+    nx = (argc < 4) ? 1 : atoi(argv[3]);
 
     srand(3);  // Init random seed
-
-    m = 73;
-    n = 55;
 
     std::cout.precision(5);
     std::cout << std::scientific << std::showpos;
 
-    printf("run< float  >( %d, %d )", m, n);
-    run<float>(m, n);
+    printf("run< float  >( %d, %d, %d )", m, n, nx);
+    run<float>(m, n, nx);
     printf("-----------------------\n");
 
-    printf("run< double >( %d, %d )", m, n);
-    run<double>(m, n);
+    printf("run< double >( %d, %d, %d )", m, n, nx);
+    run<double>(m, n, nx);
     printf("-----------------------\n");
 
-    printf("run< long double >( %d, %d )", m, n);
-    run<long double>(m, n);
+    printf("run< long double >( %d, %d, %d )", m, n, nx);
+    run<long double>(m, n, nx);
     printf("-----------------------\n");
 
-    printf("run< complex<float> >( %d, %d )", m, n);
-    run<std::complex<float>>(m, n);
+    printf("run< complex<float> >( %d, %d, %d )", m, n, nx);
+    run<std::complex<float>>(m, n, nx);
     printf("-----------------------\n");
 
-    printf("run< complex<double> >( %d, %d )", m, n);
-    run<std::complex<double>>(m, n);
+    printf("run< complex<double> >( %d, %d, %d )", m, n, nx);
+    run<std::complex<double>>(m, n, nx);
     printf("-----------------------\n");
 
-    printf("run< complex<long double> >( %d, %d )", m, n);
-    run<std::complex<long double>>(m, n);
+    printf("run< complex<long double> >( %d, %d, %d )", m, n, nx);
+    run<std::complex<long double>>(m, n, nx);
     printf("-----------------------\n");
 
     return 0;

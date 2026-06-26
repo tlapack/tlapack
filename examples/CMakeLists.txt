@@ -22,6 +22,16 @@ add_custom_command(
     && echo ""
 )
 
+# add the example rgeqrf
+add_subdirectory( rgeqrf )
+add_custom_command(
+  OUTPUT run-all-examples-cmd APPEND
+  COMMAND
+    echo "- example_rgeqrf ----------------" &&
+    "${CMAKE_CURRENT_BINARY_DIR}/rgeqrf/example_rgeqrf${CMAKE_EXECUTABLE_SUFFIX}"
+    && echo ""
+)
+
 # add the example geqrt3
 add_subdirectory( geqrt3 )
 add_custom_command(
