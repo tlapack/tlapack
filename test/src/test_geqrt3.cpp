@@ -38,9 +38,11 @@ TEMPLATE_TEST_CASE(
 
     MatrixMarket mm;
 
-    idx_t m, n;
-    m = GENERATE(5, 7, 63);
-    n = GENERATE(2, 3, 5, 8, 16, 21, 51);
+    idx_t m, n, nx;
+
+    m = GENERATE(5, 7, 63, 111);
+    n = GENERATE(2, 3, 5, 8, 16, 21, 51, 75);
+    nx = GENERATE(8, 16, 32);
 
     const real_t eps = ulp<real_t>();
     const real_t tol = real_t(100 * n) * eps;
@@ -77,7 +79,7 @@ TEMPLATE_TEST_CASE(
         lacpy(GENERAL, A, Q);
 
         // 1) Compute the QR factorization of A
-        geqrt3(Q, Tmatrix);
+        geqrt3(Q, Tmatrix, Geqrt3Opts{.nx = nx});
 
         // 2) Compute ||Qᴴ Q - I||ꜰ
 
