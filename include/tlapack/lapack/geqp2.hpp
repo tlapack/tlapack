@@ -60,14 +60,15 @@ namespace tlapack {
  *      On exit, p[i] = j means that the i-th column of the permuted matrix
  *      was originally the j-th column of the input matrix A.
  *
- * @param[in, out] vn1 Real vector of length n.
- *      On entry and exit, vn1[j] contains the norm of the vector A(j:m,j) for j = 1, n.
- *      Used for tracking column norms during the QR factorization with pivoting.
+ * @param[in,out] vn1 Real vector of length n.
+ *      On entry and exit, vn1[j] contains the norm of the vector A(j:m,j) for
+ *      j = 1, n. Used for tracking column norms during the QR factorization with
+ *      pivoting.
  *
  *
- * @param[in, out] vn2 Real vector of length n.
- *      On entry and exit, vn2[j] contains the norm of the vector A(j:m,j) for j = 1, n.
- *      Used as the base norm for updating vn1  during the factorization.
+ * @param[in,out] vn2 Real vector of length n.
+ *      On entry and exit, vn2[j] contains the norm of the vector A(j:m,j) for
+ *      j = 1, n. Used as the base norm for updating vn1  during the factorization.
  *
  * @ingroup computational
  */
@@ -122,7 +123,7 @@ int geqp2(matrix_t& A,
         if (pivot != k) {
             auto current_col = col(A, k);
             auto next_col = col(A, pivot);
-            swap(current_col, next_col);
+            swap<decltype(current_col),decltype(next_col)>(current_col, next_col);
 
             auto k_col1 = col(VN1, k);
             auto k_col2 = col(VN2, k);
@@ -131,9 +132,9 @@ int geqp2(matrix_t& A,
             auto pivot_col2 = col(VN2, pivot);
             auto p2_col = col(P, pivot);
 
-            swap(k_col1, pivot_col1);
-            swap(k_col2, pivot_col2);
-            swap(p1_col, p2_col);
+            swap<decltype(k_col1),decltype(pivot_col1)>(k_col1, pivot_col1);
+            swap<decltype(k_col2),decltype(pivot_col2)>(k_col2, pivot_col2);
+            swap<decltype(p1_col),decltype(p2_col)>(p1_col, p2_col);
         }
 
         // Generate Householder reflector for the k-th column

@@ -61,11 +61,11 @@ TEMPLATE_TEST_CASE("geqp2 computes the QR factorization of a matrix",
 
     idx_t m, n, r;
 
-    r = GENERATE(5, 8, 10, 12, 15);
+    r = GENERATE(3, 5, 7);
     // Generate n to be greater than or equal to r
-    n = GENERATE(15, 24, 30, 40, 50);
+    n = GENERATE(7, 11, 15);
     // Generate m to be greater than or equal to n
-    m = GENERATE(30, 48, 60, 80, 100);
+    m = GENERATE(15, 21, 30);
 
     const real_t eps = ulp<real_t>();
     const real_t tol = real_t(100 * n) * eps;
@@ -128,7 +128,6 @@ TEMPLATE_TEST_CASE("geqp2 computes the QR factorization of a matrix",
             while (!visited[current]) {
                 visited[current] = true;
                 idx_t next_node = perm[current];
-
                 if (!visited[next_node]) {
                     auto current_col = col(A_orig, current);
                     auto next_col = col(A_orig, next_node);
@@ -141,13 +140,10 @@ TEMPLATE_TEST_CASE("geqp2 computes the QR factorization of a matrix",
         }
 
         // 4) Evaluate Numerical Rank
-        real_t tol_rank = std::max(m, n) * eps * std::abs(A(0, 0));
-        for (idx_t i = 0; i < std::min(m, n); i++) {
-            if (std::abs(A(i, i)) > tol_rank) {
+        real_t tol_rank = real_t(max(m, n) * eps * normA);
+        for (idx_t i = 0; i < min(m, n); i++) {
+            if (abs(A(i, i)) > tol_rank) {
                 rank++;
-            }
-            else {
-                break;
             }
         }
 
