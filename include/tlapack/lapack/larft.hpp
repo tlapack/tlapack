@@ -1,13 +1,17 @@
 /// @file larft.hpp Forms the triangular factor T of a block reflector.
-/// @author Weslley S Pereira, University of Colorado Denver, USA
-/// @note Adapted from @see
-/// https://github.com/langou/latl/blob/master/include/larft.h
+/// @author Henricus Bouwmeester, University of Colorado Denver, USA
+/// @author Benicio Ayala, Metropolitan State University of Denver, USA
+/// @author James Barton, Metropolitan State University of Denver, USA
+/// @author Hunter Hagerman, Metropolitan State University of Denver, USA
+/// @author Sandra Swartz, Metropolitan State University of Denver, USA
 //
-// Copyright (c) 2025, University of Colorado Denver. All rights reserved.
+// Copyright (c) 2026, University of Colorado Denver. All rights reserved.
 //
 // This file is part of <T>LAPACK.
 // <T>LAPACK is free software: you can redistribute it and/or modify it under
 // the terms of the BSD 3-Clause license. See the accompanying LICENSE file.
+/// @note Adapted from @see
+/// https://github.com/langou/latl/blob/master/include/larft.h
 
 #ifndef TLAPACK_LARFT_HH
 #define TLAPACK_LARFT_HH
