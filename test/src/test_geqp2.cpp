@@ -157,14 +157,20 @@ TEMPLATE_TEST_CASE("geqp2 computes the QR factorization of a matrix",
         lacpy(GENERAL, A, Q);
         ung2r(Q, tau);
 
-        // 7) Compute the reconstruction accuracy ||A - Q*R||_F.
-        gemm(Op::NoTrans, Op::NoTrans, T(-1.0), Q, R, T(1.0), A_orig);
-        recon_error = lange(FROB_NORM, A_orig) / normA;
-
-        // 8) Compute the orthogonality error ||I - Q^H Q||_F.
+        // 7) Compute the orthogonality error ||I - Q^H Q||_F.
         laset(GENERAL, T(0.0), T(1.0), work);
         gemm(Op::ConjTrans, Op::NoTrans, T(-1.0), Q, Q, T(1.0), work);
         orthogonality_error = lange(FROB_NORM, work);
+
+        // 8) Compute the reconstruction accuracy ||A - Q*R||_F.
+        trmm(Side::Right, Uplo::Upper, Op::NoTrans, Diag::NonUnit,
+             static_cast<T>(1.0), R, Q);
+
+        for (idx_t j = 0; j < n; ++j)
+            for (idx_t i = 0; i < m; ++i)
+                Q(i, j) -= A_orig(i, j);
+
+        recon_error = lange(FROB_NORM, Q) / normA;
     }
 
     CHECK(recon_error <= tol);
