@@ -12,11 +12,6 @@
 #ifndef TLAPACK_UNGQL_HH
 #define TLAPACK_UNGQL_HH
 
-#include "tlapack/base/utils.hpp"
-#include "tlapack/blas/scal.hpp"
-#include "tlapack/lapack/larf.hpp"
-#include "tlapack/lapack/larfb.hpp"
-#include "tlapack/lapack/larft.hpp"
 #include "tlapack/lapack/ungq.hpp"
 
 namespace tlapack {
