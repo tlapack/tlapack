@@ -135,6 +135,50 @@ int larft(direction_t direction,
     }
 }
 
+/**
+ * @tparam direction_t Either Direction or any class that implements `operator
+ * Direction()`.
+ * @tparam storage_t Either StoreV or any class that implements `operator
+ * StoreV()`.
+ *
+ * @param[in] direction
+ *     Indicates how H is formed from a product of elementary reflectors.
+ *     - Direction::Forward:  $H = H(1) H(2) ... H(k)$.
+ *     - Direction::Backward: $H = H(k) ... H(2) H(1)$.
+ *
+ * @param[in] storeMode
+ *     Indicates how the vectors which define the elementary reflectors are
+ * stored:
+ *     - StoreV::Columnwise.
+ *     - StoreV::Rowwise.
+ *
+ * @param[in] V
+ *     - If storeMode = StoreV::Columnwise: n-by-k matrix V.
+ *     - If storeMode = StoreV::Rowwise:    k-by-n matrix V.
+ *
+ * @param[in] opts Options.
+ *      Define the behavior of checks for NaNs, and nb for potrf_blocked.
+ *      - variant:
+ *          - Recursive = 'R'
+ *
+ * @ingroup auxiliary
+ */
+template <TLAPACK_DIRECTION direction_t,
+          TLAPACK_STOREV storage_t,
+          TLAPACK_SMATRIX matrixV_t>
+int larft(direction_t direction,
+          storage_t storeMode,
+          matrixV_t& V,
+          const LarftOpts& opts = {})
+{
+    if (opts.variant == LarftVariant::Recursive) {
+        return larft3_recursive(direction, storeMode, V);
+    }
+    else {
+        return larft3(direction, storeMode, V);
+    }
+}
+
 }  // namespace tlapack
 
 #endif  // TLAPACK_LARFT_HH
