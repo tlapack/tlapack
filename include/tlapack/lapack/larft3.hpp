@@ -78,9 +78,6 @@ namespace tlapack {
  *     - If storeMode = StoreV::Columnwise: n-by-k matrix V.
  *     - If storeMode = StoreV::Rowwise:    k-by-n matrix V.
  *
- * @param[in] tau Vector of length k containing the scalar factors
- *      of the elementary reflectors H.
- *
  * @param[out] Tmatrix Matrix of size k-by-k containing the triangular factors
  *      of the block reflector.
  *     - Direction::Forward:  T is upper triangular.
@@ -95,7 +92,7 @@ template <TLAPACK_DIRECTION direction_t,
 int larft3(direction_t direction,
            storage_t storeMode,
            const matrix_a& V,
-           matrixh& Tmatrix)
+           matrix_h& Tmatrix)
 {
     // data traits
     using std::size_t;
@@ -125,7 +122,7 @@ int larft3(direction_t direction,
         for (idx_t i = 1; i < k; ++i) {
             // Column vector t := T(0:i,i)
             auto t = slice(Tmatrix, range{0, i}, i);
-            idx_t tau = Tmatrix(i, i);
+            T tau = Tmatrix(i, i);
 
             if (Tmatrix(i, i) == T(0.0)) {
                 // H(i) =  I
@@ -157,7 +154,7 @@ int larft3(direction_t direction,
                         auto Ti = slice(Tmatrix, range{0, i}, range{i, i + 1});
                         gemm(NO_TRANS, CONJ_TRANS, -tau,
                              slice(V, range{0, i}, range{i + 1, n}),
-                             slice(V, range{i, i + 1}, range{i + 1, n}), one,
+                             slice(V, range{i, i + 1}, range{i + 1, n}), T(1.0),
                              Ti);
                     }
                 }
@@ -177,7 +174,7 @@ int larft3(direction_t direction,
         for (idx_t i = k - 2; i != idx_t(-1); --i) {
             // Column vector t := T(0:i,i)
             auto t = slice(Tmatrix, range{i + 1, k}, i);
-            idx_t tau = Tmatrix(i, i);
+            T tau = Tmatrix(i, i);
 
             if (tau == T(0.0)) {
                 // H(i) =  I
