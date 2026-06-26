@@ -6,13 +6,13 @@
 
 cmake_minimum_required(VERSION 3.5)
 
-project( geqr2 CXX )
+project( geqp2 CXX )
 
 # Load <T>LAPACK
 if( NOT TARGET tlapack )
   find_package( tlapack REQUIRED )
 endif()
 
-# add the example geqr2
+# add the example geqp2
 add_executable( example_geqp2 example_geqp2.cpp )
 target_link_libraries( example_geqp2 PRIVATE tlapack )
