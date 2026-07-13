@@ -26,6 +26,10 @@ namespace tlapack {
  * (A, B) = (Q*S*Z', Q*T*Z'), where T is upper triangular, S is
  * quasi-triangular, and Q and Z are unitary.
  *
+ * Q is given by [cl, -sl; conj(sl), cl] and Z is given by [cr, -conj(sr); sr,
+ * cr][scal0 0; 0 scal1].
+ *
+ *
  * The Schur factorization is normalized in the following way:
  * - If the matrix is complex, or if the matrix has real eigenvalues,
  *   then S is upper triangular.
@@ -39,31 +43,35 @@ namespace tlapack {
  * @param[in,out] B 2x2 upper triangular matrix
  *                On entry, the matrix B.
  *                On exit, the matrix T.
- * @param[out]    Q 2x2 unitary matrix
- *                   On exit, the matrix Q.
- * @param[out]    Z 2x2 unitary matrix
- *                   On exit, the matrix Z.
  * @param[out]    alpha1 complex number
  * @param[out]    alpha2 complex number
  * @param[out]    beta1 number
  * @param[out]    beta2 number
  *                   On exit, (alpha1, beta1), (alpha2, beta2) are the
  *                   generalized eigenvalues of the pencil (A,B)
+ * @param[out]    cl cosine of left rotation
+ * @param[out]    sl sine of left rotation
+ * @param[out]    cr cosine of right rotation
+ * @param[out]    sr sine of right rotation
+ * @param[out]    scal0 scaling factor for first column of Z
+ * @param[out]    scal1 scaling factor for second column of Z
+ *
  *
  *
  */
-template <TLAPACK_MATRIX A_t,
-          TLAPACK_MATRIX B_t,
-          TLAPACK_MATRIX Q_t,
-          TLAPACK_MATRIX Z_t>
+template <TLAPACK_MATRIX A_t, TLAPACK_MATRIX B_t>
 void lahqz_schur22(A_t& A,
                    B_t& B,
-                   Q_t& Q,
-                   Z_t& Z,
                    complex_type<type_t<A_t>>& alpha1,
                    complex_type<type_t<A_t>>& alpha2,
                    real_type<type_t<A_t>>& beta1,
-                   real_type<type_t<A_t>>& beta2)
+                   real_type<type_t<A_t>>& beta2,
+                   real_type<type_t<A_t>>& cl,
+                   type_t<A_t>& sl,
+                   real_type<type_t<A_t>>& cr,
+                   type_t<A_t>& sr,
+                   type_t<A_t>& scal0,
+                   type_t<A_t>& scal1)
 {
     using TA = type_t<A_t>;
     using real_t = real_type<TA>;
@@ -100,8 +108,12 @@ void lahqz_schur22(A_t& A,
     real_t tst = abs1(A(0, 0)) + abs1(A(1, 1));
     if (abs1(A(1, 0)) <= eps * tst) {
         A(1, 0) = TA(0);
-        laset(GENERAL, TA(0), TA(1), Q);
-        laset(GENERAL, TA(0), TA(1), Z);
+
+        cl = real_t(1);
+        sl = TA(0);
+
+        cr = real_t(1);
+        sr = TA(0);
     }
     //
     // Check if B is singular
@@ -111,43 +123,33 @@ void lahqz_schur22(A_t& A,
     //
     else if (abs1(B(0, 0)) <= eps) {
         B(0, 0) = TA(0);
-        real_t c;
-        TA s;
-        rotg(A(0, 0), A(1, 0), c, s);
+        rotg(A(0, 0), A(1, 0), cl, sl);
         A(1, 0) = TA(0);
-        TA temp = c * A(0, 1) + s * A(1, 1);
-        A(1, 1) = c * A(1, 1) - conj(s) * A(0, 1);
+        TA temp = cl * A(0, 1) + sl * A(1, 1);
+        A(1, 1) = cl * A(1, 1) - conj(sl) * A(0, 1);
         A(0, 1) = temp;
-        temp = c * B(0, 1) + s * B(1, 1);
-        B(1, 1) = c * B(1, 1) - conj(s) * B(0, 1);
+        temp = cl * B(0, 1) + sl * B(1, 1);
+        B(1, 1) = cl * B(1, 1) - conj(sl) * B(0, 1);
         B(0, 1) = temp;
 
-        Q(0, 0) = c;
-        Q(1, 0) = conj(s);
-        Q(0, 1) = -s;
-        Q(1, 1) = c;
-
-        laset(GENERAL, TA(0), TA(1), Z);
+        cr = real_t(1);
+        sr = TA(0);
     }
     else if (abs1(B(1, 1)) <= eps) {
         B(1, 1) = TA(0);
-        real_t c;
-        TA s;
-        rotg(A(1, 1), A(1, 0), c, s);
+        rotg(A(1, 1), A(1, 0), cr, sr);
         A(1, 0) = TA(0);
-        TA temp = c * A(0, 1) + s * A(0, 0);
-        A(0, 0) = c * A(0, 0) - conj(s) * A(0, 1);
+        TA temp = cr * A(0, 1) + sr * A(0, 0);
+        A(0, 0) = cr * A(0, 0) - conj(sr) * A(0, 1);
         A(0, 1) = temp;
-        temp = c * B(0, 1) + s * B(0, 0);
-        B(0, 0) = c * B(0, 0) - conj(s) * B(0, 1);
+        temp = cr * B(0, 1) + sr * B(0, 0);
+        B(0, 0) = cr * B(0, 0) - conj(sr) * B(0, 1);
         B(0, 1) = temp;
 
-        Z(0, 0) = c;
-        Z(0, 1) = s;
-        Z(1, 0) = -conj(s);
-        Z(1, 1) = c;
+        sr = -conj(sr);
 
-        laset(GENERAL, TA(0), TA(1), Q);
+        cl = real_t(1);
+        sl = TA(0);
     }
     else {
         // A cannot be deflated and B is nonsingular
@@ -191,83 +193,91 @@ void lahqz_schur22(A_t& A,
                 qq = lapy2(h10, h11);
             }
 
-            real_t c;
-            TA s;
             if (rr > qq) {
                 // Find right rotation matrix to zero 0,0 element
                 // of (sA - wB)
-                rotg(h01, h00, c, s);
+                rotg(h01, h00, cr, sr);
             }
             else {
                 // Find right rotation matrix to zero 1,0 element
                 // of (sA - wB)
-                rotg(h11, h10, c, s);
+                rotg(h11, h10, cr, sr);
             }
 
             // Apply the rotation to A, B, and form Z
             TA temp;
-            temp = c * A(0, 1) + s * A(0, 0);
-            A(0, 0) = c * A(0, 0) - conj(s) * A(0, 1);
+            temp = cr * A(0, 1) + sr * A(0, 0);
+            A(0, 0) = cr * A(0, 0) - conj(sr) * A(0, 1);
             A(0, 1) = temp;
-            temp = c * A(1, 1) + s * A(1, 0);
-            A(1, 0) = c * A(1, 0) - conj(s) * A(1, 1);
+            temp = cr * A(1, 1) + sr * A(1, 0);
+            A(1, 0) = cr * A(1, 0) - conj(sr) * A(1, 1);
             A(1, 1) = temp;
-            temp = c * B(0, 1) + s * B(0, 0);
-            B(0, 0) = c * B(0, 0) - conj(s) * B(0, 1);
+            temp = cr * B(0, 1) + sr * B(0, 0);
+            B(0, 0) = cr * B(0, 0) - conj(sr) * B(0, 1);
             B(0, 1) = temp;
-            B(1, 0) = -conj(s) * B(1, 1);
-            B(1, 1) = c * B(1, 1);
+            B(1, 0) = -conj(sr) * B(1, 1);
+            B(1, 1) = cr * B(1, 1);
 
-            Z(0, 0) = c;
-            Z(0, 1) = s;
-            Z(1, 0) = -conj(s);
-            Z(1, 1) = c;
+            sr = -conj(sr);
 
             //
             // Now make both A and B upper triangular by applying a left
             // rotation
+            // It is hard to predict whether zeroing A(1,0) or B(1,0) will be
+            // more stable, so we try both and pick the one that gives the
+            // smallest error. Note: the normwise criterion used in LAPACK does
+            // not always work!
             //
-
             real_t Anrm = max<real_t>(abs1(A(0, 0)) + abs1(A(0, 1)),
                                       abs1(A(1, 0)) + abs1(A(1, 1)));
             real_t Bnrm = max<real_t>(abs1(B(0, 0)) + abs1(B(0, 1)),
                                       abs1(B(1, 0)) + abs1(B(1, 1)));
-            if (Anrm >= Bnrm) {
-                rotg(A(0, 0), A(1, 0), c, s);
-                A(1, 0) = TA(0);
-                B(0, 0) = c * B(0, 0) + s * B(1, 0);
-                B(1, 0) = TA(0);
+
+            real_t clA, clB;
+            TA slA, slB;
+
+            // Generate rotation based on A and calculate
+            // the resulting B(1,0)
+            TA tempA0 = A(0, 0);
+            TA tempA1 = A(1, 0);
+            rotg(tempA0, tempA1, clA, slA);
+            TA eB10 = -conj(slA) * B(0, 0) + clA * B(1, 0);
+
+            TA tempB0 = B(0, 0);
+            TA tempB1 = B(1, 0);
+            rotg(tempB0, tempB1, clB, slB);
+            TA eA10 = -conj(slB) * A(0, 0) + clB * A(1, 0);
+
+            if (abs1(eA10) * Bnrm <= abs1(eB10) * Anrm) {
+                cl = clB;
+                sl = slB;
+                B(0, 0) = tempB0;
+                A(0, 0) = cl * A(0, 0) + sl * A(1, 0);
             }
             else {
-                rotg(B(0, 0), B(1, 0), c, s);
-                B(1, 0) = TA(0);
-                A(0, 0) = c * A(0, 0) + s * A(1, 0);
-                A(1, 0) = TA(0);
+                cl = clA;
+                sl = slA;
+                A(0, 0) = tempA0;
+                B(0, 0) = cl * B(0, 0) + sl * B(1, 0);
             }
+            A(1, 0) = TA(0);
+            B(1, 0) = TA(0);
 
             // Apply the rotation to A, B, and form Q
-            temp = c * A(0, 1) + s * A(1, 1);
-            A(1, 1) = c * A(1, 1) - conj(s) * A(0, 1);
+            temp = cl * A(0, 1) + sl * A(1, 1);
+            A(1, 1) = cl * A(1, 1) - conj(sl) * A(0, 1);
             A(0, 1) = temp;
-            temp = c * B(0, 1) + s * B(1, 1);
-            B(1, 1) = c * B(1, 1) - conj(s) * B(0, 1);
+            temp = cl * B(0, 1) + sl * B(1, 1);
+            B(1, 1) = cl * B(1, 1) - conj(sl) * B(0, 1);
             B(0, 1) = temp;
-
-            Q(0, 0) = c;
-            Q(1, 0) = conj(s);
-            Q(0, 1) = -s;
-            Q(1, 1) = c;
         }
         else {
             if constexpr (is_real<TA>) {
-                laset(GENERAL, TA(0), TA(1), Q);
-                laset(GENERAL, TA(0), TA(1), Z);
-
                 // The pencil is real and has complex conjugate eigenvalues.
                 // It cannot be reduced further without using complex
                 // arithmetic. As normalization, we make B a diagonal matrix
                 // using a 2x2 SVD.
-                real_t ssmin, ssmax, cl, sl, cr, sr;
+                real_t ssmin, ssmax;
                 svd22<real_t>(B(0, 0), B(0, 1), B(1, 1), ssmin, ssmax, cl, sl,
                               cr, sr);
                 B(0, 0) = ssmax;
@@ -282,11 +292,6 @@ void lahqz_schur22(A_t& A,
                 A(1, 1) = cl * A(1, 1) - sl * A(0, 1);
                 A(0, 1) = temp;
 
-                Q(0, 0) = cl;
-                Q(1, 0) = sl;
-                Q(0, 1) = -sl;
-                Q(1, 1) = cl;
-
                 // Apply right rotation to A and form Z
                 temp = cr * A(0, 0) + sr * A(0, 1);
                 A(0, 1) = cr * A(0, 1) - sr * A(0, 0);
@@ -294,11 +299,6 @@ void lahqz_schur22(A_t& A,
                 temp = cr * A(1, 0) + sr * A(1, 1);
                 A(1, 1) = cr * A(1, 1) - sr * A(1, 0);
                 A(1, 0) = temp;
-
-                Z(0, 0) = cr;
-                Z(0, 1) = -sr;
-                Z(1, 0) = sr;
-                Z(1, 1) = cr;
             }
         }
     }
@@ -320,7 +320,7 @@ void lahqz_schur22(A_t& A,
             c = -c;
             s = -s;
         }
-        TA scal0 = complex_t(c, -s);
+        scal0 = complex_t(c, -s);
         B(0, 0) = br;
         A(0, 0) *= scal0;
         A(1, 0) *= scal0;
@@ -333,33 +333,28 @@ void lahqz_schur22(A_t& A,
             c = -c;
             s = -s;
         }
-        TA scal1 = complex_t(c, -s);
+        scal1 = complex_t(c, -s);
         B(1, 1) = br;
         B(0, 1) *= scal1;
         A(0, 1) *= scal1;
         A(1, 1) *= scal1;
-
-        Z(0, 0) *= scal0;
-        Z(1, 0) *= scal0;
-        Z(0, 1) *= scal1;
-        Z(1, 1) *= scal1;
     }
     else {
         // Ensure that the diagonal of B is non-negative
+        scal0 = TA(1);
+        scal1 = TA(1);
         if (B(0, 0) < 0) {
             B(0, 0) = -B(0, 0);
             A(0, 0) = -A(0, 0);
             A(1, 0) = -A(1, 0);
-            Z(0, 0) = -Z(0, 0);
-            Z(1, 0) = -Z(1, 0);
+            scal0 = TA(-1);
         }
         if (B(1, 1) < 0) {
             B(0, 1) = -B(0, 1);
             B(1, 1) = -B(1, 1);
             A(0, 1) = -A(0, 1);
             A(1, 1) = -A(1, 1);
-            Z(0, 1) = -Z(0, 1);
-            Z(1, 1) = -Z(1, 1);
+            scal1 = TA(-1);
         }
     }
 
