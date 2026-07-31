@@ -82,8 +82,7 @@ void geqrt3(matrix_a& A, matrix_h& Tmatrix, const Geqrt3Opts& opts = {})
         auto tau = diag(Tmatrix);
 
         geqrf(A, tau);
-
-        larft(Direction::Forward, StoreV::Columnwise, A, tau, Tmatrix);
+        larft(Direction::Forward, StoreV::Columnwise, A, Tmatrix);
     }
     else {
         // Define slice sizes
