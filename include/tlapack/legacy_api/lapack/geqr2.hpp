@@ -39,9 +39,6 @@ namespace legacy {
     template <typename TA, typename TT>
     int geqr2(idx_t m, idx_t n, TA* A, idx_t lda, TT* tau)
     {
-        using internal::create_matrix;
-        using internal::create_vector;
-
         // check arguments
         tlapack_check_false(m < 0);
         tlapack_check_false(n < 0);
