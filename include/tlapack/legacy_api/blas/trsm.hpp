@@ -112,7 +112,6 @@ namespace legacy {
               TB* B,
               idx_t ldb)
     {
-        using internal::create_matrix;
         using scalar_t = scalar_type<TA, TB>;
 
         // check arguments

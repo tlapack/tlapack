@@ -95,7 +95,6 @@ namespace legacy {
               TC* C,
               idx_t ldc)
     {
-        using internal::create_matrix;
         using scalar_t = scalar_type<TA, TB, TC>;
 
         // check arguments
