@@ -159,4 +159,6 @@
 
 #include "tlapack/lapack/getri.hpp"
 
+#include "tlapack/lapack/gels.hpp"
+
 #endif  // TLAPACK_HH
