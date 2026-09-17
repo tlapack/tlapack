@@ -2,7 +2,7 @@
 
 namespace tlapack {
 
-namespace catch2 {
+namespace internal {
     std::string return_scanf(const char*)
     {
         std::string str;
@@ -10,7 +10,7 @@ namespace catch2 {
         return str;
     }
     std::string return_scanf(std::string) { return return_scanf(""); }
-}  // namespace catch2
+}  // namespace internal
 
 //
 // GDB doesn't handle templates well, so we explicitly define some versions of

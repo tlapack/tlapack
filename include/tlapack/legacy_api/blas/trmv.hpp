@@ -83,8 +83,6 @@ namespace legacy {
               TX* x,
               int_t incx)
     {
-        using internal::create_matrix;
-
         // check arguments
         tlapack_check_false(layout != Layout::ColMajor &&
                             layout != Layout::RowMajor);

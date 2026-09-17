@@ -26,7 +26,7 @@ namespace starpu {
         {
             struct starpu_codelet cl = codelet_init();
             constexpr bool use_cublas =
-                cuda::is_cublas_v<TA, TB, TC, alpha_t, beta_t>;
+                is_cublas_v<TA, TB, TC, alpha_t, beta_t>;
 
             cl.cpu_funcs[0] = func::gemm<TA, TB, TC, alpha_t, beta_t>;
             if constexpr (use_cublas) {
@@ -111,8 +111,7 @@ namespace starpu {
         constexpr struct starpu_codelet gen_cl_herk() noexcept
         {
             struct starpu_codelet cl = codelet_init();
-            constexpr bool use_cublas =
-                cuda::is_cublas_v<TA, TC, alpha_t, beta_t>;
+            constexpr bool use_cublas = is_cublas_v<TA, TC, alpha_t, beta_t>;
 
             cl.cpu_funcs[0] = func::herk<TA, TC, alpha_t, beta_t>;
             if constexpr (use_cublas) {
@@ -196,7 +195,7 @@ namespace starpu {
         constexpr struct starpu_codelet gen_cl_trsm() noexcept
         {
             struct starpu_codelet cl = codelet_init();
-            constexpr bool use_cublas = cuda::is_cublas_v<TA, TB, alpha_t>;
+            constexpr bool use_cublas = is_cublas_v<TA, TB, alpha_t>;
 
             cl.cpu_funcs[0] = func::trsm<TA, TB, alpha_t>;
             if constexpr (use_cublas) {
@@ -224,7 +223,7 @@ namespace starpu {
         constexpr struct starpu_codelet gen_cl_potrf() noexcept
         {
             struct starpu_codelet cl = codelet_init();
-            constexpr bool use_cusolver = cuda::is_cusolver_v<T>;
+            constexpr bool use_cusolver = is_cusolver_v<T>;
 
             cl.cpu_funcs[0] = func::potrf<uplo_t, T, has_info>;
             if constexpr (use_cusolver) {
@@ -254,6 +253,7 @@ namespace starpu {
     // ---------------------------------------------------------------------
     // Codelets
 
+    /// Codelets for StarPU
     namespace cl {
 
         template <class TA, class TB, class TC, class alpha_t, class beta_t>

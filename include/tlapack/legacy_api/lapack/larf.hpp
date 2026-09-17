@@ -34,8 +34,6 @@ namespace legacy {
               TC* C,
               idx_t ldC)
     {
-        using internal::create_matrix;
-
         // check arguments
         tlapack_check_false(side != Side::Left && side != Side::Right);
         tlapack_check_false(m < 0);

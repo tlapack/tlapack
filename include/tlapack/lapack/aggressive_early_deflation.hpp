@@ -28,53 +28,6 @@
 
 namespace tlapack {
 
-namespace internal {
-
-    /** Workspace query for gehrd() in aggressive_early_deflation().
-     *
-     * @param[in] ilo    integer.
-     *     Either ilo=0 or A(ilo,ilo-1) = 0.
-     *
-     * @param[in] ihi    integer.
-     *    ilo and ihi determine an isolated block in A.
-     *
-     * @param[in] nw    integer.
-     *   Desired window size to perform aggressive early deflation on.
-     *   If the matrix is not large enough to provide the scratch space
-     *   or if the isolated block is small, a smaller value may be used.
-     *
-     * @param[in] A  n by n matrix.
-     *     Hessenberg matrix on which AED will be performed
-     *
-     * @return WorkInfo The amount workspace required.
-     *
-     * @ingroup workspace_query
-     */
-    template <class T, TLAPACK_SMATRIX matrix_t>
-    constexpr WorkInfo aggressive_early_deflation_worksize_gehrd(
-        size_type<matrix_t> ilo,
-        size_type<matrix_t> ihi,
-        size_type<matrix_t> nw,
-        const matrix_t& A)
-    {
-        using idx_t = size_type<matrix_t>;
-        using range = pair<idx_t, idx_t>;
-
-        const idx_t n = ncols(A);
-        const idx_t nw_max = (n - 3) / 3;
-        const idx_t jw = min(min(nw, ihi - ilo), nw_max);
-
-        if (jw != ihi - ilo) {
-            // Hessenberg reduction
-            auto&& TW = slice(A, range{0, jw}, range{0, jw});
-            auto&& tau = slice(A, range{0, jw}, 0);
-            return gehrd_worksize<T>(0, jw, TW, tau);
-        }
-        else
-            return WorkInfo();
-    }
-}  // namespace internal
-
 /** Worspace query of aggressive_early_deflation().
  *
  * @param[in] want_t bool.
@@ -147,8 +100,12 @@ WorkInfo aggressive_early_deflation_worksize(bool want_t,
             multishift_qr_worksize<T>(true, true, 0, jw, TW, s_window, V, opts);
     }
 
-    workinfo.minMax(internal::aggressive_early_deflation_worksize_gehrd<T>(
-        ilo, ihi, nw, A));
+    if (jw != ihi - ilo) {
+        // Hessenberg reduction
+        auto&& TW = slice(A, range{0, jw}, range{0, jw});
+        auto&& tau = slice(A, range{0, jw}, 0);
+        workinfo.minMax(gehrd_worksize<T>(0, jw, TW, tau));
+    }
 
     return workinfo;
 }

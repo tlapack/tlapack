@@ -30,8 +30,6 @@ namespace legacy {
               T* B,
               idx_t ldb)
     {
-        using internal::create_matrix;
-
         // Check arguments
         tlapack_check_false(uplo != Uplo::Lower && uplo != Uplo::Upper);
 
