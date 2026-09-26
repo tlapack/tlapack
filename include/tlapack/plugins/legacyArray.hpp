@@ -734,9 +734,8 @@ namespace traits {
         matrixA_t,
         matrixB_t,
         typename std::enable_if<
-            ((is_legacy_type<matrixA_t> ||
-              is_legacy_type<matrixB_t>)&&cast_to_legacy_type<matrixA_t> &&
-             cast_to_legacy_type<matrixB_t>),
+            ((is_legacy_type<matrixA_t> || is_legacy_type<matrixB_t>) &&
+             cast_to_legacy_type<matrixA_t> && cast_to_legacy_type<matrixB_t>),
             int>::type> {
         using T = scalar_type<type_t<matrixA_t>, type_t<matrixB_t>>;
         using idx_t = size_type<matrixA_t>;
@@ -758,9 +757,8 @@ namespace traits {
         vecA_t,
         vecB_t,
         typename std::enable_if<
-            ((is_legacy_type<vecA_t> ||
-              is_legacy_type<vecB_t>)&&cast_to_legacy_type<vecA_t> &&
-             cast_to_legacy_type<vecB_t>),
+            ((is_legacy_type<vecA_t> || is_legacy_type<vecB_t>) &&
+             cast_to_legacy_type<vecA_t> && cast_to_legacy_type<vecB_t>),
             int>::type> {
         using T = scalar_type<type_t<vecA_t>, type_t<vecB_t>>;
         using idx_t = size_type<vecA_t>;
