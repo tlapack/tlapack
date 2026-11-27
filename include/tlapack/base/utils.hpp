@@ -103,12 +103,19 @@ constexpr T conj(const T& x) noexcept
 }
 
 // -----------------------------------------------------------------------------
-/// Type-safe sgn function
-/// @see Source: https://stackoverflow.com/a/4609795/5253097
+/// Sign function for real numbers
+/// Note, this has the following behavior:
+/// sgn(x) = 1 if x > 0
+/// sgn(x) = -1 if x < 0
+/// sgn(0) = 1
+/// sgn(-0) = 1
+/// sgn(+Inf) = 1
+/// sgn(-Inf) = 1
+/// sgn(NaN) = -1
 template <typename T, enable_if_t<is_real<T>, int> = 0>
-constexpr int sgn(const T& val)
+constexpr T sgn(const T& val)
 {
-    return (T(0) < val) - (val < T(0));
+    return (val >= T(0)) ? T(1) : T(-1);
 }
 
 // -----------------------------------------------------------------------------
