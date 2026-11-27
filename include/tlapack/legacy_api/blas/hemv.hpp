@@ -83,8 +83,6 @@ namespace legacy {
               TY* y,
               int_t incy)
     {
-        using internal::create_matrix;
-        using internal::create_rowmajor_matrix;
         using scalar_t = scalar_type<TA, TX, TY>;
 
         // check arguments

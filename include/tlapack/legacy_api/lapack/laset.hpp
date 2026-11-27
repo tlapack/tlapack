@@ -39,8 +39,6 @@ namespace legacy {
     void laset(
         uplo_t uplo, idx_t m, idx_t n, TA alpha, TA beta, TA* A, idx_t lda)
     {
-        using internal::create_matrix;
-
         // check arguments
         tlapack_check_false(uplo != Uplo::Lower && uplo != Uplo::Upper &&
                             uplo != Uplo::General);

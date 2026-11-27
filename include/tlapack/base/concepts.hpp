@@ -37,6 +37,13 @@ using std::sqrt;
 // C++ standard types:
 using std::pair;
 
+/** Concepts for the template algorithms in the library
+ *
+ * @note For compatibility with C++17, prefer using the preprocessor macros
+ * defined below. For example, use TLAPACK_MATRIX instead of
+ * tlapack::concepts::Matrix and TLAPACK_REAL instead of
+ * tlapack::concepts::Real.
+ */
 namespace concepts {
     /** @interface tlapack::concepts::Arithmetic
      * @brief Concept for a type that supports arithmetic operations.
@@ -233,7 +240,7 @@ namespace concepts {
      * - Number of entries using @c size(const vector_t&). This function must be
      * callable from the namespace @c tlapack.
      *
-     * Optionally, the vector type can also implement:
+     * Optionally, the vector type may also implement:
      *
      * - @c tlapack::traits::layout_trait<vector_t,int>, with a member @c value
      * that satisfies the concept tlapack::concepts::Layout.
@@ -243,6 +250,14 @@ namespace concepts {
      *
      * - @c tlapack::traits::vector_type_traits<vector_t,vector_t,int>, with a
      * member @c type that satisfies the concept tlapack::concepts::Vector.
+     *
+     * - @c tlapack::traits::real_type_traits<vector_t,int>, with a
+     * member @c type that satisfies the concept tlapack::concepts::Matrix and
+     * has real entries.
+     *
+     * - @c tlapack::traits::complex_type_traits<vector_t,int>, with a
+     * member @c type that satisfies the concept tlapack::concepts::Vector and
+     * has complex entries.
      *
      * @tparam vector_t Vector type.
      *
@@ -311,7 +326,7 @@ namespace concepts {
      * @note The functions @c nrows, @c ncols, and @c size are required to be
      * callable from the namespace @c tlapack.
      *
-     * Optionally, the matrix type can also implement:
+     * Optionally, the matrix type may also implement:
      *
      * - @c tlapack::traits::layout_trait<matrix_t,int>, with a member @c value
      * that satisfies the concept tlapack::concepts::Layout.
@@ -321,6 +336,14 @@ namespace concepts {
      *
      * - @c tlapack::traits::vector_type_traits<matrix_t,matrix_t>, with a
      * member @c type that satisfies the concept tlapack::concepts::Vector.
+     *
+     * - @c tlapack::traits::real_type_traits<matrix_t>, with a member @c type
+     * that satisfies the concept tlapack::concepts::Matrix and has real
+     * entries.
+     *
+     * - @c tlapack::traits::complex_type_traits<matrix_t>, with a member
+     * @c type that satisfies the concept tlapack::concepts::Matrix and has
+     * complex entries.
      *
      * @tparam matrix_t Matrix type.
      *
@@ -893,78 +916,101 @@ namespace concepts {
 }  // namespace tlapack
 
     /// Macro for tlapack::concepts::Matrix compatible with C++17.
+    /// @ingroup concepts
     #define TLAPACK_MATRIX tlapack::concepts::Matrix
 
     /// Macro for tlapack::concepts::SliceableMatrix compatible with C++17.
+    /// @ingroup concepts
     #define TLAPACK_SMATRIX tlapack::concepts::SliceableMatrix
 
     /// Macro for tlapack::concepts::SliceableTransposeMatrix compatible with
     /// C++17.
+    /// @ingroup concepts
     #define TLAPACK_STMATRIX tlapack::concepts::SliceableTransposeMatrix
 
     /// Macro for tlapack::concepts::Vector compatible with C++17.
+    /// @ingroup concepts
     #define TLAPACK_VECTOR tlapack::concepts::Vector
 
     /// Macro for tlapack::concepts::SliceableVector compatible with C++17.
+    /// @ingroup concepts
     #define TLAPACK_SVECTOR tlapack::concepts::SliceableVector
 
     /// Macro for tlapack::concepts::Workspace compatible with C++17.
+    /// @ingroup concepts
     #define TLAPACK_WORKSPACE tlapack::concepts::Workspace
 
     /// Macro for tlapack::concepts::Scalar compatible with C++17.
+    /// @ingroup concepts
     #define TLAPACK_SCALAR tlapack::concepts::Scalar
 
     /// Macro for tlapack::concepts::Real compatible with C++17.
+    /// @ingroup concepts
     #define TLAPACK_REAL tlapack::concepts::Real
 
     /// Macro for tlapack::concepts::Complex compatible with C++17.
+    /// @ingroup concepts
     #define TLAPACK_COMPLEX tlapack::concepts::Complex
 
     /// Macro for tlapack::concepts::Index compatible with C++17.
+    /// @ingroup concepts
     #define TLAPACK_INDEX tlapack::concepts::Index
 
     /// Macro for tlapack::concepts::Side compatible with C++17.
+    /// @ingroup concepts
     #define TLAPACK_SIDE tlapack::concepts::Side
 
     /// Macro for tlapack::concepts::Direction compatible with C++17.
+    /// @ingroup concepts
     #define TLAPACK_DIRECTION tlapack::concepts::Direction
 
     /// Macro for tlapack::concepts::Op compatible with C++17.
+    /// @ingroup concepts
     #define TLAPACK_OP tlapack::concepts::Op
 
     /// Macro for tlapack::concepts::StoreV compatible with C++17.
+    /// @ingroup concepts
     #define TLAPACK_STOREV tlapack::concepts::StoreV
 
     /// Macro for tlapack::concepts::Norm compatible with C++17.
+    /// @ingroup concepts
     #define TLAPACK_NORM tlapack::concepts::Norm
 
     /// Macro for tlapack::concepts::Uplo compatible with C++17.
     #define TLAPACK_UPLO tlapack::concepts::Uplo
 
     /// Macro for tlapack::concepts::Diag compatible with C++17.
+    /// @ingroup concepts
     #define TLAPACK_DIAG tlapack::concepts::Diag
 
     /// Macro for tlapack::concepts::LegacyArray compatible with C++17.
+    /// @ingroup concepts
     #define TLAPACK_LEGACY_ARRAY tlapack::concepts::LegacyArray
 
     /// Macro for tlapack::concepts::LegacyMatrix compatible with C++17.
+    /// @ingroup concepts
     #define TLAPACK_LEGACY_MATRIX tlapack::concepts::LegacyMatrix
 
     /// Macro for tlapack::concepts::LegacyVector compatible with C++17.
+    /// @ingroup concepts
     #define TLAPACK_LEGACY_VECTOR tlapack::concepts::LegacyVector
 
     /// Macro for tlapack::concepts::ConstructableMatrix compatible with C++17.
+    /// @ingroup concepts
     #define TLAPACK_CMATRIX tlapack::concepts::ConstructableMatrix
 
     /// Macro for tlapack::concepts::ConstructableAndSliceableMatrix compatible
     /// with C++17.
+    /// @ingroup concepts
     #define TLAPACK_CSMATRIX tlapack::concepts::ConstructableAndSliceableMatrix
 
     /// Macro for tlapack::concepts::ConstructableVector compatible with C++17.
+    /// @ingroup concepts
     #define TLAPACK_CVECTOR tlapack::concepts::ConstructableVector
 
     /// Macro for tlapack::concepts::ConstructableAndSliceableVector compatible
     /// with C++17.
+    /// @ingroup concepts
     #define TLAPACK_CSVECTOR tlapack::concepts::ConstructableAndSliceableVector
 #else
     // Concepts are a C++20 feature, so just define them as `class` for earlier

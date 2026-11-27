@@ -96,7 +96,6 @@ namespace legacy {
               TC* C,
               idx_t ldc)
     {
-        using internal::create_matrix;
         using real_t = real_type<TA, TC>;
 
         // check arguments

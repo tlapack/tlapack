@@ -101,9 +101,6 @@ namespace legacy {
               scalar_t* T,
               idx_t ldT)
     {
-        using internal::create_matrix;
-        using internal::create_vector;
-
         // check arguments
         tlapack_check_false(direction != Direction::Forward &&
                             direction != Direction::Backward);
