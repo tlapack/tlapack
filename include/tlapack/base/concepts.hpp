@@ -51,8 +51,7 @@ namespace concepts {
      * @ingroup concepts
      */
     template <typename T>
-    concept Arithmetic = requires(const T& a, const T& b, T& c)
-    {
+    concept Arithmetic = requires(const T& a, const T& b, T& c) {
         // Arithmetic and assignment operations
         c = a + b;
         c = a - b;
@@ -102,37 +101,31 @@ namespace concepts {
      * @ingroup concepts
      */
     template <typename T>
-    concept Real = Arithmetic<T>&& std::totally_ordered<T>&&
-        std::numeric_limits<T>::is_specialized&& requires(const T& a, T& b)
-    {
-        // Constructors
-        T();
-        T(0);
-        T(0.0);
+    concept Real =
+        Arithmetic<T> && std::totally_ordered<T> &&
+        std::numeric_limits<T>::is_specialized && requires(const T& a, T& b) {
+            // Constructors
+            T();
+            T(0);
+            T(0.0);
 
-        // Assignment
-        b = a;
+            // Assignment
+            b = a;
 
-        // Inf and NaN checks
-        {
-            isinf(a)
-        }
-        ->std::same_as<bool>;
-        {
-            isnan(a)
-        }
-        ->std::same_as<bool>;
+            // Inf and NaN checks
+            { isinf(a) } -> std::same_as<bool>;
+            { isnan(a) } -> std::same_as<bool>;
 
-        // Math functions
-        abs(a);
-        sqrt(a);
-        pow(2, a);
-        log2(a);
-        ceil(a);
-        floor(a);
-        min(a, b);
-        max(a, b);
-    };
+            // Math functions
+            abs(a);
+            sqrt(a);
+            pow(2, a);
+            log2(a);
+            ceil(a);
+            floor(a);
+            min(a, b);
+            max(a, b);
+        };
 
     /** @interface tlapack::concepts::Complex
      * @brief Concept for complex scalar types.
@@ -161,35 +154,25 @@ namespace concepts {
      * @ingroup concepts
      */
     template <typename T>
-    concept Complex = Arithmetic<T>&& std::equality_comparable<T>&&
-        Real<real_type<T>>&& requires(const T& a, T& b)
-    {
-        // Constructors
-        T();
-        T(real_type<T>(), real_type<T>());
+    concept Complex = Arithmetic<T> && std::equality_comparable<T> &&
+                      Real<real_type<T>> && requires(const T& a, T& b) {
+                          // Constructors
+                          T();
+                          T(real_type<T>(), real_type<T>());
 
-        // Assignment
-        b = a;
-        b = real(a);
+                          // Assignment
+                          b = a;
+                          b = real(a);
 
-        // Accessors
-        {
-            real(a)
-        }
-        ->std::same_as<real_type<T>>;
-        {
-            imag(a)
-        }
-        ->std::same_as<real_type<T>>;
-        {
-            conj(a)
-        }
-        ->std::same_as<T>;
+                          // Accessors
+                          { real(a) } -> std::same_as<real_type<T>>;
+                          { imag(a) } -> std::same_as<real_type<T>>;
+                          { conj(a) } -> std::same_as<T>;
 
-        // Math functions
-        abs(a);
-        sqrt(a);
-    };
+                          // Math functions
+                          abs(a);
+                          sqrt(a);
+                      };
 
     /** @interface tlapack::concepts::Scalar
      * @brief Concept for scalar types.
@@ -209,16 +192,16 @@ namespace concepts {
      * @ingroup concepts
      */
     template <typename T>
-    concept Scalar = Arithmetic<T>&& std::equality_comparable<T>&&
-        Real<real_type<T>>&& Complex<complex_type<T>>&& requires(T&& a)
-    {
-        // Assignable from a rvalue reference
-        a = std::forward<T>(a);
+    concept Scalar =
+        Arithmetic<T> && std::equality_comparable<T> && Real<real_type<T>> &&
+        Complex<complex_type<T>> && requires(T&& a) {
+            // Assignable from a rvalue reference
+            a = std::forward<T>(a);
 
-        // Math functions
-        abs(a);
-        sqrt(a);
-    };
+            // Math functions
+            abs(a);
+            sqrt(a);
+        };
 
     /** @interface tlapack::concepts::Vector
      * @brief Concept for vectors.
@@ -249,16 +232,12 @@ namespace concepts {
      * @ingroup concepts
      */
     template <typename vector_t>
-    concept Vector = requires(const vector_t& v)
-    {
+    concept Vector = requires(const vector_t& v) {
         // Entry access using operator[i]
         v[0];
 
         // Number of entries
-        {
-            size(v)
-        }
-        ->std::integral<>;
+        { size(v) } -> std::integral<>;
     };
 
     /** @interface tlapack::concepts::SliceableVector
@@ -283,13 +262,9 @@ namespace concepts {
      * @ingroup concepts
      */
     template <typename vector_t>
-    concept SliceableVector = Vector<vector_t>&& requires(const vector_t& v)
-    {
+    concept SliceableVector = Vector<vector_t> && requires(const vector_t& v) {
         // Subvector view
-        {
-            slice(v, pair{0, 0})
-        }
-        ->Vector<>;
+        { slice(v, pair{0, 0}) } -> Vector<>;
     };
 
     /** @interface tlapack::concepts::Matrix
@@ -327,28 +302,18 @@ namespace concepts {
      * @ingroup concepts
      */
     template <typename matrix_t>
-    concept Matrix = requires(const matrix_t& A)
-    {
+    concept Matrix = requires(const matrix_t& A) {
         // Entry access using operator(i,j)
         A(0, 0);
 
         // Number of rows
-        {
-            nrows(A)
-        }
-        ->std::integral<>;
+        { nrows(A) } -> std::integral<>;
 
         // Number of columns
-        {
-            ncols(A)
-        }
-        ->std::integral<>;
+        { ncols(A) } -> std::integral<>;
 
         // Number of entries
-        {
-            size(A)
-        }
-        ->std::integral<>;
+        { size(A) } -> std::integral<>;
     };
 
     /** @interface tlapack::concepts::SliceableMatrix
@@ -414,61 +379,33 @@ namespace concepts {
      * @ingroup concepts
      */
     template <typename matrix_t>
-    concept SliceableMatrix = Matrix<matrix_t>&& requires(const matrix_t& A)
-    {
+    concept SliceableMatrix = Matrix<matrix_t> && requires(const matrix_t& A) {
         // Submatrix view (matrix)
-        {
-            slice(A, pair{0, 1}, pair{0, 1})
-        }
-        ->Matrix<>;
+        { slice(A, pair{0, 1}, pair{0, 1}) } -> Matrix<>;
 
         // View of multiple rows (matrix)
-        {
-            rows(A, pair{0, 1})
-        }
-        ->Matrix<>;
+        { rows(A, pair{0, 1}) } -> Matrix<>;
 
         // View of multiple columns (matrix)
-        {
-            cols(A, pair{0, 1})
-        }
-        ->Matrix<>;
+        { cols(A, pair{0, 1}) } -> Matrix<>;
 
         // Row view (vector)
-        {
-            row(A, 0)
-        }
-        ->Vector<>;
+        { row(A, 0) } -> Vector<>;
 
         // Column view (vector)
-        {
-            col(A, 0)
-        }
-        ->Vector<>;
+        { col(A, 0) } -> Vector<>;
 
         // View of a slice of a row (vector)
-        {
-            slice(A, 0, pair{0, 1})
-        }
-        ->Vector<>;
+        { slice(A, 0, pair{0, 1}) } -> Vector<>;
 
         // View of a slice of a column (vector)
-        {
-            slice(A, pair{0, 1}, 0)
-        }
-        ->Vector<>;
+        { slice(A, pair{0, 1}, 0) } -> Vector<>;
 
         // Diagonal view (vector)
-        {
-            diag(A)
-        }
-        ->Vector<>;
+        { diag(A) } -> Vector<>;
 
         // Off-diagonal view (vector)
-        {
-            diag(A, 1)
-        }
-        ->Vector<>;
+        { diag(A, 1) } -> Vector<>;
     };
 
     /** @interface tlapack::concepts::TransposableMatrix
@@ -486,14 +423,11 @@ namespace concepts {
      * @ingroup concepts
      */
     template <typename matrix_t>
-    concept TransposableMatrix = Matrix<matrix_t>&& requires(const matrix_t& A)
-    {
-        // Transpose view
-        {
-            transpose_view(A)
-        }
-        ->Matrix<>;
-    };
+    concept TransposableMatrix =
+        Matrix<matrix_t> && requires(const matrix_t& A) {
+            // Transpose view
+            { transpose_view(A) } -> Matrix<>;
+        };
 
     // Workspace matrices
 
@@ -535,19 +469,12 @@ namespace concepts {
      * @ingroup concepts
      */
     template <typename work_t>
-    concept Workspace = requires(work_t& work)
-    {
+    concept Workspace = requires(work_t& work) {
         // Reshape into a matrix
-        {
-            reshape(work, 0, 0)
-        }
-        ->internal::PairOfTransposableMatrixAndOther<>;
+        { reshape(work, 0, 0) } -> internal::PairOfTransposableMatrixAndOther<>;
 
         // Reshape into a vector
-        {
-            reshape(work, 0)
-        }
-        ->internal::PairOfVectorAndOther<>;
+        { reshape(work, 0) } -> internal::PairOfVectorAndOther<>;
     };
 
     // Other scalar concepts
@@ -649,28 +576,12 @@ namespace concepts {
      * @ingroup concepts
      */
     template <typename T>
-    concept LegacyArray = requires(const T& A)
-    {
-        {
-            (legacy_matrix(A)).layout
-        }
-        ->std::convertible_to<tlapack::Layout>;
-        {
-            (legacy_matrix(A)).m
-        }
-        ->std::convertible_to<size_type<T>>;
-        {
-            (legacy_matrix(A)).n
-        }
-        ->std::convertible_to<size_type<T>>;
-        {
-            (legacy_matrix(A)).ptr[0]
-        }
-        ->std::convertible_to<type_t<T>>;
-        {
-            (legacy_matrix(A)).ldim
-        }
-        ->std::convertible_to<size_type<T>>;
+    concept LegacyArray = requires(const T& A) {
+        { (legacy_matrix(A)).layout } -> std::convertible_to<tlapack::Layout>;
+        { (legacy_matrix(A)).m } -> std::convertible_to<size_type<T>>;
+        { (legacy_matrix(A)).n } -> std::convertible_to<size_type<T>>;
+        { (legacy_matrix(A)).ptr[0] } -> std::convertible_to<type_t<T>>;
+        { (legacy_matrix(A)).ldim } -> std::convertible_to<size_type<T>>;
     };
 
     /** @interface tlapack::concepts::LegacyMatrix
@@ -687,7 +598,7 @@ namespace concepts {
      * @ingroup concepts
      */
     template <typename matrix_t>
-    concept LegacyMatrix = Matrix<matrix_t>&& LegacyArray<matrix_t> &&
+    concept LegacyMatrix = Matrix<matrix_t> && LegacyArray<matrix_t> &&
                            ((layout<matrix_t> == Layout::ColMajor) ||
                             (layout<matrix_t> == Layout::RowMajor));
 
@@ -707,25 +618,21 @@ namespace concepts {
      * @ingroup concepts
      */
     template <typename vector_t>
-    concept LegacyVector = Vector<vector_t>&& LegacyArray<vector_t> &&
+    concept LegacyVector = Vector<vector_t> && LegacyArray<vector_t> &&
                            ((layout<vector_t> == Layout::ColMajor) ||
                             (layout<vector_t> == Layout::RowMajor) ||
                             (layout<vector_t> == Layout::Strided)) &&
-                           requires(const vector_t& v)
-    {
-        {
-            (legacy_vector(v)).n
-        }
-        ->std::convertible_to<size_type<vector_t>>;
-        {
-            (legacy_vector(v)).ptr[0]
-        }
-        ->std::convertible_to<type_t<vector_t>>;
-        {
-            (legacy_vector(v)).inc
-        }
-        ->std::convertible_to<size_type<vector_t>>;
-    };
+                           requires(const vector_t& v) {
+                               {
+                                   (legacy_vector(v)).n
+                               } -> std::convertible_to<size_type<vector_t>>;
+                               {
+                                   (legacy_vector(v)).ptr[0]
+                               } -> std::convertible_to<type_t<vector_t>>;
+                               {
+                                   (legacy_vector(v)).inc
+                               } -> std::convertible_to<size_type<vector_t>>;
+                           };
 
     // Matrix and vector types that can be created
 
@@ -764,27 +671,14 @@ namespace concepts {
      * @ingroup concepts
      */
     template <typename array_t>
-    concept ConstructableArray = Matrix<matrix_type<array_t>>&&
-        Vector<vector_type<array_t>>&& requires(std::vector<type_t<array_t>>& v,
-                                                type_t<array_t>* ptr)
-    {
-        {
-            Create<matrix_type<array_t>>()(v, 2, 3)
-        }
-        ->Matrix<>;
-        {
-            Create<vector_type<array_t>>()(v, 2)
-        }
-        ->Vector<>;
-        {
-            CreateStatic<matrix_type<array_t>, 5, 6>()(ptr)
-        }
-        ->Matrix<>;
-        {
-            CreateStatic<vector_type<array_t>, 5>()(ptr)
-        }
-        ->Vector<>;
-    };
+    concept ConstructableArray =
+        Matrix<matrix_type<array_t>> && Vector<vector_type<array_t>> &&
+        requires(std::vector<type_t<array_t>>& v, type_t<array_t>* ptr) {
+            { Create<matrix_type<array_t>>()(v, 2, 3) } -> Matrix<>;
+            { Create<vector_type<array_t>>()(v, 2) } -> Vector<>;
+            { CreateStatic<matrix_type<array_t>, 5, 6>()(ptr) } -> Matrix<>;
+            { CreateStatic<vector_type<array_t>, 5>()(ptr) } -> Vector<>;
+        };
 
     /** @interface tlapack::concepts::ConstructableMatrix
      * @brief Concept for matrices that implement
@@ -812,18 +706,11 @@ namespace concepts {
      */
     template <typename matrix_t>
     concept ConstructableMatrix =
-        Matrix<matrix_t>&& ConstructableArray<matrix_t>&& requires(
-            std::vector<type_t<matrix_t>>& v, type_t<matrix_t>* ptr)
-    {
-        {
-            Create<matrix_t>()(v, 2, 3)
-        }
-        ->Matrix<>;
-        {
-            CreateStatic<matrix_t, 5, 6>()(ptr)
-        }
-        ->Matrix<>;
-    };
+        Matrix<matrix_t> && ConstructableArray<matrix_t> &&
+        requires(std::vector<type_t<matrix_t>>& v, type_t<matrix_t>* ptr) {
+            { Create<matrix_t>()(v, 2, 3) } -> Matrix<>;
+            { CreateStatic<matrix_t, 5, 6>()(ptr) } -> Matrix<>;
+        };
 
     /** @interface tlapack::concepts::ConstructableAndSliceableMatrix
      * @brief Concept for matrices that satisfy
@@ -836,7 +723,7 @@ namespace concepts {
      */
     template <typename matrix_t>
     concept ConstructableAndSliceableMatrix =
-        SliceableMatrix<matrix_t>&& ConstructableMatrix<matrix_t>;
+        SliceableMatrix<matrix_t> && ConstructableMatrix<matrix_t>;
 
     /** @interface tlapack::concepts::ConstructableVector
      * @brief Concept for vectors that implement tlapack::traits::CreateFunctor
@@ -863,18 +750,11 @@ namespace concepts {
      */
     template <typename vector_t>
     concept ConstructableVector =
-        Vector<vector_t>&& ConstructableArray<vector_t>&& requires(
-            std::vector<type_t<vector_t>>& v, type_t<vector_t>* ptr)
-    {
-        {
-            Create<vector_t>()(v, 2)
-        }
-        ->Vector<>;
-        {
-            CreateStatic<vector_t, 5>()(ptr)
-        }
-        ->Vector<>;
-    };
+        Vector<vector_t> && ConstructableArray<vector_t> &&
+        requires(std::vector<type_t<vector_t>>& v, type_t<vector_t>* ptr) {
+            { Create<vector_t>()(v, 2) } -> Vector<>;
+            { CreateStatic<vector_t, 5>()(ptr) } -> Vector<>;
+        };
 
     /** @interface tlapack::concepts::ConstructableAndSliceableVector
      * @brief Concept for vectors that satisfy
@@ -887,7 +767,7 @@ namespace concepts {
      */
     template <typename vector_t>
     concept ConstructableAndSliceableVector =
-        SliceableVector<vector_t>&& ConstructableVector<vector_t>;
+        SliceableVector<vector_t> && ConstructableVector<vector_t>;
 
 }  // namespace concepts
 }  // namespace tlapack
